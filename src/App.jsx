@@ -1,6 +1,8 @@
 import  React from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
 import { Outlet, useNavigate } from 'react-router';
 import { SessionContext } from './SessionContext';
@@ -8,16 +10,26 @@ import { SessionContext } from './SessionContext';
 const NAVIGATION = [
   {
     kind: 'header',
-    title: 'Main items',
+    title: 'User Dashboard',
   },
   {
     title: 'Dashboard',
     icon: <DashboardIcon />,
   },
   {
-    segment: 'orders',
-    title: 'Orders',
-    icon: <ShoppingCartIcon />,
+    segment: 'projects',
+    title: 'Projects',
+    icon: <AssignmentIcon/>,
+  },
+  {
+    segment: 'managing',
+    title: 'Managing',
+    icon: <ManageAccountsIcon/>,
+  },
+  {
+    segment: 'reports',
+    title: 'Reports',
+    icon: <BugReportIcon/>,
   },
 ];
 
