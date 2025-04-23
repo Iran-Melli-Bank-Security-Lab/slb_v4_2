@@ -1,1 +1,3 @@
-date-fns is installed and used in projects page 
+date-fns installed and used in projects page 
+socket.io-client installed 
+ react-redux and @reduxjs/toolkit installed 
