@@ -53,7 +53,7 @@ export default function App() {
   const sessionContextValue = React.useMemo(() => ({ session, setSession }), [session, setSession]);
 
   return (
-    <SessionContext.Provider value={sessionContextValue}>
+    <SessionContext value={sessionContextValue}>
       <ReactRouterAppProvider
         navigation={NAVIGATION}
         session={session}
@@ -61,6 +61,6 @@ export default function App() {
       >
         <Outlet />
       </ReactRouterAppProvider>
-     </SessionContext.Provider>
+     </SessionContext>
   );
 }
