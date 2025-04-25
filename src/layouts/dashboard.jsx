@@ -9,7 +9,7 @@ const MyToolbarActions = () => {
  
   return (
     <div style={{ display: 'flex', gap: '8px' }}>
-      <ToolbarActions /> {/* این تغییر تم رو حفظ می‌کنه */}
+      <ToolbarActions />
       <IconButton
               size="large"
               aria-label="show 17 new notifications"
