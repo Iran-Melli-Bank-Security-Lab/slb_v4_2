@@ -1,3 +1,4 @@
 date-fns installed and used in projects page 
 socket.io-client installed 
  react-redux and @reduxjs/toolkit installed 
+ js-cookie installed for use in socket to get token of cookie 

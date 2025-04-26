@@ -9,6 +9,7 @@ import SignInPage from './pages/signIn';
 import  RequireAuth from './components/RequireAuth' 
 import { Provider } from 'react-redux';
 import store from "./store"
+import { SocketProvider } from './context/SocketContext';
 
 const router = createBrowserRouter([
   {
@@ -71,7 +72,11 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
+    <SocketProvider>
+
     <RouterProvider router={router} />
+    </SocketProvider>
+
     </Provider>
-  </React.StrictMode>,
+  </React.StrictMode>, 
 );
