@@ -1,7 +1,6 @@
 // src/context/SocketContext.jsx
 import { createContext, useContext, useEffect, useState } from 'react';
 import { socket } from '../socket';
-import Cookies from 'js-cookie';
 
 const SocketContext = createContext(null);
 
