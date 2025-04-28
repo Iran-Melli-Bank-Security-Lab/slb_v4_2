@@ -5,6 +5,7 @@ import App from './App';
 import Layout from './layouts/dashboard';
 import DashboardPage from './pages';
 import Projects from './pages/Projects';
+import Managing from './pages/Managing';
 import SignInPage from './pages/signIn';
 import  RequireAuth from './components/RequireAuth' 
 import { Provider } from 'react-redux';
@@ -26,6 +27,10 @@ const router = createBrowserRouter([
           {
             path: '/projects',
             Component: Projects,
+          },
+          {
+            path: '/managing',
+            Component: Managing ,
           },
         ],
       },

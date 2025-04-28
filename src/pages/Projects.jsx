@@ -1,8 +1,18 @@
 import DataTable from "../components/projects/DataTable";
 
-export default function Projects (){
+const userColumns = [
+  { id: 'name', label: 'Project Name' },
+  { id: 'status', label: 'Status' },
+  { id: 'progress', label: 'Progress' },
+  // ... other user-specific columns
+];
 
-  return <>  
-  <DataTable/>
-  </>
+export default function UserProjects() {
+  return (
+    <DataTable 
+      columns={userColumns}
+      fetchUserType="user"
+      title="My Projects"
+    />
+  );
 }

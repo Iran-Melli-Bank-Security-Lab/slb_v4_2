@@ -6,7 +6,3 @@ export const loginAPI = async (username, password) => {
     body: JSON.stringify({ username, password }),
   });
 };
-
-export const getProfile = async () => {
-  return apiFetch('/api/me'); // GET by default
-};
