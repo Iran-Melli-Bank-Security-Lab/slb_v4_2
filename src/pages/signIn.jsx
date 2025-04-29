@@ -15,9 +15,16 @@ const fakeAsyncGetSession = async (formData) => {
 
   return {
     user: {
-      name: data.user.username,
+      id:data.user.id , 
+      name:data.user.username , 
       email: data.user.username,
-      image: "https://avatars.githubusercontent.com/u/19550456",
+      firstName:data.user.firstName , 
+      lastName : data.user.lastName , 
+      roles : data.user.roles , 
+      image:data.user.profileImageUrl , 
+      score:data.user.score , 
+      devOps: data.user.devOps , 
+      userProject:data.user.userProject
     },
   };
 };

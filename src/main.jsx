@@ -1,5 +1,6 @@
 import  React from 'react';
 import  ReactDOM from 'react-dom/client';
+import './index.css'      // ← make sure this import is here
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import App from './App';
 import Layout from './layouts/dashboard';
@@ -7,7 +8,6 @@ import DashboardPage from './pages';
 import Projects from './pages/Projects';
 import Managing from './pages/Managing';
 import SignInPage from './pages/signIn';
-import  RequireAuth from './components/RequireAuth' 
 import { Provider } from 'react-redux';
 import store from "./store"
 import { SocketProvider } from './context/SocketContext';

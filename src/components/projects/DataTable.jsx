@@ -6,11 +6,14 @@ import {
 import ProjectProgress from './ProjectProgress';
 import { useSocket } from '../../context/SocketContext';
 import { getProjects } from '../../api/projects/getProject';
+import { useSession  } from '../../SessionContext';
 
 export default function DataTable({ 
     columns, 
     fetchUserType = "manager", 
     title = "Projects" }) {
+
+      const {user} = useSession().session
 
   const socket = useSocket();
   const [orderDirection, setOrderDirection] = useState('asc');
@@ -23,7 +26,7 @@ export default function DataTable({
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const res = await getProjects(fetchUserType);
+        const res = await getProjects(fetchUserType , user.id  );
         setTableRows(res.projects);
       } catch (err) {
         console.error('Failed to load projects:', err);
@@ -111,7 +114,7 @@ export default function DataTable({
           </TableHead>
           <TableBody>
             {paginated.map(row => (
-              <TableRow key={row.id} hover>
+              <TableRow key={row._id} hover>
                 {columns.map(col => (
                   <TableCell key={col.id}>
                     {col.render 

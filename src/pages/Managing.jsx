@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { 
-  MenuItem, 
-  Select, 
+import {
   Button,
   IconButton,
   Tooltip
@@ -10,74 +8,61 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import PeopleIcon from '@mui/icons-material/People';
 import DataTable from '../components/projects/DataTable';
+import AssignPentester from '../components/projects/manager_projects/AssignPentester';
 
 const ManagerProjects = () => {
-  const [assignments, setAssignments] = useState({});
-  const [users, setUsers] = useState([
-    { id: 1, name: 'John Doe' },
-    { id: 2, name: 'Jane Smith' },
-    { id: 3, name: 'Mike Johnson' },
-  ]);
+  // track which project we’re assigning, and whether modal is open
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
 
-  const handleAssignChange = (projectId, userId) => {
-    setAssignments(prev => ({
-      ...prev,
-      [projectId]: userId
-    }));
-    // API call to update assignment would go here
-    console.log(`Assigned project ${projectId} to user ${userId}`);
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setSelectedProject(null);
+  };
+
+  const handleOpenModal = (project) => {
+    setSelectedProject(project);
+    setOpenModal(true);
   };
 
   const handleGenerateReport = (projectId) => {
-    // Report generation logic
     console.log(`Generating report for project ${projectId}`);
-    // In real app: trigger report generation API
+   
   };
 
   const handleViewIdentifier = (projectId) => {
-    console.log(`Viewing identifier for project ${projectId}`);
     window.open(`/projects/${projectId}/info`, '_blank');
   };
- 
+
   const columns = [
-    { 
-      id: 'name', 
+    {
+      id: 'projectName',
       label: 'Project Name',
       sortable: true
     },
-    { 
-      id: 'assign', 
+    {
+      id: 'assign',
       label: 'Assign',
       sortable: false,
       render: (row) => (
-        <Select
-          value={assignments[row.id] || ''}
-          onChange={(e) => handleAssignChange(row.id, e.target.value)}
-          displayEmpty
+        <Button
+          variant="outlined"
           size="small"
-          sx={{ minWidth: 120 }}
-          startAdornment={
-            <PeopleIcon color="action" sx={{ mr: 1 }} />
-          }
+          startIcon={<PeopleIcon />}
+          onClick={() => handleOpenModal(row)}
+          sx={{ textTransform: 'none' }}
         >
-          <MenuItem value="" disabled>
-            <em>Select pentester</em>
-          </MenuItem>
-          {users.map(user => (
-            <MenuItem key={user.id} value={user.id}>
-              {user.name}
-            </MenuItem>
-          ))}
-        </Select>
+          Pentesters
+        </Button>
       )
     },
-    { 
-      id: 'identifier', 
+    {
+      id: 'identifier',
       label: 'Identifier',
       sortable: false,
       render: (row) => (
         <Tooltip title="View project identifier">
-          <IconButton 
+          <IconButton
             onClick={() => handleViewIdentifier(row.id)}
             color="primary"
           >
@@ -86,8 +71,8 @@ const ManagerProjects = () => {
         </Tooltip>
       )
     },
-    { 
-      id: 'generateReport', 
+    {
+      id: 'generateReport',
       label: 'Generate Report',
       sortable: false,
       render: (row) => (
@@ -102,24 +87,25 @@ const ManagerProjects = () => {
         </Button>
       )
     },
-    { 
-      id: 'version', 
-      label: 'Version',
-      sortable: true
-    },
-    { 
-      id: 'date', 
-      label: 'Date',
-      sortable: true
-    },
+    { id: 'version', label: 'Version', sortable: true },
+    { id: 'created_date', label: 'Date', sortable: true }
   ];
 
   return (
-    <DataTable 
-      columns={columns}
-      fetchUserType="manager"
-      title="Manager Projects Dashboard"
-    />
+    <>
+      <DataTable
+        columns={columns}
+        fetchUserType="manager"
+        title="Manager Projects"
+      />
+
+      {/* render your modal here */}
+      <AssignPentester
+        open={openModal}
+        onClose={handleCloseModal}
+        project={selectedProject}
+      />
+    </>
   );
 };
 
