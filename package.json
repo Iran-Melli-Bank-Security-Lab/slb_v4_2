@@ -11,10 +11,11 @@
     "@tailwindcss/vite": "^4.1.4",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.2",
+    "@vitejs/plugin-react": "^4.4.1",
+    "@vitejs/plugin-react-swc": "^3.9.0",
     "tailwindcss": "^4.1.4",
     "typescript": "^5",
-    "vite": "^5.4.8"
+    "vite": "^6.3.4"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -23,6 +24,7 @@
     "@mui/material": "^7.0.2",
     "@reduxjs/toolkit": "^2.7.0",
     "@toolpad/core": "^0.14.0",
+    "babel-plugin-react-compiler": "^19.1.0-rc.1",
     "date-fns": "^4.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
