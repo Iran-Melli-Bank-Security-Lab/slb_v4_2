@@ -8,10 +8,7 @@ import { useSocket } from '../../context/SocketContext';
 import { getProjects } from '../../api/projects/getProject';
 import { useSession  } from '../../SessionContext';
 
-export default function DataTable({ 
-    columns, 
-    fetchUserType = "manager", 
-    title = "Projects" }) {
+export default function DataTable({ columns, fetchUserType = "manager", title = "Projects" }) {
 
       const {user} = useSession().session
 
