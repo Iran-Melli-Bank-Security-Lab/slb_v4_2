@@ -34,9 +34,7 @@ const NAVIGATION = [
   },
 ];
 
-const BRANDING = {
-  title: 'My Toolpad Core App',
-};
+
 
 function AppContent() {
   const { session, clearSession, loading } = useSession();

@@ -4,12 +4,27 @@ import { PageContainer } from '@toolpad/core/PageContainer';
 import { useSession } from '../SessionContext';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import { Badge, IconButton } from '@mui/material';
+import { useSocket } from '../context/SocketContext';
+import { useEffect } from 'react';
 
 const MyToolbarActions = () => {
- 
+
+  const socket = useSocket()
+  useEffect(()=>{
+
+    socket.on("assignedUser" , (data)=>{
+      console.log("socket data in here : " , data )
+    })
+
+  }, [socket])
+  
   return (
     <div style={{ display: 'flex', gap: '8px' }}>
       <ToolbarActions />
+    
+    
+    
+
       <IconButton
               size="large"
               aria-label="show 17 new notifications"
