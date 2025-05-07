@@ -90,8 +90,8 @@ function AppContent() {
 
 export default function App() {
   return (
-    <SessionProvider>
+   <>
       <AppContent />
-    </SessionProvider>
+  </>
   );
 }
