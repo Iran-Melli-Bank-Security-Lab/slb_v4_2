@@ -1,18 +1,139 @@
-import DataTable from "../components/projects/DataTable";
+import React, { useEffect , useMemo, useState} from 'react';
+import DataTable from '../components/projects/DataTable';
+import { Button, Chip } from '@mui/material';
+import { format } from 'date-fns';
+import { useSocket } from '../context/SocketContext';
+import { toast } from 'react-toastify';
+import { getProjects } from '../api/projects/getProject';
+import { useSession } from '../SessionContext';
 
-const userColumns = [
-  { id: 'name', label: 'Project Name' },
-  { id: 'status', label: 'Status' },
-  { id: 'progress', label: 'Progress' },
-  // ... other user-specific columns
-];
+export default function UserProjectsTable() {
+  const { user } = useSession().session;
+  const socket = useSocket();
 
-export default function UserProjects() {
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    // Initial fetch
+    const fetchProjects = async () => {
+      try {
+        const res = await getProjects('user', user.id);
+        console.log("res in line 21 : "  , res )
+        setProjects(res.projects);
+      } catch (err) {
+        console.error('Failed to fetch user projects:', err);
+      }
+
+    };
+
+    fetchProjects();
+
+    // Socket listener for real-time assignment
+    const handleAssigned = (newProject) => {
+
+      if (!newProject) return;
+
+      fetchProjects();
+
+      // Add to top of list
+      // setProjects(prev => [newProject, ...prev]);
+
+      // Show toast notification
+      toast.info(`You have been assigned to a new project: ${newProject}`, {
+        position: 'top-right',
+        autoClose: 4000,
+      });
+    };
+
+    socket.on('newProjectForUser', handleAssigned);
+
+    return () => {
+      socket.off('newProjectForUser', handleAssigned);
+    };
+  }, [socket, user.id]);
+
+  
+const columns = useMemo(() => [
+  {
+    id: 'projectName',
+    label: 'Project Name',
+    sortable: true,
+    render: (row) => row.project?.projectName || '—',
+  },
+  {
+    id: 'manager',
+    label: 'Manager',
+    sortable: true,
+    render: (row) =>
+      row.manager ? `${row.manager.firstName} ${row.manager.lastName}` : '—',
+
+  },
+  {
+    id: 'status',
+    label: 'Status',
+    sortable: true,
+    render: (row) => (
+      <Chip
+        label={row.status || 'Unknown'}
+        color={
+          row.status === 'completed' ? 'success' :
+          row.status === 'in-progress' ? 'primary' :
+          row.status === 'pending' ? 'warning' :
+          'default'
+        }
+        size="small"
+      />
+    ),
+  },
+  {
+    id: 'progress',
+    label: 'Progress',
+    sortable: false,
+    render: (row) => `${row.progress}%`,
+  },
+  {
+    id: 'report',
+    label: 'Report',
+    sortable: false,
+    render: (row) => (
+      <Button
+        size="small"
+        variant="outlined"
+        onClick={() => window.open(`/reports/${row._id}`, '_blank')}
+      >
+        View
+      </Button>
+    ),
+  },
+  {
+    id: 'expireAt',
+    label: 'Expire At',
+    sortable: true,
+    render: (row) =>
+      row?.project?.expireDay ? format(new Date(row?.project?.expireDay), 'yyyy-MM-dd') : '—',
+  },
+  {
+    id: 'version',
+    label: 'Version',
+    sortable: true,
+  },
+  {
+    id: 'createdAt',
+    label: 'Date',
+    sortable: true,
+    render: (row) =>
+      row.created_at ? format(new Date(row.created_at), 'yyyy-MM-dd') : '—',
+  },
+], []);
+    
+
+
   return (
-    <DataTable 
-      columns={userColumns}
-      fetchUserType="user"
+    <DataTable
+      columns={columns}
+      fetchUserType="user" // still needed for DataTable fallback
       title="My Projects"
+      overrideRows={projects} // optional: allow injecting preloaded rows
     />
   );
 }

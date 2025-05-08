@@ -1,12 +1,8 @@
 import { apiFetch } from '../api';
 
-export const getProjects = async (role, userId) => {
+export const userNotif = async (userId) => {
     // choose your base path
-    const basePath =
-      role === "manager"
-        ? "/api/projects/manager"
-        : "/api/projects/user";
-  
+    const basePath = "/api/notification/user"
     // build a query string
     const params = new URLSearchParams({ userId });
   

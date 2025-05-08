@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button, IconButton, Tooltip } from "@mui/material";
 import DescriptionIcon from "@mui/icons-material/Description";
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
@@ -7,7 +7,7 @@ import DataTable from "../components/projects/DataTable";
 import AssignPentester from "../components/projects/manager_projects/AssignPentester";
 
 const ManagerProjects = () => {
-  // track which project we’re assigning, and whether modal is open
+
   const [openModal, setOpenModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
@@ -30,7 +30,7 @@ const ManagerProjects = () => {
     window.open(`/projects/${projectId}/info`, "_blank");
   };
 
-  const columns = [
+  const columns = useMemo (()=> [
     {
       id: "projectName",
       label: "Project Name",
@@ -85,7 +85,7 @@ const ManagerProjects = () => {
     },
     { id: "version", label: "Version", sortable: true },
     { id: "created_date", label: "Date", sortable: true },
-  ];
+  ])
 
   return (
     <>

@@ -5,7 +5,7 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
 import { Outlet, useNavigate } from 'react-router';
-import { SessionProvider, useSession } from './SessionContext'; // 👈 updated import
+import { useSession } from './SessionContext'; // 👈 updated import
 import validateSession from './utils/validateSession';
 
 const NAVIGATION = [

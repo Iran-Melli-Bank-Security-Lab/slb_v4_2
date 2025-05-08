@@ -4,15 +4,13 @@ import {
   TablePagination, TableSortLabel, TextField, Toolbar, Typography
 } from '@mui/material';
 import ProjectProgress from './ProjectProgress';
-import { useSocket } from '../../context/SocketContext';
 import { getProjects } from '../../api/projects/getProject';
 import { useSession  } from '../../SessionContext';
 
-export default function DataTable({ columns, fetchUserType = "manager", title = "Projects" }) {
+export default function DataTable({ columns, fetchUserType = "manager", title = "Projects" , overrideRows }) {
 
       const {user} = useSession().session
 
-  const socket = useSocket();
   const [orderDirection, setOrderDirection] = useState('asc');
   const [orderBy, setOrderBy] = useState('name');
   const [page, setPage] = useState(0);
@@ -21,6 +19,12 @@ export default function DataTable({ columns, fetchUserType = "manager", title = 
   const [tableRows, setTableRows] = useState([]);
 
   useEffect(() => {
+
+    if(overrideRows){
+      setTableRows(overrideRows)
+      return ; 
+    }
+
     const fetchProjects = async () => {
       try {
         const res = await getProjects(fetchUserType , user.id  );
@@ -30,16 +34,7 @@ export default function DataTable({ columns, fetchUserType = "manager", title = 
       }
     };
     fetchProjects();
-
-    const handleNewProject = (project) => {
-      setTableRows(prev => [project, ...prev]);
-    };
-    socket.on('projectCreated', handleNewProject);
-
-    return () => {
-      socket.off('projectCreated', handleNewProject);
-    };
-  }, [socket, fetchUserType]);
+  }, [overrideRows ,  fetchUserType]);
 
 
   const handleSortRequest = (columnId) => {

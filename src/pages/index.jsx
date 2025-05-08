@@ -1,7 +1,6 @@
 // src/components/Chat.js
 import { useEffect, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
-import NotificationBar from '../components/NotificationBar';
 
 export default function Chat() {
   const socket = useSocket();
@@ -26,7 +25,7 @@ export default function Chat() {
   
      { console.log("msg : " , msgs )}
       <ul>{msgs.map((m,i)=><li key={i}> {m.id } : {m.user} : {m.content} </li>)}</ul>
-  <NotificationBar/>
+
     </>
   );
 }
