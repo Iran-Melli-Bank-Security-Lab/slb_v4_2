@@ -7,10 +7,13 @@ import ProjectProgress from './ProjectProgress';
 import { getProjects } from '../../api/projects/getProject';
 import { useSession  } from '../../SessionContext';
 
-export default function DataTable({ columns, fetchUserType = "manager", title = "Projects" , overrideRows }) {
+export default function DataTable({ columns, fetchUserType = "manager", title = "Projects" , overrideRows ,
+    doubleClickable = false,
+    onRowDoubleClick,
 
-      const {user} = useSession().session
+ }) {
 
+  const {user} = useSession().session
   const [orderDirection, setOrderDirection] = useState('asc');
   const [orderBy, setOrderBy] = useState('name');
   const [page, setPage] = useState(0);
@@ -63,11 +66,13 @@ export default function DataTable({ columns, fetchUserType = "manager", title = 
       val.toString().toLowerCase().includes(searchQuery.toLowerCase())
     )
   );
+
   const sorted = [...filtered].sort((a, b) => {
     if (a[orderBy] < b[orderBy]) return orderDirection === 'asc' ? -1 : 1;
     if (a[orderBy] > b[orderBy]) return orderDirection === 'asc' ? 1 : -1;
     return 0;
   });
+
   const paginated = sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
@@ -83,7 +88,7 @@ export default function DataTable({ columns, fetchUserType = "manager", title = 
         />
       </Toolbar>
 
-      <TableContainer>
+      <TableContainer >
         <Table stickyHeader>
           <TableHead>
             <TableRow>
@@ -106,7 +111,18 @@ export default function DataTable({ columns, fetchUserType = "manager", title = 
           </TableHead>
           <TableBody>
             {paginated.map(row => (
-              <TableRow key={row._id} hover>
+              <TableRow 
+              key={row._id} 
+              hover 
+              onDoubleClick={() => {
+                if (doubleClickable && onRowDoubleClick) {
+                  onRowDoubleClick(row);
+                }
+              }}
+              sx={{
+                cursor: doubleClickable ? 'pointer' : 'default',
+              }}
+              >
                 {columns.map(col => (
                   <TableCell key={col.id}>
                     {col.render 
