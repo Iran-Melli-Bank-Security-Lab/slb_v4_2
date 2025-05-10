@@ -1,4 +1,4 @@
-import React, { useEffect , useMemo, useState} from 'react';
+import  { useEffect , useMemo, useState} from 'react';
 import DataTable from '../components/projects/DataTable';
 import { Button, Chip } from '@mui/material';
 import { format } from 'date-fns';
@@ -6,10 +6,12 @@ import { useSocket } from '../context/SocketContext';
 import { toast } from 'react-toastify';
 import { getProjects } from '../api/projects/getProject';
 import { useSession } from '../SessionContext';
+import { useNavigate } from 'react-router';
 
 export default function UserProjectsTable() {
   const { user } = useSession().session;
   const socket = useSocket();
+  const navigate = useNavigate();
 
   const [projects, setProjects] = useState([]);
 
@@ -134,6 +136,8 @@ const columns = useMemo(() => [
       fetchUserType="user" // still needed for DataTable fallback
       title="My Projects"
       overrideRows={projects} // optional: allow injecting preloaded rows
+      doubleClickable
+      onRowDoubleClick={(row) => navigate(`/do-project/${row._id}`)}
     />
   );
 }
