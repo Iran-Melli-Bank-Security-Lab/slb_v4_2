@@ -13,6 +13,7 @@ import { Provider } from 'react-redux';
 import store from "./store"
 import { SocketProvider } from './context/SocketContext';
 import { SessionProvider } from './SessionContext'; // 👈 updated import
+import DoProjectPage from './pages/DoProject';
 
 const router = createBrowserRouter([
   {
@@ -34,6 +35,9 @@ const router = createBrowserRouter([
             path: '/managing',
             Component: Managing ,
           },
+          {path:'do-project/:id' , 
+            Component:DoProjectPage
+          }
         ],
       },
       {
