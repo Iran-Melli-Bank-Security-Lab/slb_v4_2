@@ -3,6 +3,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import SettingsInputComponentIcon from '@mui/icons-material/SettingsInputComponent';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
 import { Outlet, useNavigate } from 'react-router';
 import { useSession } from './SessionContext'; // 👈 updated import
@@ -23,14 +24,28 @@ const NAVIGATION = [
     icon: <AssignmentIcon />,
   },
   {
+    segment: 'reports',
+    title: 'Reports',
+    icon: <BugReportIcon />,
+  },
+  {
+    kind: 'header',
+    title: 'Project Manager',
+  },
+  {
     segment: 'managing',
     title: 'Managing',
     icon: <ManageAccountsIcon />,
   },
+  
   {
-    segment: 'reports',
-    title: 'Reports',
-    icon: <BugReportIcon />,
+    kind: 'header',
+    title: 'DevOps',
+  },
+  {
+    segment: 'devops',
+    title: 'DevOps',
+    icon: <SettingsInputComponentIcon />,
   },
 ];
 
