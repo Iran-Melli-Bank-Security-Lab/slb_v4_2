@@ -246,9 +246,6 @@ const ProjectPage = () => {
       {/* Section 1: Project Information */}
     <ProjectInfo projectData={projectData} devOpsInfo={devOpsInfo} totalWorkTime={totalWorkTime} isTracking={isTracking} />
 
-
-
-      {/* Section 2: Project Status */}
       <Card className="mb-8 shadow-lg rounded-xl overflow-hidden">
         <Box className="bg-gradient-to-r from-gray-800 to-gray-900 p-6">
           <Box
@@ -366,7 +363,6 @@ const ProjectPage = () => {
               </Box>
             </Box>
 
-            {/* Time Entries History */}
             {timeEntries.length > 0 && (
               <>
                 <Button
