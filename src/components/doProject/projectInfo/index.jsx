@@ -24,6 +24,7 @@ const formatTime = (seconds) => {
 
 function ProjectInfo({projectData , devOpsInfo , totalWorkTime  , isTracking}){
 
+  console.log("render in project info ******** ")
     return <>
     
     <Card className="mb-8 shadow-lg rounded-xl overflow-hidden">
