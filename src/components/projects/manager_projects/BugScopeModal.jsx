@@ -11,10 +11,8 @@ import {
   ListItem,
   ListItemText,
   Collapse,
-  IconButton,
   TextField,
   Chip,
-  useMediaQuery,
   useTheme,
   InputAdornment,
 } from "@mui/material";
@@ -25,166 +23,176 @@ import {
   SelectAll,
   Deselect,
 } from "@mui/icons-material";
+import { getOwasp } from "../../../api/owasp/web/getOwasp";
 
-// Sample OWASP WSTG categories (should come from API in production)
-const OWASP_WSTG_CATEGORIES = {
-  "Information Gathering": {
-    "Conduct Search Engine Discovery": [],
-    "Fingerprint Web Server": [],
-    "Review Webserver Metafiles": [],
-  },
-  "Configuration and Deployment Management Testing": {
-    "Test Network Infrastructure Configuration": [],
-    "Test Application Platform Configuration": [],
-  },
-  "Identity Management Testing": {
-    "Test Role Definitions": [],
-    "Test User Registration Process": [],
-  },
-  "Authentication Testing": {
-    "Test Credential Strength": [],
-    "Test for Default Credentials": [],
-  },
-  "Authorization Testing": {
-    "Test Directory Traversal File Include": [],
-    "Test for Bypassing Authorization Schema": [],
-    "Test for Privilege Escalation": [],
-  },
-};
+const WebTestItem = memo(({ testLabel, isSelected, onToggle, wstg }) => (
+  <ListItem sx={{ pl: 4 }}>
+    <FormControlLabel
+      control={
+        <Checkbox
+          checked={isSelected}
+          onChange={onToggle}
+        />
+      }
+      label={
+        <Box>
+          <Typography>{testLabel}</Typography>
+          {wstg && (
+            <Typography variant="caption" color="text.secondary">
+              {wstg}
+            </Typography>
+          )}
+        </Box>
+      }
+    />
+  </ListItem>
+));
 
 const BugScopeModal = ({ open, onClose, userId, project }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [openCategories, setOpenCategories] = useState({});
-  const [selectedTests, setSelectedTests] = useState([]);
+  const [selectedTests, setSelectedTests] = useState(new Set());
   const [notes, setNotes] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Memoized filtered categories based on search query
-  const filteredCategories = useMemo(() => {
-    if (!searchQuery) return OWASP_WSTG_CATEGORIES;
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    const filtered = {};
-    Object.entries(OWASP_WSTG_CATEGORIES).forEach(([category, tests]) => {
-      const filteredTests = {};
-      Object.entries(tests).forEach(([test, subTests]) => {
-        if (test.toLowerCase().includes(searchQuery.toLowerCase())) {
-          filteredTests[test] = subTests;
-        }
-      });
+  useEffect(() => {
+    if (!open) return;
 
-      if (
-        Object.keys(filteredTests).length > 0 ||
-        category.toLowerCase().includes(searchQuery.toLowerCase())
-      ) {
-        filtered[category] = filteredTests;
+    const fetchCategories = async () => {
+      try {
+        setLoading(true);
+        const res = await getOwasp();
+        setCategories(res.result || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-    });
+    };
 
-    return filtered;
-  }, [searchQuery]);
+    fetchCategories();
+  }, [open]);
 
-  // Select all tests in the current filtered view
+  const flattenTests = useCallback((items, parentLabel = "") => {
+    return items.reduce((acc, item) => {
+      if (item.children?.length > 0) {
+        return [...acc, ...flattenTests(item.children, `${parentLabel}${parentLabel ? " > " : ""}${item.label}`)];
+      }
+      return [...acc, {
+        id: item._id,
+        label: `${parentLabel}${parentLabel ? " > " : ""}${item.label}`,
+        wstg: item.wstg || "",
+      }];
+    }, []);
+  }, []);
+
+  const formattedCategories = useMemo(() => {
+    return categories.reduce((acc, category) => {
+      const tests = flattenTests(category.children).reduce((testAcc, test) => {
+        testAcc[test.label] = test;
+        return testAcc;
+      }, {});
+      acc[category.label] = tests;
+      return acc;
+    }, {});
+  }, [categories, flattenTests]);
+
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return formattedCategories;
+
+    const query = searchQuery.toLowerCase();
+    return Object.entries(formattedCategories).reduce((acc, [category, tests]) => {
+      const filteredTests = Object.entries(tests).reduce((testAcc, [testLabel, test]) => {
+        if (testLabel.toLowerCase().includes(query)) {
+          testAcc[testLabel] = test;
+        }
+        return testAcc;
+      }, {});
+
+      if (Object.keys(filteredTests).length > 0 || category.toLowerCase().includes(query)) {
+        acc[category] = filteredTests;
+      }
+      return acc;
+    }, {});
+  }, [searchQuery, formattedCategories]);
+
   const handleSelectAll = useCallback(() => {
-    const allTests = [];
-    Object.entries(filteredCategories).forEach(([category, tests]) => {
-      Object.keys(tests).forEach((test) => {
-        allTests.push(`${category}-${test}`);
+    setSelectedTests(prev => {
+      const newSelected = new Set(prev);
+      Object.entries(filteredCategories).forEach(([category, tests]) => {
+        Object.keys(tests).forEach(testLabel => {
+          newSelected.add(`${category}-${testLabel}`);
+        });
       });
+      return newSelected;
     });
-    setSelectedTests(Array.from(new Set([...selectedTests, ...allTests])));
-  }, [filteredCategories, selectedTests]);
+  }, [filteredCategories]);
 
-  // Deselect all tests in the current filtered view
   const handleDeselectAll = useCallback(() => {
-    const filteredTestIds = [];
-    Object.entries(filteredCategories).forEach(([category, tests]) => {
-      Object.keys(tests).forEach((test) => {
-        filteredTestIds.push(`${category}-${test}`);
+    setSelectedTests(prev => {
+      const newSelected = new Set(prev);
+      Object.entries(filteredCategories).forEach(([category, tests]) => {
+        Object.keys(tests).forEach(testLabel => {
+          newSelected.delete(`${category}-${testLabel}`);
+        });
       });
+      return newSelected;
     });
-    setSelectedTests(
-      selectedTests.filter((id) => !filteredTestIds.includes(id))
-    );
-  }, [filteredCategories, selectedTests]);
+  }, [filteredCategories]);
 
-  // Toggle category expansion
   const handleToggleCategory = useCallback((category) => {
-    setOpenCategories((prev) => ({
+    setOpenCategories(prev => ({
       ...prev,
       [category]: !prev[category],
     }));
   }, []);
 
-  // Toggle individual test selection
-  const handleTestToggle = useCallback((category, test) => {
-    const testId = `${category}-${test}`;
-    setSelectedTests((prev) =>
-      prev.includes(testId)
-        ? prev.filter((id) => id !== testId)
-        : [...prev, testId]
-    );
+  const handleTestToggle = useCallback((category, testLabel) => {
+    const testId = `${category}-${testLabel}`;
+    setSelectedTests(prev => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(testId)) {
+        newSelected.delete(testId);
+      } else {
+        newSelected.add(testId);
+      }
+      return newSelected;
+    });
   }, []);
 
-  // Toggle all tests in a category
-  const handleToggleCategoryTests = useCallback(
-    (category) => {
-      const categoryTests = Object.keys(filteredCategories[category] || {}).map(
-        (test) => `${category}-${test}`
+  const handleToggleCategoryTests = useCallback((category) => {
+    setSelectedTests(prev => {
+      const newSelected = new Set(prev);
+      const categoryTests = Object.keys(filteredCategories[category] || {});
+      const allSelected = categoryTests.every(testLabel => 
+        newSelected.has(`${category}-${testLabel}`)
       );
 
-      const allSelected = categoryTests.every((test) =>
-        selectedTests.includes(test)
-      );
-
-      setSelectedTests((prev) =>
-        allSelected
-          ? prev.filter((id) => !categoryTests.includes(id))
-          : Array.from(new Set([...prev, ...categoryTests]))
-      );
-    },
-    [filteredCategories, selectedTests]
-  );
-
-  const handleAssign = () => {
-   
-    onClose();
-  };
-
-  // Mobile-friendly list item component
-  const MobileTestItem = ({ category, test }) => (
-    <ListItem
-      button
-      onClick={() => handleTestToggle(category, test)}
-      sx={{ pl: 2 }}
-    >
-      <Checkbox
-        edge="start"
-        checked={selectedTests.includes(`${category}-${test}`)}
-        tabIndex={-1}
-        disableRipple
-      />
-      <ListItemText primary={test} sx={{ wordBreak: "break-word" }} />
-    </ListItem>
-  );
-
-  // Web list item component
-  const WebTestItem = ({ category, test }) => (
-    <ListItem sx={{ pl: 4 }}>
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={selectedTests.includes(`${category}-${test}`)}
-            onChange={() => handleTestToggle(category, test)}
-          />
+      categoryTests.forEach(testLabel => {
+        const testId = `${category}-${testLabel}`;
+        if (allSelected) {
+          newSelected.delete(testId);
+        } else {
+          newSelected.add(testId);
         }
-        label={test}
-      />
-    </ListItem>
-  );
+      });
 
-  return (
-    <>
+      return newSelected;
+    });
+  }, [filteredCategories]);
+
+  const handleAssign = useCallback(() => {
+    const selectedTestsArray = Array.from(selectedTests);
+    console.log("Assigned tests:", selectedTestsArray);
+    onClose();
+  }, [selectedTests, onClose]);
+
+  if (loading) {
+    return (
       <Modal open={open} onClose={onClose}>
         <Box
           sx={{
@@ -192,228 +200,233 @@ const BugScopeModal = ({ open, onClose, userId, project }) => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: isMobile ? "95%" : "80%",
+            width: "80%",
             maxWidth: 800,
-            maxHeight: "90vh",
             bgcolor: "background.paper",
             boxShadow: 24,
-            p: isMobile ? 2 : 4,
+            p: 4,
             borderRadius: 2,
-            overflow: "auto",
+            textAlign: "center",
           }}
         >
-          <Typography variant="h5" gutterBottom>
-            Assign Bug Scope
-          </Typography>
-          <Typography variant="subtitle1" gutterBottom>
-            Pentester: {userId} | Project: {project?.projectName}
-          </Typography>
-
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Search tests..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            sx={{ mb: 2 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={<SelectAll />}
-              onClick={handleSelectAll}
-              size="small"
-            >
-              Select All
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Deselect />}
-              onClick={handleDeselectAll}
-              size="small"
-            >
-              Deselect All
-            </Button>
-          </Box>
-
-          <Typography variant="h6" sx={{ mt: 1 }}>
-            OWASP {isMobile ? "" : "Web Security Testing Guide (WSTG)"}
-          </Typography>
-
-          {isMobile ? (
-            // Mobile-friendly list view
-            <List>
-              {Object.entries(filteredCategories).map(([category, tests]) => (
-                <div key={category}>
-                  <ListItem
-                    button
-                    onClick={() => handleToggleCategory(category)}
-                    sx={{
-                      bgcolor: openCategories[category]
-                        ? "action.hover"
-                        : "inherit",
-                    }}
-                  >
-                    <Checkbox
-                      edge="start"
-                      checked={Object.keys(tests).every((test) =>
-                        selectedTests.includes(`${category}-${test}`)
-                      )}
-                      indeterminate={
-                        Object.keys(tests).some((test) =>
-                          selectedTests.includes(`${category}-${test}`)
-                        ) &&
-                        !Object.keys(tests).every((test) =>
-                          selectedTests.includes(`${category}-${test}`)
-                        )
-                      }
-                      onChange={() => handleToggleCategoryTests(category)}
-                      onClick={(e) => e.stopPropagation()}
-                      tabIndex={-1}
-                      disableRipple
-                    />
-                    <ListItemText primary={category} />
-                    {openCategories[category] ? <ExpandLess /> : <ExpandMore />}
-                  </ListItem>
-                  <Collapse
-                    in={openCategories[category]}
-                    timeout="auto"
-                    unmountOnExit
-                  >
-                    <List component="div" disablePadding>
-                      {Object.keys(tests).map((test) => (
-                        <MobileTestItem
-                          key={test}
-                          category={category}
-                          test={test}
-                        />
-                      ))}
-                    </List>
-                  </Collapse>
-                  <Divider />
-                </div>
-              ))}
-            </List>
-          ) : (
-            <List>
-              {Object.entries(filteredCategories).map(([category, tests]) => (
-                <div key={category}>
-                  <ListItem
-                    button
-                    onClick={() => handleToggleCategory(category)}
-                    sx={{
-                      bgcolor: openCategories[category]
-                        ? "action.hover"
-                        : "inherit",
-                    }}
-                  >
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={Object.keys(tests).every((test) =>
-                            selectedTests.includes(`${category}-${test}`)
-                          )}
-                          indeterminate={
-                            Object.keys(tests).some((test) =>
-                              selectedTests.includes(`${category}-${test}`)
-                            ) &&
-                            !Object.keys(tests).every((test) =>
-                              selectedTests.includes(`${category}-${test}`)
-                            )
-                          } // ✅ Closed properly now
-                          onChange={() => handleToggleCategoryTests(category)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      }
-                      label={category}
-                      sx={{ flexGrow: 1 }}
-                    />
-
-                    {openCategories[category] ? <ExpandLess /> : <ExpandMore />}
-                  </ListItem>
-                  <Collapse
-                    in={openCategories[category]}
-                    timeout="auto"
-                    unmountOnExit
-                  >
-                    <List component="div" disablePadding>
-                      {Object.keys(tests).map((test) => (
-                        <WebTestItem
-                          key={test}
-                          category={category}
-                          test={test}
-                        />
-                      ))}
-                    </List>
-                  </Collapse>
-                  <Divider />
-                </div>
-              ))}
-            </List>
-          )}
-
-          <TextField
-            label="Additional Notes"
-            multiline
-            rows={isMobile ? 2 : 4}
-            fullWidth
-            variant="outlined"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            sx={{ mt: 3 }}
-          />
-
-          {selectedTests.length > 0 && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2">
-                Selected Tests ({selectedTests.length}):
-              </Typography>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
-                {selectedTests.slice(0, isMobile ? 3 : 6).map((test) => (
-                  <Chip
-                    key={test}
-                    label={test.split("-")[1]}
-                    onDelete={() =>
-                      setSelectedTests(selectedTests.filter((t) => t !== test))
-                    }
-                    size="small"
-                  />
-                ))}
-                {selectedTests.length > (isMobile ? 3 : 6) && (
-                  <Chip
-                    label={`+${selectedTests.length - (isMobile ? 3 : 6)} more`}
-                    size="small"
-                  />
-                )}
-              </Box>
-            </Box>
-          )}
-
-          <Box
-            sx={{ display: "flex", justifyContent: "flex-end", mt: 3, gap: 2 }}
-          >
-            <Button onClick={onClose} variant="outlined">
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handleAssign}
-              disabled={selectedTests.length === 0}
-            >
-              Assign Selected Tests
-            </Button>
-          </Box>
+          <Typography variant="h6">Loading OWASP categories...</Typography>
         </Box>
       </Modal>
-    </>
+    );
+  }
+
+  if (error) {
+    return (
+      <Modal open={open} onClose={onClose}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "80%",
+            maxWidth: 800,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: 2,
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="h6" color="error">
+            Error loading OWASP categories
+          </Typography>
+          <Typography>{error}</Typography>
+        </Box>
+      </Modal>
+    );
+  }
+
+  return (
+    <Modal open={open} onClose={onClose}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "80%",
+          maxWidth: 800,
+          maxHeight: "90vh",
+          bgcolor: "background.paper",
+          boxShadow: 24,
+          p: 4,
+          borderRadius: 2,
+          overflow: "auto",
+        }}
+      >
+        <Typography variant="h5" gutterBottom>
+          Assign Bug Scope
+        </Typography>
+        <Typography variant="subtitle1" gutterBottom>
+          Pentester: {userId} | Project: {project?.projectName}
+        </Typography>
+
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search tests..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{ mb: 2 }}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search />
+              </InputAdornment>
+            ),
+          }}
+        />
+
+        <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<SelectAll />}
+            onClick={handleSelectAll}
+            size="small"
+          >
+            Select All
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Deselect />}
+            onClick={handleDeselectAll}
+            size="small"
+          >
+            Deselect All
+          </Button>
+        </Box>
+
+        <Typography variant="h6" sx={{ mt: 1 }}>
+          OWASP Web Security Testing Guide (WSTG)
+        </Typography>
+
+        <List>
+          {Object.entries(filteredCategories).map(([category, tests]) => {
+            const isCategoryOpen = !!openCategories[category];
+            const testEntries = Object.entries(tests);
+            const hasTests = testEntries.length > 0;
+            const allTestsSelected = hasTests && 
+              testEntries.every(([testLabel]) => 
+                selectedTests.has(`${category}-${testLabel}`)
+              );
+            const someTestsSelected = hasTests && 
+              !allTestsSelected && 
+              testEntries.some(([testLabel]) => 
+                selectedTests.has(`${category}-${testLabel}`)
+              );
+
+            return (
+              <div key={category}>
+                <ListItem
+                  button
+                  onClick={() => handleToggleCategory(category)}
+                  sx={{
+                    bgcolor: isCategoryOpen ? "action.hover" : "inherit",
+                  }}
+                >
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={allTestsSelected}
+                        indeterminate={someTestsSelected}
+                        onChange={() => handleToggleCategoryTests(category)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    }
+                    label={category}
+                    sx={{ flexGrow: 1 }}
+                  />
+                  {hasTests && (isCategoryOpen ? <ExpandLess /> : <ExpandMore />)}
+                </ListItem>
+                <Collapse in={isCategoryOpen} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    {testEntries.map(([testLabel, test]) => {
+                      const testId = `${category}-${testLabel}`;
+                      return (
+                        <WebTestItem
+                          key={testId}
+                          testLabel={testLabel}
+                          isSelected={selectedTests.has(testId)}
+                          onToggle={() => handleTestToggle(category, testLabel)}
+                          wstg={test.wstg}
+                        />
+                      );
+                    })}
+                  </List>
+                </Collapse>
+                <Divider />
+              </div>
+            );
+          })}
+        </List>
+
+        <TextField
+          label="Additional Notes"
+          multiline
+          rows={4}
+          fullWidth
+          variant="outlined"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          sx={{ mt: 3 }}
+        />
+
+        {selectedTests.size > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="subtitle2">
+              Selected Tests ({selectedTests.size}):
+            </Typography>
+            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+              {Array.from(selectedTests)
+                .slice(0, 6)
+                .map((test) => {
+                  const [category, ...testParts] = test.split("-");
+                  const testLabel = testParts.join("-");
+                  return (
+                    <Chip
+                      key={test}
+                      label={testLabel}
+                      onDelete={() => {
+                        setSelectedTests(prev => {
+                          const newSelected = new Set(prev);
+                          newSelected.delete(test);
+                          return newSelected;
+                        });
+                      }}
+                      size="small"
+                    />
+                  );
+                })}
+              {selectedTests.size > 6 && (
+                <Chip
+                  label={`+${selectedTests.size - 6} more`}
+                  size="small"
+                />
+              )}
+            </Box>
+          </Box>
+        )}
+
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3, gap: 2 }}>
+          <Button onClick={onClose} variant="outlined">
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleAssign}
+            disabled={selectedTests.size === 0}
+          >
+            Assign Selected Tests
+          </Button>
+        </Box>
+      </Box>
+    </Modal>
   );
 };
 
