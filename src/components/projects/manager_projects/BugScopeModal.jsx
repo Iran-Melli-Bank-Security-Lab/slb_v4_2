@@ -24,6 +24,8 @@ import {
   Deselect,
 } from "@mui/icons-material";
 import { getOwasp } from "../../../api/owasp/web/getOwasp";
+import { apiFetch } from "../../../api/api";
+import { getBugScopes } from "../../../api/users/getBugScopesIds";
 
 const WebTestItem = memo(({ testLabel, isSelected, onToggle, wstg }) => (
   <ListItem sx={{ pl: 4 }}>
@@ -58,37 +60,25 @@ const BugScopeModal = ({ open, onClose, userId, project }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+const [rawBugScopes, setRawBugScopes] = useState([]);
+ 
 
-  useEffect(() => {
-    if (!open) return;
-
-    const fetchCategories = async () => {
-      try {
-        setLoading(true);
-        const res = await getOwasp();
-        setCategories(res.result || []);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+const flattenTests = useCallback((items, parentLabel = "") => {
+  return items.reduce((acc, item) => {
+    const fullLabel = `${parentLabel}${parentLabel ? " > " : ""}${item.label}`;
+    const testObj = {
+      id: item.id, // <== ensure we use .id like bugScopes
+      label: fullLabel,
+      wstg: item.wstg || "",
     };
 
-    fetchCategories();
-  }, [open]);
+    if (item.children?.length > 0) {
+      return [...acc, ...flattenTests(item.children, fullLabel)];
+    }
 
-  const flattenTests = useCallback((items, parentLabel = "") => {
-    return items.reduce((acc, item) => {
-      if (item.children?.length > 0) {
-        return [...acc, ...flattenTests(item.children, `${parentLabel}${parentLabel ? " > " : ""}${item.label}`)];
-      }
-      return [...acc, {
-        id: item._id,
-        label: `${parentLabel}${parentLabel ? " > " : ""}${item.label}`,
-        wstg: item.wstg || "",
-      }];
-    }, []);
+    return [...acc, testObj];
   }, []);
+}, []);
 
   const formattedCategories = useMemo(() => {
     return categories.reduce((acc, category) => {
@@ -100,6 +90,72 @@ const BugScopeModal = ({ open, onClose, userId, project }) => {
       return acc;
     }, {});
   }, [categories, flattenTests]);
+
+  
+useEffect(() => {
+  if (!open || !project?._id || !userId) return;
+
+  const fetchAll = async () => {
+    try {
+      setLoading(true);
+
+      const [owaspRes, bugScopesRes] = await Promise.all([
+        getOwasp(),
+        getBugScopes(project._id, userId, null),
+      ]);
+
+      setCategories(owaspRes.result || []);
+      setRawBugScopes(bugScopesRes?.bugScopes || []);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to load data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAll();
+}, [open, project?._id, userId]);
+
+useEffect(() => {
+  if (!rawBugScopes.length || !Object.keys(formattedCategories).length) return;
+
+  const allBugIds = [];
+  const extractBugIds = (nodes) => {
+    for (const node of nodes) {
+      if (node.id) allBugIds.push(node.id);
+      if (node.children?.length > 0) extractBugIds(node.children);
+    }
+  };
+  extractBugIds(rawBugScopes);
+console.log("bugScope IDs", allBugIds);
+
+  const updated = new Set();
+
+  Object.entries(formattedCategories).forEach(([category, tests]) => {
+    Object.entries(tests).forEach(([testLabel, test]) => {
+ 
+      if (test.id && allBugIds.includes(test.id)) {
+          console.log("✅ matched test ID:", test.id);
+
+        updated.add(`${category}-${testLabel}`);
+      }else {
+        console.log("test : " ,test )
+          // console.log("❌ not matched:", test.id, allBugIds);
+
+      }
+    });
+  });
+
+  console.log("updated : " , updated)
+
+  setSelectedTests(updated);
+}, [formattedCategories, rawBugScopes]);
+
+
+
+
+
 
   const filteredCategories = useMemo(() => {
     if (!searchQuery.trim()) return formattedCategories;
