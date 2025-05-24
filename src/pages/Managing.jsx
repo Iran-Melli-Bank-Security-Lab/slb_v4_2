@@ -1,15 +1,26 @@
-import { useMemo, useState } from "react";
-import { Button, IconButton, Tooltip } from "@mui/material";
+import { Suspense, lazy, useMemo, useState , useEffect} from "react";
+import Button from "@mui/material/Button";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import CircularProgress  from "@mui/material/CircularProgress";
 import DescriptionIcon from "@mui/icons-material/Description";
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
 import PeopleIcon from "@mui/icons-material/People";
-import DataTable from "../components/projects/DataTable";
-import AssignPentester from "../components/projects/manager_projects/AssignPentester";
+
+const DataTable = lazy(() => import("../components/projects/DataTable"));
+const AssignPentester = lazy(
+  () => import("../components/projects/manager_projects/AssignPentester")
+);
 
 const ManagerProjects = () => {
-
   const [openModal, setOpenModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+
+
+  // Preload AssignPentester on mount
+  useEffect(() => {
+    import("../components/projects/manager_projects/AssignPentester");
+  }, []);
 
   const handleCloseModal = () => {
     setOpenModal(false);
@@ -30,7 +41,7 @@ const ManagerProjects = () => {
     window.open(`/projects/${projectId}/info`, "_blank");
   };
 
-  const columns = useMemo (()=> [
+  const columns = useMemo(() => [
     {
       id: "projectName",
       label: "Project Name",
@@ -85,24 +96,28 @@ const ManagerProjects = () => {
     },
     { id: "version", label: "Version", sortable: true },
     { id: "created_date", label: "Date", sortable: true },
-  ])
+  ]);
 
   return (
     <>
-      <DataTable
-        columns={columns}
-        fetchUserType="manager"
-        title="Manager Projects"
-      />
+      <Suspense fallback={<CircularProgress size={24} />}>
+        <DataTable
+          columns={columns}
+          fetchUserType="manager"
+          title="Manager Projects"
+        />
+      </Suspense>
 
       {/* render your modal here */}
 
       {openModal && (
-        <AssignPentester
-          open={openModal}
-          onClose={handleCloseModal}
-          project={selectedProject}
-        />
+        <Suspense fallback={<CircularProgress size={24} />}>
+          <AssignPentester
+            open={openModal}
+            onClose={handleCloseModal}
+            project={selectedProject}
+          />
+        </Suspense>
       )}
     </>
   );

@@ -1,4 +1,4 @@
-import { React, useState, useMemo, useCallback, memo, useEffect } from "react";
+import {  useState, useMemo, useCallback, memo, useEffect } from "react";
 import {
   Modal,
   Box,
@@ -24,7 +24,6 @@ import {
   Deselect,
 } from "@mui/icons-material";
 import { getOwasp } from "../../../api/owasp/web/getOwasp";
-import { apiFetch } from "../../../api/api";
 import { getBugScopes } from "../../../api/users/getBugScopesIds";
 
 const WebTestItem = memo(({ testLabel, isSelected, onToggle, wstg }) => (
@@ -147,15 +146,9 @@ console.log("bugScope IDs", allBugIds);
     });
   });
 
-  console.log("updated : " , updated)
 
   setSelectedTests(updated);
 }, [formattedCategories, rawBugScopes]);
-
-
-
-
-
 
   const filteredCategories = useMemo(() => {
     if (!searchQuery.trim()) return formattedCategories;
