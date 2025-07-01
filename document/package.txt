@@ -2,3 +2,5 @@ date-fns installed and used in projects page
 socket.io-client installed 
  react-redux and @reduxjs/toolkit installed 
 framer-motion installed 
+
+install mui/lab for create project

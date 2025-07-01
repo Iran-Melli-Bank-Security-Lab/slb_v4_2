@@ -4,12 +4,13 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import SettingsInputComponentIcon from '@mui/icons-material/SettingsInputComponent';
+import AddIcon from '@mui/icons-material/Add';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
 import { Outlet, useNavigate } from 'react-router';
 import { useSession } from './SessionContext'; // 👈 updated import
 import validateSession from './utils/validateSession';
 
-const NAVIGATION = [
+const BASE_NAVIGATION = [
   {
     kind: 'header',
     title: 'User Dashboard',
@@ -38,9 +39,19 @@ const NAVIGATION = [
     icon: <ManageAccountsIcon />,
   },
   
+];
+
+
+// DevOps navigation items that are conditionally shown
+const DEVOPS_NAVIGATION = [
   {
     kind: 'header',
     title: 'DevOps',
+  },
+  {
+    segment: 'create_project',
+    title: 'Create Project',
+    icon: <AddIcon />,
   },
   {
     segment: 'devops',
@@ -50,9 +61,9 @@ const NAVIGATION = [
 ];
 
 
-
 function AppContent() {
   const { session, clearSession, loading } = useSession();
+  console.log("session : " , session)
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -92,9 +103,23 @@ function AppContent() {
     return <div>Loading...</div>;
   }
 
+    // Build the navigation array based on user permissions
+  const navigation = React.useMemo(() => {
+    const navItems = [...BASE_NAVIGATION];
+    if (session?.user?.devOps) {
+      navItems.push(...DEVOPS_NAVIGATION);
+    }
+    return navItems;
+  }, [session]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+
   return (
     <ReactRouterAppProvider
-      navigation={NAVIGATION}
+      navigation={navigation}
       session={session}
       authentication={{ signIn, signOut }}
     >

@@ -14,6 +14,7 @@ import store from "./store"
 import { SocketProvider } from './context/SocketContext';
 import { SessionProvider } from './SessionContext'; // 👈 updated import
 import DoProjectPage from './pages/DoProject';
+import CreateProject from './pages/CreateProject';
 
 const router = createBrowserRouter([
   {
@@ -35,8 +36,14 @@ const router = createBrowserRouter([
             path: '/managing',
             Component: Managing ,
           },
-          {path:'do-project/:id' , 
+          {
+            path:'do-project/:id' , 
             Component:DoProjectPage
+          }, 
+          {
+            path:"create_project",
+            Component:CreateProject
+            
           }
         ],
       },
