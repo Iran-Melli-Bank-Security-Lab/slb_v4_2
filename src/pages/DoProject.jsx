@@ -26,7 +26,7 @@ const DoProject = () => {
   const [loading, setLoading] = useState(false);
   const [openHistoryModal, setOpenHistoryModal] = useState(false);
 
-  console.log("re-render ")
+  console.log("re-render **************** : " , id )
 
   useEffect(() => {
     setLoading(true);
@@ -136,11 +136,11 @@ const DoProject = () => {
   return (
     <Container maxWidth="xl" className="py-8 px-4 sm:px-6 lg:px-8">
 
-      <ProjectInfo
+      {/* <ProjectInfo
         projectData={projectData}
         devOpsInfo={devOpsInfo}
 
-      />
+      /> */}
 
 
       <ProjectStatus

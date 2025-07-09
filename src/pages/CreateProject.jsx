@@ -310,13 +310,13 @@ const ProjectForm = () => {
 
             console.log("********** result : " , success , project )
             console.log( "****** devOpsId : " , user.user.id )
-            if(success){
+           
             socket.emit("createProject" , {
                 projectId : project._id , 
                 devOpsId : user.user.id , 
                 projectName : project.projectName
             } )
-        }
+        
             setSubmitSuccess(true);
             resetForm();
 

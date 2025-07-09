@@ -3,13 +3,12 @@ import {
   Typography,
   Chip,
   CircularProgress,
-  Tabs,
-  Tab,
   LinearProgress,
 } from "@mui/material";
 import {
   Build as BuildIcon,
 } from "@mui/icons-material";
+import BugsTable from "./bugTable/BugsTable";
 
 const InProgressContent = ({ progress }) => {
   return (
@@ -64,18 +63,7 @@ const InProgressContent = ({ progress }) => {
         />
       </Box>
 
-      <Tabs
-        value={0}
-        onChange={() => {}}
-        indicatorColor="primary"
-        textColor="primary"
-        className="mb-4"
-        variant="fullWidth"
-      >
-        <Tab label="Active Tasks" className="py-3 font-medium" />
-        <Tab label="Recent Updates" className="py-3 font-medium" />
-        <Tab label="Blockers" className="py-3 font-medium" />
-      </Tabs>
+      <BugsTable projectManager="savadkuhi" />
       
     </Box>
   );

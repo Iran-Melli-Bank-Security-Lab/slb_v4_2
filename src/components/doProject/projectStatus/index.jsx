@@ -506,6 +506,7 @@ const ProjectStatus = ({
               {statusComponents[projectStatus]}
             </Box>
           </motion.div>
+          
         </CardContent>
       </Collapse>
     </GlowCard>
