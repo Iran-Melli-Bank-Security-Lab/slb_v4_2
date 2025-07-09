@@ -17,7 +17,6 @@ import { useSocket } from "../context/SocketContext";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import {
-  Close as CloseIcon,
   CheckCircle as ReadIcon,
   Circle as UnreadIcon,
   ArrowForward as LinkIcon,
@@ -26,6 +25,7 @@ import { formatDistanceToNow } from "date-fns";
 import { useSession } from "../SessionContext";
 import { userNotif } from "../api/notif/userNotif";
 import { setSeenNotif } from "../api/notif/setSeenNotif";
+
 const MyToolbarActions = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [notifications, setNotifications] = useState([]);
@@ -110,7 +110,6 @@ const MyToolbarActions = () => {
   const handleNotificationClick = async (notification) => {
     // Mark as read when clicked
 
-    console.log("notfications click : " , notification)
 
      setSeenNotif(notification._id); 
 
@@ -141,7 +140,7 @@ const MyToolbarActions = () => {
         size="large"
         color="inherit"
         onClick={handleOpen}
-        aria-controls={open ? "notification-menu" : undefined}
+        aria-controls={open ? "notification-menu" : undefined} 
         aria-haspopup="true"
         aria-expanded={open ? "true" : undefined}
         className="relative hover:bg-blue-50 transition-colors"
@@ -295,6 +294,8 @@ const MyToolbarActions = () => {
           </Box>
         )}
       </Menu>
+    
+    
     </div>
   );
 };

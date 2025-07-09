@@ -42,6 +42,8 @@ import {
 } from '@mui/icons-material';
 import { createTheme, ThemeProvider, alpha } from '@mui/material/styles';
 import { createProject } from '../api/projects/createProject';
+import { useSocket } from '../context/SocketContext';
+import {useSession} from "../SessionContext"
 
 const theme = createTheme({
     palette: {
@@ -103,6 +105,9 @@ const ProjectForm = () => {
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const user = useSession().session
+    console.log("user in line 109 createProject : " , user )
+    const socket = useSocket();
 
     const validateVersion = (version) => {
         const versionRegex = /^\d+\.\d+\.\d+$/;
@@ -294,7 +299,7 @@ const ProjectForm = () => {
         }
 
         try {
-            await createProject(
+        const {success , project }=   await createProject(
                 formData.projectName.trim(), 
                 formData.projectVersion, 
                 formData.letterNumber, 
@@ -302,7 +307,16 @@ const ProjectForm = () => {
                 formData.projectType,
                 formData.platform
             );
-            
+
+            console.log("********** result : " , success , project )
+            console.log( "****** devOpsId : " , user.user.id )
+            if(success){
+            socket.emit("createProject" , {
+                projectId : project._id , 
+                devOpsId : user.user.id , 
+                projectName : project.projectName
+            } )
+        }
             setSubmitSuccess(true);
             resetForm();
 
