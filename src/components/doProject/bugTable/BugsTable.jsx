@@ -54,9 +54,8 @@ const BugsTable = ({  projectManager }) => {
         try {
         setLoading(true);
         // const { data } = await axiosPrivate.get(`${process.env.REACT_APP_SERVER_IP}project/bugscope/${projectId}/${userId}`);
-        const {data} = await getBugs(projectId, userId,)
-        console.log("data********************************** line 56  : " , data )
-        const bugTree = convertToBugTree(data.bugScopes);
+        const data = await getBugs(projectId, userId,)
+        const bugTree = convertToBugTree(data[0].bugScopes);
         const updatedBugTree = bugTree.map((bug) => ({ ...bug, status: bug.status || 'passed' }));
         setBugs(updatedBugTree);
         setComments(data.comments || '');
@@ -211,7 +210,7 @@ const BugsTable = ({  projectManager }) => {
     bugs.map((bug) => (
       <React.Fragment key={bug.id}>
         <TableRow>
-          <TableCell style={{ paddingLeft: `${level * 20}px` }}>
+          <TableCell >
             {bug.children?.length > 0 && (
               <IconButton size="small" onClick={() => toggleExpand(bug.id)}>
                 {expandedRows[bug.id] ? <ExpandLess /> : <ExpandMore />}
