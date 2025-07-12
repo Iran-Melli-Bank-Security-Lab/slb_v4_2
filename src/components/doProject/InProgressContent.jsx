@@ -14,7 +14,7 @@ const InProgressContent = ({ progress }) => {
   return (
     <Box>
       
-      <Box className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+      {/* <Box className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
         <Box className="flex items-center mb-3 md:mb-0">
           <Box className="inline-flex p-3 bg-indigo-50 rounded-full mr-3">
             <BuildIcon className="text-indigo-500 text-3xl" />
@@ -44,9 +44,9 @@ const InProgressContent = ({ progress }) => {
             />
           }
         />
-      </Box>
+      </Box> */}
       
-      <Box className="mb-6">
+      {/* <Box className="mb-6">
         <Box className="flex justify-between mb-1">
           <Typography variant="body2" className="text-gray-600 font-medium">
             Project Completion
@@ -61,7 +61,7 @@ const InProgressContent = ({ progress }) => {
           className="h-2 rounded-full"
           color="primary"
         />
-      </Box>
+      </Box> */}
 
       <BugsTable projectManager="savadkuhi" />
       

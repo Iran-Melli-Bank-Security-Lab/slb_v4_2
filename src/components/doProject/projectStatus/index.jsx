@@ -158,7 +158,6 @@ const ProjectStatus = ({
         sx={{
           background: 'linear-gradient(90deg, #1A237E 0%, #283593 100%)',
           color: 'white',
-          padding: '20px 24px'
         }}
         title={
           <Box display="flex" alignItems="center">
@@ -209,12 +208,7 @@ const ProjectStatus = ({
           }}>
             {statusConfig.map((status) => (
               <Tooltip key={status.key} title={status.description} arrow>
-                <motion.div
-                  whileHover={{ y: -4 }}
-                  whileTap={{ scale: 0.98 }}
-                  onHoverStart={() => setHoveredStatus(status.key)}
-                  onHoverEnd={() => setHoveredStatus(null)}
-                >
+                <div>
                   <Box
                     onClick={() => handleStatusChange(status.key)}
                     sx={{
@@ -277,13 +271,13 @@ const ProjectStatus = ({
                       />
                     )}
                   </Box>
-                </motion.div>
+                </div>
               </Tooltip>
             ))}
           </Box>
 
           {/* Progress Section */}
-          <Box sx={{ mb: '24px', p: '16px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
+          {/* <Box sx={{ mb: '24px', p: '16px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
               <Box display="flex" alignItems="center">
                 <HourglassIcon sx={{ color: theme.palette.text.secondary, mr: 1 }} />
@@ -309,7 +303,7 @@ const ProjectStatus = ({
                 }
               }}
             />
-          </Box>
+          </Box> */}
 
           {/* Time Tracking Section */}
           <Box sx={{ 

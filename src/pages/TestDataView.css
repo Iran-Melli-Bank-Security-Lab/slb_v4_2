@@ -1,0 +1,93 @@
+.test-data-container {
+  font-family: Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 15px;
+}
+
+.controls-header {
+  display: flex;
+  gap: 100px;
+  margin-right: 60px;
+}
+
+.item-container {
+  margin-bottom: 5px;
+  border-left: 1px solid #eee;
+}
+
+.item-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.expand-button, .expand-spacer {
+  width: 20px;
+  text-align: center;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.item-label {
+  flex-grow: 1;
+  padding: 0 10px;
+}
+
+.item-controls {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.radio-group {
+  display: flex;
+  gap: 15px;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.status-dropdown {
+  padding: 5px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  min-width: 120px;
+}
+
+.children-container {
+  margin-top: 5px;
+}
+
+.depth-0 {
+  font-weight: bold;
+  background-color: #f5f5f5;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.depth-1 {
+  font-weight: 600;
+  padding-left: 15px;
+}
+
+.depth-2 {
+  padding-left: 30px;
+}
+
+.depth-3 {
+  padding-left: 45px;
+}

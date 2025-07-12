@@ -1,6 +1,7 @@
 
-export const convertToBugTree = (data=[]) => {
+export const convertToBugTree =async  (data=[]) => {
 
+    console.log("data as bugScopes 4000: " ,  data )
     const lookup = {};
     const tree = [];
 
@@ -16,7 +17,7 @@ export const convertToBugTree = (data=[]) => {
             tree.push(lookup[item.id]);
         }
     });
-console.log("tree : " , tree )
+console.log("tree line 3000: " , tree )
     return tree;
 };
 
