@@ -44,7 +44,7 @@ import { createTheme, ThemeProvider, alpha } from '@mui/material/styles';
 import { createProject } from '../api/projects/createProject';
 import { useSocket } from '../context/SocketContext';
 import {useSession} from "../SessionContext"
-
+import { useUserId } from '../hooks/useUserId';
 const theme = createTheme({
     palette: {
         primary: {
@@ -106,7 +106,8 @@ const ProjectForm = () => {
     const [submitError, setSubmitError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const user = useSession().session
-    console.log("user in line 109 createProject : " , user )
+   const userId = useUserId() 
+
     const socket = useSocket();
 
     const validateVersion = (version) => {
@@ -300,6 +301,7 @@ const ProjectForm = () => {
 
         try {
         const {success , project }=   await createProject(
+            userId, 
                 formData.projectName.trim(), 
                 formData.projectVersion, 
                 formData.letterNumber, 

@@ -1,93 +1,319 @@
-.test-data-container {
-  font-family: Arial, sans-serif;
+/* Table Container */
+.table-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
+  margin: 20px auto;
   padding: 20px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: #fff;
+   
 }
 
-.header {
+.table-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #ddd;
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
-.controls-header {
-  display: flex;
-  gap: 100px;
-  margin-right: 60px;
+.table-header h2 {
+  color: #333;
+  font-size: 24px;
+  margin: 0;
 }
 
-.item-container {
-  margin-bottom: 5px;
-  border-left: 1px solid #eee;
-}
-
-.item-header {
+.table-controls {
   display: flex;
   align-items: center;
-  padding: 8px 0;
-}
-
-.expand-button, .expand-spacer {
-  width: 20px;
-  text-align: center;
-  cursor: pointer;
-  margin-right: 5px;
-}
-
-.item-label {
-  flex-grow: 1;
-  padding: 0 10px;
-}
-
-.item-controls {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.radio-group {
-  display: flex;
   gap: 15px;
 }
 
-.radio-group label {
+.items-per-page {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
+}
+
+.items-per-page label {
+  font-size: 14px;
+  color: #555;
+}
+
+.items-per-page select {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fff;
   cursor: pointer;
 }
 
-.status-dropdown {
-  padding: 5px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  min-width: 120px;
-}
-
-.children-container {
-  margin-top: 5px;
-}
-
-.depth-0 {
-  font-weight: bold;
+/* Filters */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 15px;
   background-color: #f5f5f5;
-  padding: 10px;
+  border-radius: 6px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  color: #555;
+  font-weight: 500;
+}
+
+.filter-group input, .filter-group select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
   border-radius: 4px;
+  font-size: 14px;
 }
 
-.depth-1 {
+.filter-group input:focus, .filter-group select:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+/* Table Wrapper */
+.table-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.table-responsive {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.advanced-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: fixed;
+}
+
+.advanced-table th, .advanced-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+
+.advanced-table th {
+  background-color: #f8f9fa;
+  color: #333;
   font-weight: 600;
-  padding-left: 15px;
+  position: sticky;
+  top: 0;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
 }
 
-.depth-2 {
-  padding-left: 30px;
+.advanced-table th:hover {
+  background-color: #e9ecef;
 }
 
-.depth-3 {
-  padding-left: 45px;
+.advanced-table tr:hover {
+  background-color: #f5f5f5;
 }
+
+.advanced-table tr.selected {
+  background-color: #e3f2fd;
+}
+
+.advanced-table input[type="checkbox"] {
+  cursor: pointer;
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+}
+
+.status-open {
+  background-color: #17a2b8;
+}
+
+.status-in-progress {
+  background-color: #007bff;
+}
+
+.status-pending {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.status-close {
+  background-color: #6c757d;
+}
+
+/* Actions Dropdown */
+.actions-cell {
+  position: relative;
+  width: 60px;
+  padding: 0 !important;
+}
+
+.actions-dropdown {
+  display: flex;
+  justify-content: center;
+  position: relative;
+  height: 100%;
+}
+
+.menu-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  padding: 0 10px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transition: background-color 0.2s;
+}
+
+.menu-toggle:hover {
+  background-color: #f0f0f0;
+}
+
+.menu-toggle[aria-expanded="true"] {
+  background-color: #e0e0e0;
+}
+
+.dropdown-menu {
+  position: absolute;
+  right: 10px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 100;
+  min-width: 160px;
+  overflow: visible;
+}
+
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #333;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.dropdown-menu button:hover {
+  background-color: #f5f5f5;
+}
+
+.dropdown-menu button:not(:last-child) {
+  border-bottom: 1px solid #eee;
+}
+
+/* No Data */
+.no-data {
+  text-align: center;
+  color: #6c757d;
+  padding: 20px;
+}
+
+/* Pagination */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.pagination {
+  display: flex;
+  gap: 5px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.pagination button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pagination button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .filters {
+    grid-template-columns: 1fr;
+  }
+  
+  .pagination-container {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+  
+  .pagination {
+    flex-wrap: wrap;
+  }
+  
+  .actions-cell {
+    width: 40px;
+  }
+}
+
