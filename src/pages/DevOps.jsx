@@ -6,8 +6,9 @@ import { useSocket } from '../context/SocketContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { getDevopsProjects } from '../api/devops/project/getProject';
+import { deleteDevopsProject, getDevopsProjects } from '../api/devops/project/getProject';
 import { useUserId } from '../hooks/useUserId';
+import Swal from 'sweetalert2'; // Import SweetAlert2
 
 export default function UserProjectsTable() {
   
@@ -17,6 +18,7 @@ export default function UserProjectsTable() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const userId = useUserId()
+  const [isDeleting, setIsDeleting] = useState(false); // Add loading state for delete
 
   useEffect(()=>{
 
@@ -42,43 +44,114 @@ export default function UserProjectsTable() {
     setSelectedProject(null);
   };
 
-const handleMenuAction = async (action) => {
-  if (!selectedProject) {
-    handleCloseMenu();
-    return;
-  }
+// const handleMenuAction = async (action) => {
+//   if (!selectedProject) {
+//     handleCloseMenu();
+//     return;
+//   }
 
-  const projectId = selectedProject._id;
+//   const projectId = selectedProject._id;
   
-  try {
-    switch (action) {
-      case 'edit':
-        // Example: navigate to edit page
-        navigate(`/edit_project/${projectId}`);
-        break;
-      case 'delete':
-        // Example API call
-        await deleteDevopsProject(projectId);
-        toast.success('Project deleted successfully');
-        // Refresh projects list
-        const res = await getDevopsProjects(userId);
-        setProjects(res.devOpsProjects);
-        break;
-      case 'devops':
-        navigate(`/devops/${projectId}`);
-        break;
-      case 'identifier':
-        navigate(`/projects/identifier/${projectId}`);
-        break;
-      default:
-        break;
+//   try {
+//     switch (action) {
+//       case 'edit':
+//         // Example: navigate to edit page
+//         navigate(`/edit_project/${projectId}`);
+//         break;
+//       case 'delete':
+//         // Example API call
+//         await deleteDevopsProject(projectId);
+//         toast.success('Project deleted successfully');
+//         // Refresh projects list
+//         const res = await getDevopsProjects(userId);
+//         setProjects(res.devOpsProjects);
+//         break;
+//       case 'devops':
+//         navigate(`/devops/${projectId}`);
+//         break;
+//       case 'identifier':
+//         navigate(`/projects/identifier/${projectId}`);
+//         break;
+//       default:
+//         break;
+//     }
+//   } catch (error) {
+//     toast.error(`Failed to ${action} project: ${error.message}`);
+//   } finally {
+//     handleCloseMenu();
+//   }
+// };
+
+
+ const handleMenuAction = async (action) => {
+    if (!selectedProject) {
+      handleCloseMenu();
+      return;
     }
-  } catch (error) {
-    toast.error(`Failed to ${action} project: ${error.message}`);
-  } finally {
-    handleCloseMenu();
-  }
-};
+
+    const projectId = selectedProject._id;
+    
+    try {
+      switch (action) {
+        case 'edit':
+          navigate(`/edit_project/${projectId}`);
+          break;
+        case 'delete':
+          // Show confirmation dialog
+          const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true,
+            allowOutsideClick: false,
+            showLoaderOnConfirm: true,
+            preConfirm: async () => {
+              try {
+                setIsDeleting(true);
+                await deleteDevopsProject(projectId , userId);
+                const res = await getDevopsProjects(userId);
+                setProjects(res.devOpsProjects);
+                return true;
+              } catch (error) {
+                Swal.showValidationMessage(
+                  `Request failed: ${error.message}`
+                );
+                return false;
+              } finally {
+                setIsDeleting(false);
+              }
+            }
+          });
+
+          if (result.isConfirmed) {
+            Swal.fire(
+              'Deleted!',
+              'Your project has been deleted.',
+              'success'
+            );
+          }
+          break;
+        case 'devops':
+          navigate(`/devops/${projectId}`);
+          break;
+        case 'identifier':
+          navigate(`/projects/identifier/${projectId}`);
+          break;
+        default:
+          break;
+      }
+    } catch (error) {
+      toast.error(`Failed to ${action} project: ${error.message}`);
+    } finally {
+      handleCloseMenu();
+    }
+  };
+
 
   const columns = useMemo(() => [
     {

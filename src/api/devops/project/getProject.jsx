@@ -37,3 +37,17 @@ export const getDevopsProjects = async (userId) => {
         body:JSON.stringify({projectId , userId ,updatedData })
     })
   }
+
+
+  export const deleteDevopsProject = async(projectId , userId ) =>{
+const basePath = "/api/devops/delete/project"
+  
+    // build a query string
+    const params = new URLSearchParams({ projectId , userId  });
+  
+    // call apiFetch with the full URL
+    return  apiFetch(`${basePath}?${params.toString()}`, {
+    method: "DELETE"
+    });
+
+  }
