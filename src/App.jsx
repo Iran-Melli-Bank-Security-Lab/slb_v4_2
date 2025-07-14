@@ -87,7 +87,9 @@ function AppContent() {
 
   const signOut = React.useCallback(async () => {
     try {
-      await fetch('http://localhost:4000/api/auth/logout', {
+      const URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
+      await fetch(URL, {
         method: 'POST',
         credentials: 'include',
       });
