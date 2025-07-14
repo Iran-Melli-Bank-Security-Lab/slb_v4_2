@@ -13,3 +13,27 @@ export const getDevopsProjects = async (userId) => {
     });
   };
   
+
+  export const getDevopsProject= async(projectId , userId )=>{
+
+      const basePath = "/api/devops/project"
+  
+    // build a query string
+    const params = new URLSearchParams({ projectId , userId });
+  
+    // call apiFetch with the full URL
+    return  apiFetch(`${basePath}?${params.toString()}`, {
+      method: "GET",
+    });
+
+
+  }
+
+ export  const updateDevopsProject = async (projectId , userId , updatedData) =>{
+          const basePath = "/api/devops/update/project"
+  
+    return apiFetch(basePath , {
+        method:"post" , 
+        body:JSON.stringify({projectId , userId ,updatedData })
+    })
+  }

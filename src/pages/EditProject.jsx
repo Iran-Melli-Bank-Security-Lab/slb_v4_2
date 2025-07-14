@@ -1,5 +1,5 @@
-// This is page of create proejct by devops user 
-import React , { useState } from 'react';
+// This is page of Edit project by devops user 
+import React, { useState } from 'react';
 import {
     TextField,
     Button,
@@ -44,8 +44,12 @@ import {
 import { createTheme, ThemeProvider, alpha } from '@mui/material/styles';
 import { createProject } from '../api/projects/createProject';
 import { useSocket } from '../context/SocketContext';
-import {useSession} from "../SessionContext"
+import { useSession } from "../SessionContext"
 import { useUserId } from '../hooks/useUserId';
+import { useParams } from 'react-router';
+import { getDevopsProject, updateDevopsProject } from '../api/devops/project/getProject';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router';
 const theme = createTheme({
     palette: {
         primary: {
@@ -76,7 +80,9 @@ const platformColors = {
     blockchain: '#8b5cf6'
 };
 
-const ProjectForm = () => {
+const EditProjectForm = () => {
+
+    const { projectId } = useParams();
     const [formData, setFormData] = useState({
         projectName: '',
         projectVersion: '1.0.0',
@@ -106,9 +112,8 @@ const ProjectForm = () => {
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const user = useSession().session
-   const userId = useUserId() 
-
+    const userId = useUserId()
+    const navigate = useNavigate()
     const socket = useSocket();
 
     const validateVersion = (version) => {
@@ -268,19 +273,15 @@ const ProjectForm = () => {
             platform: false
         });
     };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         setSubmitError(null);
 
-        // Check if at least one project type is selected
+        // Validation
         const isProjectTypeSelected = formData.projectType.security || formData.projectType.quality;
-        
-        // Check if at least one platform is selected
         const isPlatformSelected = Object.values(formData.platform).some(val => val);
 
-        // Final validation
         const hasErrors =
             formData.projectName.trim() === '' ||
             !validateVersion(formData.projectVersion) ||
@@ -301,37 +302,106 @@ const ProjectForm = () => {
         }
 
         try {
-        const {success , project }=   await createProject(
-            userId, 
-                formData.projectName.trim(), 
-                formData.projectVersion, 
-                formData.letterNumber, 
-                formData.numberOfTests,
-                formData.projectType,
-                formData.platform
-            );
+            // Prepare project type array
+            const projectTypeArray = [];
+            if (formData.projectType.security) projectTypeArray.push("Security");
+            if (formData.projectType.quality) projectTypeArray.push("Quality");
 
-            console.log("********** result : " , success , project )
-            console.log( "****** devOpsId : " , user.user.id )
-           
-            socket.emit("createProject" , {
-                projectId : project._id , 
-                devOpsId : user.user.id , 
-                projectName : project.projectName
-            } )
-        
-            setSubmitSuccess(true);
-            resetForm();
+            // Prepare platform array
+            const platformArray = Object.entries(formData.platform)
+                .filter(([_, value]) => value)
+                .map(([key]) => key);
 
-            // Reset success message after 3 seconds
-            setTimeout(() => setSubmitSuccess(false), 3000);
+            if (projectId) {
+                // Update existing project
+                const updateData = {
+                    projectName: formData.projectName.trim(),
+                    version: formData.projectVersion, // Note: field is called "version" in the API
+                    letterNumber: formData.letterNumber,
+                    numberOfTest: formData.numberOfTests, // Note: field is called "numberOfTest" in the API
+                    projectType: projectTypeArray,
+                    platform: platformArray
+                };
+
+                // Call your update API here
+                const result = await updateDevopsProject(projectId, userId, updateData);
+                console.log("Would update project with:", updateData);
+
+                toast.success("Project updated successfully!", {
+                    position: "bottom-right",
+                    autoClose: 1000,
+                    onClose: () => navigate('/devops') // Navigate after toast closes
+
+                })
+
+                // Optionally navigate back or refresh data
+                // navigate('/projects');
+            } else {
+                // Create new project
+                const { success, project } = await createProject(
+                    userId,
+                    formData.projectName.trim(),
+                    formData.projectVersion,
+                    formData.letterNumber,
+                    formData.numberOfTests,
+                    projectTypeArray,
+                    platformArray
+                );
+
+                // socket.emit("createProject", {
+                //     projectId: project._id,
+                //     devOpsId: user.user.id,
+                //     projectName: project.projectName
+                // });
+
+                setSubmitSuccess(true);
+                resetForm();
+            }
         } catch (error) {
-            console.error('Error creating project:', error);
-            setSubmitError(error.message || 'An error occurred while creating the project');
+            console.error('Error:', error);
+            setSubmitError(error.message || 'An error occurred');
         } finally {
             setIsSubmitting(false);
         }
     };
+
+
+    React.useEffect(() => {
+        async function fetchProject() {
+            try {
+                const result = await getDevopsProject(projectId, userId);
+                console.log("Fetched project data:", result);
+
+                if (result && result.devOpsProject) {
+                    const project = result.devOpsProject;
+                    setFormData({
+                        projectName: project.projectName || '',
+                        projectVersion: project.version || '1.0.0', // Note: field is called "version" in the data
+                        letterNumber: project.letterNumber || '',
+                        numberOfTests: project.numberOfTest || 1,
+                        projectType: {
+                            security: project.projectType.includes("Security"),
+                            quality: project.projectType.includes("Quality")
+                        },
+                        platform: {
+                            web: project.platform.includes("web"),
+                            mobile: project.platform.includes("mobile"),
+                            desktop: project.platform.includes("desktop"),
+                            hardware: project.platform.includes("hardware"),
+                            blockchain: project.platform.includes("blockchain")
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to fetch project:", error);
+                toast.error("Failed to load project data");
+            }
+        }
+
+        if (projectId) {
+            fetchProject();
+        }
+    }, [projectId, userId]);
 
     return (
         <ThemeProvider theme={theme}>
@@ -663,11 +733,11 @@ const ProjectForm = () => {
                                                             <Checkbox
                                                                 checked={formData.platform[platform]}
                                                                 onChange={handlePlatformChange(platform)}
-                                                                icon={React.cloneElement(icon, { 
+                                                                icon={React.cloneElement(icon, {
                                                                     style: { color: formData.platform[platform] ? platformColors[platform] : undefined }
                                                                 })}
-                                                                checkedIcon={React.cloneElement(icon, { 
-                                                                    style: { color: platformColors[platform] } 
+                                                                checkedIcon={React.cloneElement(icon, {
+                                                                    style: { color: platformColors[platform] }
                                                                 })}
                                                                 name={platform}
                                                                 sx={{
@@ -859,4 +929,4 @@ const ProjectForm = () => {
     );
 };
 
-export default ProjectForm;
+export default EditProjectForm;

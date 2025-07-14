@@ -42,29 +42,43 @@ export default function UserProjectsTable() {
     setSelectedProject(null);
   };
 
-  const handleMenuAction = (action) => {
+const handleMenuAction = async (action) => {
+  if (!selectedProject) {
     handleCloseMenu();
+    return;
+  }
+
+  const projectId = selectedProject._id;
+  
+  try {
     switch (action) {
       case 'edit':
-        console.log('Edit project', selectedProject);
-        // Add your edit logic here
+        // Example: navigate to edit page
+        navigate(`/edit_project/${projectId}`);
         break;
       case 'delete':
-        console.log('Delete project', selectedProject);
-        // Add your delete logic here
+        // Example API call
+        await deleteDevopsProject(projectId);
+        toast.success('Project deleted successfully');
+        // Refresh projects list
+        const res = await getDevopsProjects(userId);
+        setProjects(res.devOpsProjects);
         break;
       case 'devops':
-        console.log('DevOps for project', selectedProject);
-        // Add your DevOps logic here
+        navigate(`/devops/${projectId}`);
         break;
       case 'identifier':
-        console.log('Identifier for project', selectedProject);
-        // Add your identifier logic here
+        navigate(`/projects/identifier/${projectId}`);
         break;
       default:
         break;
     }
-  };
+  } catch (error) {
+    toast.error(`Failed to ${action} project: ${error.message}`);
+  } finally {
+    handleCloseMenu();
+  }
+};
 
   const columns = useMemo(() => [
     {
