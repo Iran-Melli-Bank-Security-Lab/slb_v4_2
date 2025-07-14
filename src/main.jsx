@@ -2,6 +2,9 @@ import  React, { Suspense , lazy } from 'react';
 import  ReactDOM from 'react-dom/client';
 import './index.css'      // ← make sure this import is here
 import { createBrowserRouter, RouterProvider } from 'react-router';
+// In your main App.js or layout component
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 const App = lazy(() => import('./App'));
 const Layout = lazy(() => import('./layouts/dashboard'));
 const DashboardPage = lazy(() => import('./pages/index'));
@@ -16,6 +19,7 @@ import { SessionProvider } from './SessionContext'; // 👈 updated import
 import DoProjectPage from './pages/DoProject';
 import CreateProject from './pages/CreateProject';
 import DevOps from "./pages/DevOps"
+import EditProjectForm from './pages/EditProject';
 const router = createBrowserRouter([
   {
     Component: App,
@@ -49,6 +53,11 @@ const router = createBrowserRouter([
             path:"devops",
             Component:DevOps
             
+          },
+           {
+            path:"edit_project/:projectId",
+            Component:EditProjectForm
+            
           }
         ],
       },
@@ -64,7 +73,20 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
+
       <SessionProvider>
+              <ToastContainer 
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
     <SocketProvider>
     <Suspense fallback={<div>Loading...</div>}>
 
