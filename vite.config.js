@@ -17,7 +17,7 @@ export default defineConfig({
     port:5173
   }, 
   preview:{
-    host:'http://10.10.10.120', 
+    host:'10.10.10.120', 
     port:5173
   },
   build: {
