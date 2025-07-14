@@ -1,533 +1,504 @@
-import React, { useState, useCallback } from 'react';
-import styled from 'styled-components';
-import { useDropzone } from 'react-dropzone';
+import React, { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import {
+  Box,
+  Typography,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Checkbox,
+  FormControlLabel,
+  Button,
+  Grid,
+  Paper,
+  Stepper,
+  Step,
+  StepLabel,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
+} from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-// Styled Components
-const FormContainer = styled.div`
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-  margin-top: 1rem;
-  max-width: 900px;
-`;
+const DevOpsInfoForm = ({ projectId }) => {
+  const [activeStep, setActiveStep] = useState(0);
+  const [users, setUsers] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-const FormHeader = styled.h3`
-  margin-top: 0;
-  color: #333;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const FormGrid = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const FormField = styled.div`
-  margin-bottom: 1.5rem;
-`;
-
-const Label = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #555;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  }
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  min-height: 100px;
-  font-size: 14px;
-  resize: vertical;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  }
-`;
-
-const Select = styled.select`
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: white;
-  cursor: pointer;
-`;
-
-const FileUpload = styled.div`
-  border: 2px dashed #ddd;
-  padding: 2rem;
-  text-align: center;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-bottom: 1rem;
-  position: relative;
-  transition: all 0.3s ease;
-  background: ${props => props.isDragActive ? '#f8fafc' : 'white'};
-
-  &:hover {
-    border-color: #6366f1;
-    background: #f8fafc;
-  }
-`;
-
-const FilePreviewContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1rem;
-`;
-
-const FilePreview = styled.div`
-  position: relative;
-  width: 100px;
-  height: 100px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  overflow: hidden;
-  background: #f1f5f9;
-
-  img, video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-const RemoveFileButton = styled.button`
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
-  font-size: 12px;
-`;
-
-const PreviewSection = styled.div`
-  margin-top: 2rem;
-  padding: 1.5rem;
-  background: #f9fafb;
-  border-radius: 4px;
-  border: 1px solid #eee;
-`;
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-`;
-
-const Button = styled.button`
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-
-  &.primary {
-    background: #6366f1;
-    color: white;
-
-    &:hover {
-      background: #4f46e5;
+  const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm({
+    defaultValues: {
+      project: projectId || '',
+      projectName: '',
+      projectType: 'security',
+      platform: 'web',
+      environments: {
+        development: [],
+        staging: [],
+        production: [],
+        pentest: []
+      },
+      sharedResources: {
+        databases: [],
+        storage: []
+      }
     }
-  }
-
-  &.secondary {
-    background: #f1f5f9;
-    color: #334155;
-
-    &:hover {
-      background: #e2e8f0;
-    }
-  }
-
-  &.danger {
-    background: #fee2e2;
-    color: #b91c1c;
-
-    &:hover {
-      background: #fecaca;
-    }
-  }
-`;
-
-const ErrorMessage = styled.div`
-  color: #dc2626;
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
-`;
-
-// Main Component
-const VulnerabilityForm = ({ 
-  onSave, 
-  onCancel, 
-  title = "Report Vulnerability",
-  initialData = null 
-}) => {
-  const [formData, setFormData] = useState(initialData || {
-    name: '',
-    cvss: '3.1',
-    severity: 'Medium',
-    path: '',
-    exploit: '',
-    impact: '',
-    description: '',
-    remediation: '',
-    pocImages: [],
-    pocVideos: []
   });
 
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const platform = watch('platform');
+  const projectType = watch('projectType');
 
-  // Handle file uploads with react-dropzone
-  const onDropImages = useCallback(acceptedFiles => {
-    handleFileUpload(acceptedFiles, 'pocImages');
+  useEffect(() => {
+    // Load users and projects
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // const [usersRes, projectsRes] = await Promise.all([
+        //   axios.get('/api/users'),
+        //   axios.get('/api/projects')
+        // ]);
+        // setUsers(usersRes.data);
+        // setProjects(projectsRes.data);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      }
+      setIsLoading(false);
+    };
+    fetchData();
   }, []);
 
-  const onDropVideos = useCallback(acceptedFiles => {
-    handleFileUpload(acceptedFiles, 'pocVideos');
-  }, []);
-
-  const {
-    getRootProps: getImageRootProps,
-    getInputProps: getImageInputProps,
-    isDragActive: isImageDragActive
-  } = useDropzone({
-    onDrop: onDropImages,
-    accept: 'image/*',
-    maxSize: 10 * 1024 * 1024 // 10MB
-  });
-
-  const {
-    getRootProps: getVideoRootProps,
-    getInputProps: getVideoInputProps,
-    isDragActive: isVideoDragActive
-  } = useDropzone({
-    onDrop: onDropVideos,
-    accept: 'video/*',
-    maxSize: 10 * 1024 * 1024 // 10MB
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    
-    // Clear error when field is edited
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: null
-      }));
-    }
-  };
-
-  const handleFileUpload = (files, type) => {
-    const validFiles = files.filter(file => {
-      if (type === 'pocImages' && !file.type.startsWith('image/')) return false;
-      if (type === 'pocVideos' && !file.type.startsWith('video/')) return false;
-      return true;
-    });
-
-    setFormData(prev => ({
-      ...prev,
-      [type]: [...prev[type], ...validFiles]
-    }));
-  };
-
-  const removeFile = (type, index) => {
-    const updatedFiles = [...formData[type]];
-    updatedFiles.splice(index, 1);
-    setFormData(prev => ({
-      ...prev,
-      [type]: updatedFiles
-    }));
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.name.trim()) newErrors.name = 'Vulnerability name is required';
-    if (!formData.path.trim()) newErrors.path = 'Vulnerable path is required';
-    if (!formData.description.trim()) newErrors.description = 'Description is required';
-    if (!formData.exploit.trim()) newErrors.exploit = 'Exploit details are required';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-    
-    setIsSubmitting(true);
-    
+  const onSubmit = async (data) => {
+    setIsLoading(true);
     try {
-      const reportData = {
-        ...formData,
-        id: Date.now(),
-        date: new Date().toISOString(),
-        status: 'pending'
-      };
-      
-      onSave(reportData);
+      // const response = await axios.post('/api/devops-info', data);
+      alert('DevOps info saved successfully!');
+      console.log('Saved data:', response.data);
     } catch (error) {
-      console.error('Error saving report:', error);
-    } finally {
-      setIsSubmitting(false);
+      console.error('Failed to save:', error);
+      alert('Failed to save DevOps info');
+    }
+    setIsLoading(false);
+  };
+
+  const addUserEnvironment = (environmentType) => {
+    const newEnvironment = {
+      user: '',
+      role: 'developer',
+      platformConfig: getDefaultPlatformConfig(),
+      compute: {
+        vm: {
+          instanceId: '',
+          specs: { cpu: 2, memory: 4, storage: 50 }
+        }
+      },
+      network: {
+        endpoints: [],
+        firewallRules: []
+      },
+      status: {
+        current: 'provisioning'
+      }
+    };
+
+    setValue(`environments.${environmentType}`, [
+      ...watch(`environments.${environmentType}`),
+      newEnvironment
+    ]);
+  };
+
+  const getDefaultPlatformConfig = () => {
+    switch (platform) {
+      case 'web':
+        return {
+          server: { type: 'nginx', version: '', configPaths: [] },
+          security: { ssl: { certificates: [] } }
+        };
+      case 'mobile':
+        return {
+          build: { version: '', minSdkVersion: '' },
+          signing: { certificates: [] }
+        };
+      default:
+        return {};
+    }
+  };
+
+  const steps = [
+    'Project Information',
+    'Environments Setup',
+    'Shared Resources',
+    'Review & Submit'
+  ];
+
+  const renderPlatformConfig = (envPath, index) => {
+    switch (platform) {
+      case 'web':
+        return (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="h6">Web Server Configuration</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Controller
+                  name={`${envPath}.platformConfig.server.type`}
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel>Server Type</InputLabel>
+                      <Select {...field} label="Server Type">
+                        <MenuItem value="nginx">Nginx</MenuItem>
+                        <MenuItem value="apache">Apache</MenuItem>
+                        <MenuItem value="iis">IIS</MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name={`${envPath}.platformConfig.server.version`}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      label="Server Version"
+                      placeholder="1.23.0"
+                    />
+                  )}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        );
+      case 'mobile':
+        return (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="h6">Mobile Build Configuration</Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={6}>
+                <Controller
+                  name={`${envPath}.platformConfig.build.version`}
+                  control={control}
+                  rules={{ pattern: /^\d+\.\d+\.\d+$/ }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      label="App Version"
+                      placeholder="1.0.0"
+                      error={!!errors[`${envPath}.platformConfig.build.version`]}
+                      helperText="Use semantic versioning (x.y.z)"
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <Controller
+                  name={`${envPath}.platformConfig.build.minSdkVersion`}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      label="Min SDK Version"
+                      placeholder="21"
+                    />
+                  )}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderStepContent = (step) => {
+    switch (step) {
+      case 0:
+        return (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Project Details
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <Controller
+                  name="project"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel>Project</InputLabel>
+                      <Select {...field} label="Project" disabled={!!projectId}>
+                        {projects.map((project) => (
+                          <MenuItem key={project._id} value={project._id}>
+                            {project.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Controller
+                  name="projectName"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      fullWidth
+                      label="Project Name"
+                      required
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Controller
+                  name="projectType"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel>Project Type</InputLabel>
+                      <Select {...field} label="Project Type">
+                        <MenuItem value="security">Security Testing</MenuItem>
+                        <MenuItem value="quality">Quality Assurance</MenuItem>
+                        <MenuItem value="compliance">Compliance</MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Controller
+                  name="platform"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel>Platform</InputLabel>
+                      <Select {...field} label="Platform">
+                        <MenuItem value="web">Web Application</MenuItem>
+                        <MenuItem value="mobile">Mobile Application</MenuItem>
+                        <MenuItem value="desktop">Desktop Application</MenuItem>
+                        <MenuItem value="hardware">Hardware/IoT</MenuItem>
+                        <MenuItem value="blockchain">Blockchain</MenuItem>
+                        <MenuItem value="cloud">Cloud Infrastructure</MenuItem>
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+            </Grid>
+          </Box>
+        );
+      case 1:
+        return (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Environment Configuration
+            </Typography>
+            
+            {['development', 'staging', 'production', 'pentest'].map((envType) => (
+              <Accordion key={envType} sx={{ mb: 2 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography>{envType.charAt(0).toUpperCase() + envType.slice(1)} Environments</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {watch(`environments.${envType}`).map((env, index) => (
+                    <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                      <Typography variant="h6" sx={{ mb: 2 }}>
+                        Environment #{index + 1}
+                      </Typography>
+                      
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name={`environments.${envType}[${index}].user`}
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field }) => (
+                              <FormControl fullWidth>
+                                <InputLabel>User</InputLabel>
+                                <Select {...field} label="User" required>
+                                  {users.map((user) => (
+                                    <MenuItem key={user._id} value={user._id}>
+                                      {user.name} ({user.email})
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <Controller
+                            name={`environments.${envType}[${index}].role`}
+                            control={control}
+                            render={({ field }) => (
+                              <FormControl fullWidth>
+                                <InputLabel>Role</InputLabel>
+                                <Select {...field} label="Role">
+                                  <MenuItem value="pentester">Pentester</MenuItem>
+                                  <MenuItem value="developer">Developer</MenuItem>
+                                  <MenuItem value="devops-engineer">DevOps Engineer</MenuItem>
+                                  <MenuItem value="qa-engineer">QA Engineer</MenuItem>
+                                </Select>
+                              </FormControl>
+                            )}
+                          />
+                        </Grid>
+                      </Grid>
+
+                      {renderPlatformConfig(`environments.${envType}[${index}]`, index)}
+
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle1">Compute Resources</Typography>
+                        <Grid container spacing={2}>
+                          <Grid item xs={4}>
+                            <Controller
+                              name={`environments.${envType}[${index}].compute.vm.specs.cpu`}
+                              control={control}
+                              render={({ field }) => (
+                                <TextField
+                                  {...field}
+                                  fullWidth
+                                  type="number"
+                                  label="CPU Cores"
+                                />
+                              )}
+                            />
+                          </Grid>
+                          <Grid item xs={4}>
+                            <Controller
+                              name={`environments.${envType}[${index}].compute.vm.specs.memory`}
+                              control={control}
+                              render={({ field }) => (
+                                <TextField
+                                  {...field}
+                                  fullWidth
+                                  type="number"
+                                  label="Memory (GB)"
+                                />
+                              )}
+                            />
+                          </Grid>
+                          <Grid item xs={4}>
+                            <Controller
+                              name={`environments.${envType}[${index}].compute.vm.specs.storage`}
+                              control={control}
+                              render={({ field }) => (
+                                <TextField
+                                  {...field}
+                                  fullWidth
+                                  type="number"
+                                  label="Storage (GB)"
+                                />
+                              )}
+                            />
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    </Paper>
+                  ))}
+                  
+                  <Button 
+                    variant="outlined" 
+                    onClick={() => addUserEnvironment(envType)}
+                    sx={{ mt: 1 }}
+                  >
+                    Add {envType} Environment
+                  </Button>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+        );
+      case 2:
+        return (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Shared Resources
+            </Typography>
+            
+            <Accordion sx={{ mb: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography>Databases</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                {/* Database configuration fields */}
+              </AccordionDetails>
+            </Accordion>
+            
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography>Storage</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                {/* Storage configuration fields */}
+              </AccordionDetails>
+            </Accordion>
+          </Box>
+        );
+      case 3:
+        return (
+          <Box sx={{ mt: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Review Your Configuration
+            </Typography>
+            <pre>{JSON.stringify(watch(), null, 2)}</pre>
+          </Box>
+        );
+      default:
+        return <Typography>Unknown step</Typography>;
     }
   };
 
   return (
-    <FormContainer>
-      <form onSubmit={handleSubmit}>
-        <FormHeader>
-          {title}
-          {initialData && (
-            <span style={{ fontSize: '0.9rem', color: '#64748b' }}>
-              Editing report
-            </span>
-          )}
-        </FormHeader>
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ p: 3 }}>
+      <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
+        {steps.map((label) => (
+          <Step key={label}>
+            <StepLabel>{label}</StepLabel>
+          </Step>
+        ))}
+      </Stepper>
+      
+      {renderStepContent(activeStep)}
+      
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+        <Button
+          disabled={activeStep === 0}
+          onClick={() => setActiveStep(activeStep - 1)}
+        >
+          Back
+        </Button>
         
-        <FormGrid>
-          <FormField>
-            <Label>Vulnerability Name*</Label>
-            <Input 
-              name="name" 
-              value={formData.name} 
-              onChange={handleChange}
-              placeholder="Reflected XSS in search parameter"
-              hasError={!!errors.name}
-            />
-            {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
-          </FormField>
-
-          <FormField>
-            <Label>CVSS Version</Label>
-            <Select name="cvss" value={formData.cvss} onChange={handleChange}>
-              <option value="3.1">CVSS 3.1</option>
-              <option value="3.0">CVSS 3.0</option>
-            </Select>
-          </FormField>
-
-          <FormField>
-            <Label>Severity*</Label>
-            <Select name="severity" value={formData.severity} onChange={handleChange}>
-              <option value="Critical">Critical</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </Select>
-          </FormField>
-
-          <FormField>
-            <Label>Vulnerable Path*</Label>
-            <Input 
-              name="path" 
-              value={formData.path} 
-              onChange={handleChange}
-              placeholder="/search?q=<script>alert(1)</script>"
-              hasError={!!errors.path}
-            />
-            {errors.path && <ErrorMessage>{errors.path}</ErrorMessage>}
-          </FormField>
-        </FormGrid>
-
-        <FormField>
-          <Label>Description*</Label>
-          <TextArea 
-            name="description" 
-            value={formData.description} 
-            onChange={handleChange}
-            placeholder="Detailed description of the vulnerability..."
-            hasError={!!errors.description}
-          />
-          {errors.description && <ErrorMessage>{errors.description}</ErrorMessage>}
-        </FormField>
-
-        <FormField>
-          <Label>Exploit Details*</Label>
-          <TextArea 
-            name="exploit" 
-            value={formData.exploit} 
-            onChange={handleChange}
-            placeholder="Steps to reproduce the vulnerability..."
-            hasError={!!errors.exploit}
-          />
-          {errors.exploit && <ErrorMessage>{errors.exploit}</ErrorMessage>}
-        </FormField>
-
-        <FormField>
-          <Label>Impact</Label>
-          <TextArea 
-            name="impact" 
-            value={formData.impact} 
-            onChange={handleChange}
-            placeholder="Potential impact of this vulnerability..."
-          />
-        </FormField>
-
-        <FormField>
-          <Label>Remediation</Label>
-          <TextArea 
-            name="remediation" 
-            value={formData.remediation} 
-            onChange={handleChange}
-            placeholder="Recommended fixes..."
-          />
-        </FormField>
-
-        <FormField>
-          <Label>Proof of Concept (Screenshots)</Label>
-          <FileUpload {...getImageRootProps()} isDragActive={isImageDragActive}>
-            <input {...getImageInputProps()} />
-            {isImageDragActive ? (
-              <p>Drop the screenshots here...</p>
-            ) : (
-              <p>Drag & drop screenshots, or click to select</p>
-            )}
-          </FileUpload>
-          
-          {formData.pocImages.length > 0 && (
-            <FilePreviewContainer>
-              {formData.pocImages.map((file, index) => (
-                <FilePreview key={index}>
-                  <img 
-                    src={URL.createObjectURL(file)} 
-                    alt={`POC Screenshot ${index + 1}`}
-                  />
-                  <RemoveFileButton 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFile('pocImages', index);
-                    }}
-                    title="Remove file"
-                  >
-                    ×
-                  </RemoveFileButton>
-                </FilePreview>
-              ))}
-            </FilePreviewContainer>
-          )}
-        </FormField>
-
-        <FormField>
-          <Label>Proof of Concept (Screen Recordings)</Label>
-          <FileUpload {...getVideoRootProps()} isDragActive={isVideoDragActive}>
-            <input {...getVideoInputProps()} />
-            {isVideoDragActive ? (
-              <p>Drop the recordings here...</p>
-            ) : (
-              <p>Drag & drop screen recordings, or click to select</p>
-            )}
-          </FileUpload>
-          
-          {formData.pocVideos.length > 0 && (
-            <FilePreviewContainer>
-              {formData.pocVideos.map((file, index) => (
-                <FilePreview key={index}>
-                  <video controls>
-                    <source src={URL.createObjectURL(file)} type={file.type} />
-                  </video>
-                  <RemoveFileButton 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeFile('pocVideos', index);
-                    }}
-                    title="Remove file"
-                  >
-                    ×
-                  </RemoveFileButton>
-                </FilePreview>
-              ))}
-            </FilePreviewContainer>
-          )}
-        </FormField>
-
-        <PreviewSection>
-          <h4>Report Preview</h4>
-          <div style={{ marginBottom: '0.5rem' }}>
-            <strong>Name:</strong> {formData.name || 'Not specified'}
-          </div>
-          <div style={{ marginBottom: '0.5rem' }}>
-            <strong>Severity:</strong> {formData.severity} (CVSS {formData.cvss})
-          </div>
-          <div style={{ marginBottom: '0.5rem' }}>
-            <strong>Path:</strong> {formData.path || 'Not specified'}
-          </div>
-          <div>
-            <strong>Attachments:</strong> {formData.pocImages.length + formData.pocVideos.length} files
-          </div>
-        </PreviewSection>
-
-        <ButtonGroup>
+        {activeStep === steps.length - 1 ? (
           <Button 
             type="submit" 
-            className="primary"
-            disabled={isSubmitting}
+            variant="contained" 
+            color="primary"
+            disabled={isLoading}
           >
-            {isSubmitting ? 'Saving...' : 'Save Report'}
+            {isLoading ? 'Saving...' : 'Submit'}
           </Button>
-          <Button 
-            type="button" 
-            className="secondary"
-            onClick={onCancel}
+        ) : (
+          <Button
+            variant="contained"
+            onClick={() => setActiveStep(activeStep + 1)}
           >
-            Cancel
+            Next
           </Button>
-        </ButtonGroup>
-      </form>
-    </FormContainer>
+        )}
+      </Box>
+    </Box>
   );
 };
 
-export default VulnerabilityForm;
+export default DevOpsInfoForm;

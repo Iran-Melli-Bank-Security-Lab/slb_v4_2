@@ -43,46 +43,7 @@ export default function UserProjectsTable() {
     setAnchorEl(null);
     setSelectedProject(null);
   };
-
-// const handleMenuAction = async (action) => {
-//   if (!selectedProject) {
-//     handleCloseMenu();
-//     return;
-//   }
-
-//   const projectId = selectedProject._id;
   
-//   try {
-//     switch (action) {
-//       case 'edit':
-//         // Example: navigate to edit page
-//         navigate(`/edit_project/${projectId}`);
-//         break;
-//       case 'delete':
-//         // Example API call
-//         await deleteDevopsProject(projectId);
-//         toast.success('Project deleted successfully');
-//         // Refresh projects list
-//         const res = await getDevopsProjects(userId);
-//         setProjects(res.devOpsProjects);
-//         break;
-//       case 'devops':
-//         navigate(`/devops/${projectId}`);
-//         break;
-//       case 'identifier':
-//         navigate(`/projects/identifier/${projectId}`);
-//         break;
-//       default:
-//         break;
-//     }
-//   } catch (error) {
-//     toast.error(`Failed to ${action} project: ${error.message}`);
-//   } finally {
-//     handleCloseMenu();
-//   }
-// };
-
-
  const handleMenuAction = async (action) => {
     if (!selectedProject) {
       handleCloseMenu();
