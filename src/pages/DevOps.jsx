@@ -98,7 +98,7 @@ export default function UserProjectsTable() {
           }
           break;
         case 'devops':
-          navigate(`/devops/${projectId}`);
+          navigate(`/devopsinfo/${projectId}`);
           break;
         case 'identifier':
           navigate(`/projects/identifier/${projectId}`);
