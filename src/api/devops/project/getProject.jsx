@@ -51,3 +51,16 @@ const basePath = "/api/devops/delete/project"
     });
 
   }
+
+  export const getUserProjectsByProjectId = async (projectId)=>{
+const basePath = "/api/devops/project/pentesters"
+  
+    // build a query string
+    const params = new URLSearchParams({ projectId });
+  
+    // call apiFetch with the full URL
+    return  apiFetch(`${basePath}?${params.toString()}`, {
+      method: "GET",
+    });
+
+  }
