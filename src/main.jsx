@@ -20,6 +20,7 @@ import DoProjectPage from './pages/DoProject';
 import CreateProject from './pages/CreateProject';
 import DevOps from "./pages/DevOps"
 import EditProjectForm from './pages/EditProject';
+import DevOpsInfoForm from './pages/DevOpsInfo';
 const router = createBrowserRouter([
   {
     Component: App,
@@ -57,6 +58,11 @@ const router = createBrowserRouter([
            {
             path:"edit_project/:projectId",
             Component:EditProjectForm
+            
+          },
+           {
+            path:"devopsinfo/:projectId",
+            Component:DevOpsInfoForm
             
           }
         ],
