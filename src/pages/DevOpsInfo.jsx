@@ -350,12 +350,12 @@ const addCredential = useCallback((endpointIndex) => {
       // Submit to the API
       const response = await submitDevOpsInfo(submissionData);
       
-      // if (response.success) {
-      //   toast.success('DevOps information submitted successfully');
-        // Optionally reset form or navigate away
-      // } else {
-      //   throw new Error(response.message || 'Failed to submit DevOps information');
-      // }
+      if (response.success) {
+        toast.success('DevOps information submitted successfully');
+       
+      } else {
+        throw new Error(response.message || 'Failed to submit DevOps information');
+      }
     } catch (error) {
       console.error('Submission error:', error);
       toast.error(error.message || 'Failed to submit DevOps information');
