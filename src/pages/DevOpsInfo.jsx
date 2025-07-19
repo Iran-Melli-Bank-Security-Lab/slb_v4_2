@@ -391,7 +391,11 @@ const addCredential = useCallback((endpointIndex) => {
               <Typography variant="subtitle1" color="textSecondary">Letter Number</Typography>
               <Typography variant="h6">{projectData?.letterNumber || 'Not specified'}</Typography>
             </Grid>
-            
+      
+          </Grid>
+        </CardContent>
+      </Card>
+      
             <Grid item xs={12}>
               <FormControl fullWidth margin="normal" required>
                 <InputLabel id="environment-type-label">Environment Type</InputLabel>
@@ -411,10 +415,6 @@ const addCredential = useCallback((endpointIndex) => {
                 </Select>
               </FormControl>
             </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
-
       {['OVF', 'VM', 'Docker'].includes(environmentType) && (
         <>
           <Typography variant="h5" gutterBottom sx={{ mt: 4, mb: 2 }}>
