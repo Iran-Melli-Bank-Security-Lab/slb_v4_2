@@ -1,1093 +1,926 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useParams } from 'react-router';
-import { getDevopsProject, getUserProjectsByProjectId,
- } from '../api/devops/project/getProject';
+import { getDevopsProject, getUserProjectsByProjectId , submitDevOpsInfo } from '../api/devops/project/getProject';
 import { toast } from 'react-toastify';
+import { useUserId } from "../hooks/useUserId";
+
 import {
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  Grid,
-  Paper,
-  MenuItem,
-  Avatar,
   Box,
-  Tabs,
-  Tab,
-  Divider,
-  Chip,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  InputAdornment,
-  IconButton,
-  Tooltip,
+  Typography,
+  Paper,
+  Button,
+  TextField,
+  Select,
+  MenuItem,
   FormControl,
   InputLabel,
-  Select,
-  Stack,
+  Divider,
+  Grid,
+  IconButton,
   List,
   ListItem,
   ListItemText,
-  ListItemIcon,
-  Badge,
+  ListItemSecondaryAction,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   CircularProgress,
-  Switch,
-  FormControlLabel,
-  FormGroup,
-  FormHelperText
+  Card,
+  CardContent,
+  CardActions,
+  Avatar,
+  Chip,
+  Stack,
+  ToggleButtonGroup,
+  ToggleButton,
+  OutlinedInput
 } from '@mui/material';
-import { useUserId } from "../hooks/useUserId";
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import TerminalIcon from '@mui/icons-material/Terminal';
-import VpnKeyIcon from '@mui/icons-material/VpnKey';
-import SettingsIcon from '@mui/icons-material/Settings';
-import ComputerIcon from '@mui/icons-material/Computer';
-import StorageIcon from '@mui/icons-material/Storage';
-import DnsIcon from '@mui/icons-material/Dns';
-import HttpIcon from '@mui/icons-material/Http';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import ArchiveIcon from '@mui/icons-material/Archive';
-
-const statusIcons = {
-  pending: <AccessTimeIcon color="warning" />,
-  initializing: <CircularProgress size={20} />,
-  active: <CheckCircleOutlineIcon color="success" />,
-  failed: <ErrorOutlineIcon color="error" />,
-  archived: <ArchiveIcon color="action" />
-};
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  ExpandMore as ExpandMoreIcon,
+  CloudUpload as CloudUploadIcon,
+  Person as PersonIcon,
+  Check as CheckIcon,
+  Info as InfoIcon,
+  Computer as ComputerIcon,
+  PhoneIphone as MobileIcon,
+  Web as WebIcon,
+  ArrowBack as ArrowBackIcon
+} from '@mui/icons-material';
 
 const DevOpsInfoForm = () => {
   const { projectId } = useParams();
-  const [projectInfo, setProjectInfo] = useState(null);
-  const [pentesters, setPentesters] = useState([]);
-  const [loading, setLoading] = useState(true);
   const userId = useUserId();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const projectRes = await getDevopsProject(projectId, userId);
-        const userProjectRes = await getUserProjectsByProjectId(projectId);
-        setProjectInfo(projectRes?.devOpsProject);
-        setPentesters(userProjectRes?.projectPentesters?.map(up => up.pentester) || []);
-      } catch (err) {
-        toast.error("Failed to load project or pentester info");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [projectId]);
-
-  if (loading) return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
-      <CircularProgress size={60} />
-    </Box>
-  );
-
-  if (!projectInfo) return (
-    <Paper elevation={0} sx={{ p: 4, textAlign: 'center', my: 4 }}>
-      <Typography variant="h6" color="error">Failed to load project information</Typography>
-    </Paper>
-  );
-
-  return (
-    <Card sx={{ 
-      p: 4, 
-      my: 4, 
-      borderRadius: 3,
-      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.08)',
-      background: 'linear-gradient(to bottom, #ffffff, #f8f9fa)'
-    }}>
-      <CardContent>
-        <Box display="flex" alignItems="center" mb={3}>
-          <Avatar sx={{ 
-            width: 64, 
-            height: 64, 
-            mr: 3,
-            bgcolor: 'primary.main',
-            fontSize: '1.75rem',
-            fontWeight: 'bold',
-            boxShadow: 2
-          }}>
-            {projectInfo.projectName?.charAt(0).toUpperCase()}
-          </Avatar>
-          <Box>
-            <Typography variant="h4" fontWeight="bold" gutterBottom>
-              {projectInfo.name}
-            </Typography>
-            <Stack direction="row" spacing={1}>
-              <Chip 
-                label={projectInfo.projectType} 
-                color="primary"
-                variant="outlined"
-                sx={{ fontWeight: 600 }}
-              />
-              <Chip 
-                label={projectInfo.platform} 
-                color="secondary"
-                sx={{ fontWeight: 600, color: 'white' }}
-              />
-            </Stack>
-          </Box>
-        </Box>
-
-        <Divider sx={{ my: 3, borderColor: 'rgba(0, 0, 0, 0.08)' }} />
-
-        <Typography variant="h5" gutterBottom fontWeight="bold" sx={{ mb: 3 }}>
-          Pentester Environments
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mb={3}>
-          Configure individual testing environments for each pentester
-        </Typography>
-
-        {pentesters.length === 0 ? (
-          <Paper elevation={0} sx={{ 
-            p: 4, 
-            textAlign: 'center', 
-            backgroundColor: 'rgba(0, 0, 0, 0.02)',
-            borderRadius: 2
-          }}>
-            <Typography variant="body1" color="text.secondary">
-              No pentesters assigned to this project yet
-            </Typography>
-          </Paper>
-        ) : (
-          pentesters.map((user) => (
-            <PentesterDevOpsForm
-              key={user._id}
-              user={user}
-              projectId={projectId}
-              platform={projectInfo.platform}
-              projectType={projectInfo.projectType}
-            />
-          ))
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-
-const PentesterDevOpsForm = ({ user, projectId, platform, projectType }) => {
+  
+  // State for project data and users
+  const [projectData, setProjectData] = useState(null);
+  const [assignedUsers, setAssignedUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [selectedPentester, setSelectedPentester] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [environmentType, setEnvironmentType] = useState('OVF');
+  
+  // Form state
   const [formData, setFormData] = useState({
-    envType: 'docker',
-    envImage: '',
-    platform: platform,
+    project: projectId || '',
+    pentester: '',
+    platform: 'web',
     platformData: {
-      browserTargets: [],
-      webServerURL: '',
-      endpoints: [],
-      appFile: '',
-      emulatorImage: '',
-      installerFile: '',
-      nodeInfo: '',
-      smartContracts: [],
-      network: ''
+      web: {
+        environmentType: 'OVF',
+        accessInfo: {
+          address: '',
+          port: '',
+          username: '',
+          password: ''
+        }
+      },
+      mobile: {
+        appFile: '',
+        platform: 'android'
+      },
+      desktop: {
+        installerFile: '',
+        os: 'windows'
+      }
     },
-    config: { 
-      cpu: '', 
-      ram: '', 
-      storage: '', 
-      os: '' 
-    },
-    runtimeAccess: {
-      address: '',
-      port: '',
-      protocol: 'ssh',
-      username: '',
-      password: '',
-      sshKeyReference: '',
-      startupScript: '',
-      environmentVars: {},
-      internalIP: '',
-      volumeMountPath: '',
-      osPlatform: ''
-    },
-    accessCredentials: { 
-      username: '', 
-      password: '', 
-      notes: '' 
-    },
-    status: 'pending',
-    logs: ''
+    endpoints: []
   });
 
-  const [activeTab, setActiveTab] = useState(0);
-  const [showPassword, setShowPassword] = useState(false);
-  const [expanded, setExpanded] = useState('panel1');
+  // Validation state
+  const [validationErrors, setValidationErrors] = useState({
+    pentester: false,
+    platform: false,
+    address: false,
+    port: false,
+    appFile: false,
+    installerFile: false,
+    endpoints: false
+  });
+
+  // Temporary state for new items
   const [newEndpoint, setNewEndpoint] = useState({
     url: '',
-    method: 'GET',
-    description: '',
-    credentials: {
-      username: '',
-      password: '',
-      token: '',
-      notes: ''
-    }
+    credentials: []
+  });
+  const [newCredential, setNewCredential] = useState({
+    username: '',
+    password: ''
   });
 
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+  // Memoized fetch function
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch project data
+      const projectResponse = await getDevopsProject(projectId, userId);
+      setProjectData(projectResponse?.devOpsProject);
+      
+      // Fetch assigned users
+      const usersResponse = await getUserProjectsByProjectId(projectId);
+      setAssignedUsers(usersResponse?.projectPentesters || []);
+      
+      // Initialize form with project data
+      setFormData(prev => ({
+        ...prev,
+        project: projectResponse?.projectName || projectId,
+        version: projectResponse?.version || ''
+      }));
+      
+    } catch (error) {
+      toast.error('Failed to fetch project data');
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId, userId]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handlePlatformChange = (e) => {
+    setFormData(prev => ({
+      ...prev,
+      platform: e.target.value
+    }));
+    setValidationErrors(prev => ({
+      ...prev,
+      platform: false
+    }));
   };
 
-  const handleAccordionChange = (panel) => (event, isExpanded) => {
-    setExpanded(isExpanded ? panel : false);
+  const handlePentesterSelect = (userId) => {
+    setSelectedPentester(userId);
+    setFormData(prev => ({
+      ...prev,
+      pentester: userId
+    }));
+    setValidationErrors(prev => ({
+      ...prev,
+      pentester: false
+    }));
+    setShowForm(true);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const path = name.split('.');
-    
-    if (path.length === 1) {
-      setFormData(prev => ({ ...prev, [name]: value }));
-    } else {
-      setFormData(prev => {
-        const updated = { ...prev };
-        let obj = updated;
-        for (let i = 0; i < path.length - 1; i++) {
-          if (!obj[path[i]]) obj[path[i]] = {};
-          obj = obj[path[i]];
+  const handleEnvironmentTypeChange = (e) => {
+    const newEnvType = e.target.value;
+    setEnvironmentType(newEnvType);
+    setFormData(prev => ({
+      ...prev,
+      platformData: {
+        ...prev.platformData,
+        web: {
+          ...prev.platformData.web,
+          environmentType: newEnvType
         }
-        obj[path[path.length - 1]] = value;
-        return updated;
+      }
+    }));
+  };
+
+  const handleWebAccessChange = useCallback((field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      platformData: {
+        ...prev.platformData,
+        web: {
+          ...prev.platformData.web,
+          accessInfo: {
+            ...prev.platformData.web.accessInfo,
+            [field]: value
+          }
+        }
+      }
+    }));
+    setValidationErrors(prev => ({
+      ...prev,
+      [field]: false
+    }));
+  }, []);
+
+  const handleMobileChange = useCallback((field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      platformData: {
+        ...prev.platformData,
+        mobile: {
+          ...prev.platformData.mobile,
+          [field]: value
+        }
+      }
+    }));
+    if (field === 'appFile') {
+      setValidationErrors(prev => ({
+        ...prev,
+        appFile: false
+      }));
+    }
+  }, []);
+
+  const handleDesktopChange = useCallback((field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      platformData: {
+        ...prev.platformData,
+        desktop: {
+          ...prev.platformData.desktop,
+          [field]: value
+        }
+      }
+    }));
+    if (field === 'installerFile') {
+      setValidationErrors(prev => ({
+        ...prev,
+        installerFile: false
+      }));
+    }
+  }, []);
+
+  const handleFileUpload = useCallback((e, platform) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (platform === 'mobile') {
+        handleMobileChange('appFile', file.name);
+      } else if (platform === 'desktop') {
+        handleDesktopChange('installerFile', file.name);
+      }
+    }
+  }, [handleMobileChange, handleDesktopChange]);
+
+  const addEndpoint = useCallback(() => {
+    if (newEndpoint.url) {
+      setFormData(prev => ({
+        ...prev,
+        endpoints: [...prev.endpoints, newEndpoint]
+      }));
+      setNewEndpoint({
+        url: '',
+        credentials: []
       });
-    }
-  };
-
-  const handleEndpointChange = (e) => {
-    const { name, value } = e.target;
-    const path = name.split('.');
-    
-    if (path[0] === 'credentials') {
-      setNewEndpoint(prev => ({
+      setValidationErrors(prev => ({
         ...prev,
-        credentials: {
-          ...prev.credentials,
-          [path[1]]: value
-        }
-      }));
-    } else {
-      setNewEndpoint(prev => ({
-        ...prev,
-        [name]: value
+        endpoints: false
       }));
     }
-  };
+  }, [newEndpoint]);
 
-  const addEndpoint = () => {
-    if (!newEndpoint.url) return;
-    
+  const removeEndpoint = useCallback((index) => {
     setFormData(prev => ({
       ...prev,
-      platformData: {
-        ...prev.platformData,
-        endpoints: [...(prev.platformData.endpoints || []), newEndpoint]
-      }
+      endpoints: prev.endpoints.filter((_, i) => i !== index)
     }));
-    
-    setNewEndpoint({
-      url: '',
-      method: 'GET',
-      description: '',
-      credentials: {
-        username: '',
-        password: '',
-        token: '',
-        notes: ''
-      }
+  }, []);
+
+const addCredential = useCallback((endpointIndex) => {
+  if (newCredential.username && newCredential.password) {
+    setFormData(prev => {
+      const updatedEndpoints = [...prev.endpoints];
+      updatedEndpoints[endpointIndex] = {
+        ...updatedEndpoints[endpointIndex],
+        credentials: [
+          ...updatedEndpoints[endpointIndex].credentials,
+          { ...newCredential } // Create a new object to avoid reference issues
+        ]
+      };
+      return {
+        ...prev,
+        endpoints: updatedEndpoints
+      };
     });
-  };
+    // Reset the new credential fields
+    setNewCredential({
+      username: '',
+      password: ''
+    });
+  }
+}, [newCredential]);
 
-  const removeEndpoint = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      platformData: {
-        ...prev.platformData,
-        endpoints: prev.platformData.endpoints.filter((_, i) => i !== index)
-      }
-    }));
-  };
+  const removeCredential = useCallback((endpointIndex, credentialIndex) => {
+    setFormData(prev => {
+      const updatedEndpoints = [...prev.endpoints];
+      updatedEndpoints[endpointIndex].credentials = 
+        updatedEndpoints[endpointIndex].credentials.filter((_, i) => i !== credentialIndex);
+      return {
+        ...prev,
+        endpoints: updatedEndpoints
+      };
+    });
+  }, []);
 
-  const handleEnvironmentVarChange = (key, value) => {
-    setFormData(prev => ({
-      ...prev,
-      runtimeAccess: {
-        ...prev.runtimeAccess,
-        environmentVars: {
-          ...prev.runtimeAccess.environmentVars,
-          [key]: value
-        }
-      }
-    }));
+  const validateForm = () => {
+    const errors = {
+      pentester: !formData.pentester && !['Production', 'Development'].includes(environmentType),
+      platform: !formData.platform,
+      address: formData.platform === 'web' && !formData.platformData.web.accessInfo.address,
+      port: formData.platform === 'web' && !formData.platformData.web.accessInfo.port,
+      appFile: formData.platform === 'mobile' && !formData.platformData.mobile.appFile,
+      installerFile: formData.platform === 'desktop' && !formData.platformData.desktop.installerFile,
+      endpoints: formData.endpoints.length === 0
+    };
+
+    setValidationErrors(errors);
+    return !Object.values(errors).some(error => error);
   };
 
   const handleSubmit = async () => {
+    if (!validateForm()) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
     try {
-      const payload = {
-        ...formData,
-        project: projectId,
-        pentester: user._id,
-        platform
+      setSubmitting(true);
+      
+      // Prepare the data for submission
+      const submissionData = {
+        projectId: projectId,
+        pentesterId: formData.pentester,
+        environmentType: environmentType,
+        platformType: formData.platform,
+        platformData: formData.platformData,
+        endpoints: formData.endpoints,
+        submittedBy: userId,
+        submissionDate: new Date().toISOString()
       };
-      // await createDevOpsInfo(payload);
-      toast.success(`Environment configuration saved for ${user.fullName || user.email}`);
-    } catch (err) {
-      toast.error(`Error saving configuration for ${user.fullName || user.email}`);
+
+      console.log("submissionData : "  , submissionData )
+      // Submit to the API
+      const response = await submitDevOpsInfo(submissionData);
+      
+      // if (response.success) {
+      //   toast.success('DevOps information submitted successfully');
+        // Optionally reset form or navigate away
+      // } else {
+      //   throw new Error(response.message || 'Failed to submit DevOps information');
+      // }
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast.error(error.message || 'Failed to submit DevOps information');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const renderTextField = (label, name, type = 'text', icon = null, adornment = null, multiline = false) => (
-    <Grid item xs={12} sm={6}>
-      <TextField
-        fullWidth
-        label={label}
-        name={name}
-        type={type === 'password' && !showPassword ? 'password' : type}
-        value={name.split('.').reduce((o, i) => (o ? o[i] : ''), formData)}
-        onChange={handleChange}
-        variant="outlined"
-        size="small"
-        sx={{ mb: 2 }}
-        InputProps={{
-          startAdornment: icon ? (
-            <InputAdornment position="start">
-              {icon}
-            </InputAdornment>
-          ) : null,
-          endAdornment: adornment,
-        }}
-        multiline={multiline}
-        rows={multiline ? 3 : undefined}
-      />
-    </Grid>
-  );
-
-  const renderPasswordField = (label, name) => (
-    renderTextField(
-      label,
-      name,
-      'password',
-      <VpnKeyIcon fontSize="small" color="action" />,
-      <InputAdornment position="end">
-        <IconButton
-          aria-label="toggle password visibility"
-          onClick={() => setShowPassword(!showPassword)}
-          edge="end"
-          size="small"
-        >
-          {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-        </IconButton>
-      </InputAdornment>
-    )
-  );
-
-  const renderSelectField = (label, name, options) => (
-    <Grid item xs={12} sm={6}>
-      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-        <InputLabel>{label}</InputLabel>
-        <Select
-          label={label}
-          name={name}
-          value={name.split('.').reduce((o, i) => (o ? o[i] : ''), formData)}
-          onChange={handleChange}
-        >
-          {options.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </Grid>
-  );
-
-  const renderEnvironmentVars = () => {
-    const vars = formData.runtimeAccess.environmentVars || {};
-    const keys = Object.keys(vars);
-    
-    return (
-      <Grid item xs={12}>
-        <Typography variant="subtitle2" gutterBottom>
-          Environment Variables
-        </Typography>
-        {keys.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No environment variables configured
-          </Typography>
-        ) : (
-          <List dense sx={{ bgcolor: 'action.hover', borderRadius: 1, p: 1 }}>
-            {keys.map((key) => (
-              <ListItem key={key} sx={{ py: 0.5 }}>
-                <ListItemText 
-                  primary={`${key}=${vars[key]}`} 
-                  primaryTypographyProps={{ fontFamily: 'monospace' }}
-                />
-                <IconButton size="small" onClick={() => handleEnvironmentVarChange(key, '')}>
-                  <DeleteOutlineIcon fontSize="small" />
-                </IconButton>
-              </ListItem>
-            ))}
-          </List>
-        )}
-        <Box mt={1} display="flex" alignItems="center">
-          <TextField
-            size="small"
-            placeholder="KEY=VALUE"
-            sx={{ flexGrow: 1, mr: 1 }}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && e.target.value.includes('=')) {
-                const [key, value] = e.target.value.split('=');
-                handleEnvironmentVarChange(key.trim(), value.trim());
-                e.target.value = '';
-              }
-            }}
-          />
-          <Button 
-            size="small" 
-            variant="outlined"
-            onClick={() => {
-              const input = prompt("Enter environment variable in KEY=VALUE format");
-              if (input && input.includes('=')) {
-                const [key, value] = input.split('=');
-                handleEnvironmentVarChange(key.trim(), value.trim());
-              }
-            }}
-          >
-            Add
-          </Button>
-        </Box>
-      </Grid>
-    );
+  const handleBackToPentesterSelection = () => {
+    setShowForm(false);
+    setSelectedPentester(null);
   };
 
-  const renderEndpoints = () => {
-    const endpoints = formData.platformData.endpoints || [];
-    
-    return (
-      <Grid item xs={12}>
-        <Typography variant="subtitle2" gutterBottom>
-          API Endpoints
-        </Typography>
-        {endpoints.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No endpoints configured
-          </Typography>
-        ) : (
-          <List dense sx={{ bgcolor: 'action.hover', borderRadius: 1 }}>
-            {endpoints.map((endpoint, index) => (
-              <ListItem key={index} sx={{ borderBottom: '1px solid rgba(0, 0, 0, 0.08)' }}>
-                <ListItemIcon>
-                  <HttpIcon color="action" />
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Box display="flex" alignItems="center">
-                      <Chip 
-                        label={endpoint.method} 
-                        size="small" 
-                        sx={{ mr: 1, minWidth: 60, fontWeight: 'bold' }}
-                        color="primary"
-                        variant="outlined"
-                      />
-                      <Typography variant="body2" component="span" sx={{ fontFamily: 'monospace' }}>
-                        {endpoint.url}
-                      </Typography>
-                    </Box>
-                  }
-                  secondary={endpoint.description}
-                />
-                <IconButton size="small" onClick={() => removeEndpoint(index)}>
-                  <DeleteOutlineIcon fontSize="small" />
-                </IconButton>
-              </ListItem>
-            ))}
-          </List>
-        )}
-        
-        <Box mt={2} p={2} sx={{ border: '1px dashed rgba(0, 0, 0, 0.23)', borderRadius: 1 }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Add New Endpoint
-          </Typography>
-          <Grid container spacing={2}>
+  const renderEnvironmentSelection = () => (
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom sx={{ mb: 4 }}>
+        Project Information
+      </Typography>
+      
+      <Card sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
+        <CardContent>
+          <Stack direction="row" spacing={2} alignItems="center" mb={3}>
+            <InfoIcon color="primary" fontSize="large" />
+            <Typography variant="h5">{projectData?.projectName}</Typography>
+          </Stack>
+          
+          <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="URL"
-                name="url"
-                value={newEndpoint.url}
-                onChange={handleEndpointChange}
-                size="small"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <HttpIcon fontSize="small" color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-              />
+              <Typography variant="subtitle1" color="textSecondary">Version</Typography>
+              <Typography variant="h6">{projectData?.version}</Typography>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Method</InputLabel>
+            <Grid item xs={12}>
+              <Typography variant="subtitle1" color="textSecondary">Letter Number</Typography>
+              <Typography variant="h6">{projectData?.letterNumber || 'Not specified'}</Typography>
+            </Grid>
+            
+            <Grid item xs={12}>
+              <FormControl fullWidth margin="normal" required>
+                <InputLabel id="environment-type-label">Environment Type</InputLabel>
                 <Select
-                  label="Method"
-                  name="method"
-                  value={newEndpoint.method}
-                  onChange={handleEndpointChange}
+                  labelId="environment-type-label"
+                  id="environmentType"
+                  value={environmentType}
+                  onChange={handleEnvironmentTypeChange}
+                  label="Environment Type"
+                  input={<OutlinedInput label="Environment Type" />}
                 >
-                  {['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD'].map((method) => (
-                    <MenuItem key={method} value={method}>{method}</MenuItem>
-                  ))}
+                  <MenuItem value="OVF">OVF</MenuItem>
+                  <MenuItem value="VM">VM</MenuItem>
+                  <MenuItem value="Docker">Docker</MenuItem>
+                  <MenuItem value="Production">Production</MenuItem>
+                  <MenuItem value="Development">Development</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Description"
-                name="description"
-                value={newEndpoint.description}
-                onChange={handleEndpointChange}
-                size="small"
-                multiline
-                rows={2}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <Accordion elevation={0}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle2">Endpoint Credentials</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Username"
-                        name="credentials.username"
-                        value={newEndpoint.credentials.username}
-                        onChange={handleEndpointChange}
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Password"
-                        name="credentials.password"
-                        type={showPassword ? 'text' : 'password'}
-                        value={newEndpoint.credentials.password}
-                        onChange={handleEndpointChange}
-                        size="small"
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position="end">
-                              <IconButton
-                                aria-label="toggle password visibility"
-                                onClick={() => setShowPassword(!showPassword)}
-                                edge="end"
-                                size="small"
-                              >
-                                {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
-                              </IconButton>
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Token"
-                        name="credentials.token"
-                        value={newEndpoint.credentials.token}
-                        onChange={handleEndpointChange}
-                        size="small"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Notes"
-                        name="credentials.notes"
-                        value={newEndpoint.credentials.notes}
-                        onChange={handleEndpointChange}
-                        size="small"
-                      />
-                    </Grid>
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-            </Grid>
-            <Grid item xs={12}>
-              <Button
-                variant="contained"
-                color="primary"
-                size="small"
-                startIcon={<AddCircleOutlineIcon />}
-                onClick={addEndpoint}
-                disabled={!newEndpoint.url}
-                fullWidth
-              >
-                Add Endpoint
-              </Button>
-            </Grid>
           </Grid>
-        </Box>
-      </Grid>
-    );
-  };
+        </CardContent>
+      </Card>
 
-  const renderPlatformSpecificFields = () => {
-    switch (platform) {
-      case 'web':
-        return (
-          <>
-            {renderTextField("Web Server URL", "platformData.webServerURL", 'text', <DnsIcon fontSize="small" color="action" />)}
-            <Grid item xs={12}>
-              <FormControl component="fieldset" sx={{ mb: 2 }}>
-                <FormLabel component="legend">Browser Targets</FormLabel>
-                <FormGroup row>
-                  {['chrome', 'firefox', 'safari', 'edge', 'opera'].map((browser) => (
-                    <FormControlLabel
-                      key={browser}
-                      control={
-                        <Checkbox
-                          checked={formData.platformData.browserTargets?.includes(browser)}
-                          onChange={(e) => {
-                            const newTargets = e.target.checked
-                              ? [...(formData.platformData.browserTargets || []), browser]
-                              : (formData.platformData.browserTargets || []).filter(b => b !== browser);
-                            setFormData(prev => ({
-                              ...prev,
-                              platformData: {
-                                ...prev.platformData,
-                                browserTargets: newTargets
-                              }
-                            }));
-                          }}
-                          name={browser}
-                        />
-                      }
-                      label={browser.charAt(0).toUpperCase() + browser.slice(1)}
-                    />
-                  ))}
-                </FormGroup>
-              </FormControl>
-            </Grid>
-            {renderEndpoints()}
-          </>
-        );
-      case 'mobile':
-        return (
-          <>
-            {renderTextField("App File Path", "platformData.appFile", 'text', <CloudUploadIcon fontSize="small" color="action" />)}
-            {renderSelectField("Mobile Platform", "platformData.platform", [
-              { value: 'android', label: 'Android' },
-              { value: 'ios', label: 'iOS' }
-            ])}
-            {renderTextField("Emulator Image", "platformData.emulatorImage", 'text', <StorageIcon fontSize="small" color="action" />)}
-          </>
-        );
-      case 'desktop':
-        return (
-          <>
-            {renderTextField("Installer File", "platformData.installerFile", 'text', <CloudUploadIcon fontSize="small" color="action" />)}
-            {renderSelectField("OS Target", "platformData.osTarget", [
-              { value: 'windows', label: 'Windows' },
-              { value: 'macos', label: 'macOS' },
-              { value: 'linux', label: 'Linux' }
-            ])}
-          </>
-        );
-      case 'blockchain':
-        return (
-          <>
-            {renderTextField("Node Info", "platformData.nodeInfo", 'text', <StorageIcon fontSize="small" color="action" />)}
-            <Grid item xs={12}>
-              <Typography variant="subtitle2" gutterBottom>
-                Smart Contracts
-              </Typography>
-              <TextField
-                fullWidth
-                label="Add smart contract address"
-                value=""
-                onChange={(e) => {
-                  if (e.key === 'Enter' && e.target.value) {
-                    setFormData(prev => ({
-                      ...prev,
-                      platformData: {
-                        ...prev.platformData,
-                        smartContracts: [...(prev.platformData.smartContracts || []), e.target.value]
-                      }
-                    }));
-                    e.target.value = '';
-                  }
-                }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && e.target.value) {
-                    setFormData(prev => ({
-                      ...prev,
-                      platformData: {
-                        ...prev.platformData,
-                        smartContracts: [...(prev.platformData.smartContracts || []), e.target.value]
-                      }
-                    }));
-                    e.target.value = '';
-                  }
-                }}
-                size="small"
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        edge="end"
-                        onClick={() => {
-                          const input = prompt("Enter smart contract address");
-                          if (input) {
-                            setFormData(prev => ({
-                              ...prev,
-                              platformData: {
-                                ...prev.platformData,
-                                smartContracts: [...(prev.platformData.smartContracts || []), input]
-                              }
-                            }));
-                          }
-                        }}
-                      >
-                        <AddCircleOutlineIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              {formData.platformData.smartContracts?.length > 0 && (
-                <Box mt={1}>
-                  {formData.platformData.smartContracts.map((contract, index) => (
-                    <Box key={index} display="flex" alignItems="center" mb={1}>
-                      <Typography variant="body2" sx={{ fontFamily: 'monospace', mr: 1 }}>
-                        {contract}
-                      </Typography>
-                      <IconButton size="small" onClick={() => {
-                        setFormData(prev => ({
-                          ...prev,
-                          platformData: {
-                            ...prev.platformData,
-                            smartContracts: prev.platformData.smartContracts.filter((_, i) => i !== index)
-                          }
-                        }));
-                      }}>
-                        <DeleteOutlineIcon fontSize="small" />
-                      </IconButton>
+      {['OVF', 'VM', 'Docker'].includes(environmentType) && (
+        <>
+          <Typography variant="h5" gutterBottom sx={{ mt: 4, mb: 2 }}>
+            Select Pentester
+          </Typography>
+          
+          <Grid container spacing={3}>
+            {assignedUsers?.map((user) => (
+              <Grid item xs={12} sm={6} md={4} key={user._id}>
+                <Card 
+                  variant={selectedPentester === user.pentester._id ? 'outlined' : 'elevation'}
+                  sx={{ 
+                    height: '100%',
+                    border: selectedPentester === user.pentester._id ? '2px solid' : undefined,
+                    borderColor: selectedPentester === user.pentester._id ? 'primary.main' : undefined,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 3
+                    }
+                  }}
+                >
+                  <CardContent>
+                    <Box display="flex" alignItems="center" mb={2}>
+                      <Avatar sx={{ width: 56, height: 56, mr: 2 }}>
+                        <PersonIcon fontSize="large" />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="h6">{user.pentester.firstName}</Typography>
+                        <Typography variant="body2" color="textSecondary">{user.pentester.username}</Typography>
+                      </Box>
                     </Box>
+                    <Typography variant="body2" sx={{ mb: 2 }}>
+                      {user.pentester.lastName || 'No bio provided'}
+                    </Typography>
+                  </CardContent>
+                  <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
+                    <Button
+                      variant={selectedPentester === user.pentester._id ? 'contained' : 'outlined'}
+                      color="primary"
+                      startIcon={selectedPentester === user.pentester._id ? <CheckIcon /> : null}
+                      onClick={() => handlePentesterSelect(user.pentester._id)}
+                      fullWidth
+                    >
+                      {selectedPentester === user.pentester._id ? 'Selected' : 'Select'}
+                    </Button>
+                  </CardActions>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </>
+      )}
+      
+      {['Production', 'Development'].includes(environmentType) && (
+        <Box mt={4}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setShowForm(true)}
+            fullWidth
+            size="large"
+          >
+            Continue to Endpoints Configuration
+          </Button>
+        </Box>
+      )}
+    </Box>
+  );
+
+  const renderDevOpsForm = () => {
+    const selectedPentesterData = assignedUsers.find(u => u.pentester._id === selectedPentester);
+    const isProdDev = ['Production', 'Development'].includes(environmentType);
+    
+    return (
+      <Box sx={{ p: 3 }}>
+        <Card sx={{ mb: 4, maxWidth: 800, mx: 'auto' }}>
+          <CardContent>
+            <Box display="flex" alignItems="center" mb={2}>
+              <IconButton 
+                onClick={handleBackToPentesterSelection}
+                sx={{ mr: 2 }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              
+              {!isProdDev && (
+                <>
+                  <Avatar sx={{ width: 56, height: 56, mr: 2 }}>
+                    <PersonIcon fontSize="large" />
+                  </Avatar>
+                  <Box>
+                    <Typography variant="h5">{selectedPentesterData?.pentester?.lastName}</Typography>
+                    <Typography variant="subtitle1" color="textSecondary">
+                      {selectedPentesterData?.pentester?.firstName}
+                    </Typography>
+                  </Box>
+                </>
+              )}
+              
+              {isProdDev && (
+                <Box>
+                  <Typography variant="h5">Environment: {environmentType}</Typography>
+                </Box>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+        
+        <Card sx={{ maxWidth: 800, mx: 'auto' }}>
+          <CardContent>
+            <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+              {isProdDev ? 'Endpoints Configuration' : 'DevOps Information'}
+            </Typography>
+            
+            {!isProdDev && (
+              <Box mb={4}>
+                <Typography variant="h6" gutterBottom>
+                  Platform Configuration
+                </Typography>
+                <FormControl fullWidth margin="normal" required error={validationErrors.platform}>
+                  <ToggleButtonGroup
+                    color="primary"
+                    value={formData.platform}
+                    exclusive
+                    onChange={handlePlatformChange}
+                    fullWidth
+                  >
+                    <ToggleButton value="web">
+                      <WebIcon sx={{ mr: 1 }} />
+                      Web
+                    </ToggleButton>
+                    <ToggleButton value="mobile">
+                      <MobileIcon sx={{ mr: 1 }} />
+                      Mobile
+                    </ToggleButton>
+                    <ToggleButton value="desktop">
+                      <ComputerIcon sx={{ mr: 1 }} />
+                      Desktop
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                  {validationErrors.platform && (
+                    <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                      Platform selection is required
+                    </Typography>
+                  )}
+                </FormControl>
+
+                {formData.platform === 'web' && (
+                  <Box mt={3}>
+                    <Typography variant="subtitle1">Web Platform Configuration</Typography>
+                    <Typography variant="subtitle2" gutterBottom style={{ marginTop: '16px' }}>
+                      Access Information eg.OVF,VM,Docker
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Address"
+                          value={formData.platformData.web.accessInfo.address}
+                          onChange={(e) => handleWebAccessChange('address', e.target.value)}
+                          required
+                          error={validationErrors.address}
+                          helperText={validationErrors.address ? 'Address is required' : ''}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Port"
+                          value={formData.platformData.web.accessInfo.port}
+                          onChange={(e) => handleWebAccessChange('port', e.target.value)}
+                          required
+                          error={validationErrors.port}
+                          helperText={validationErrors.port ? 'Port is required' : ''}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Username"
+                          value={formData.platformData.web.accessInfo.username}
+                          onChange={(e) => handleWebAccessChange('username', e.target.value)}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Password"
+                          type="password"
+                          value={formData.platformData.web.accessInfo.password}
+                          onChange={(e) => handleWebAccessChange('password', e.target.value)}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                )}
+
+                {formData.platform === 'mobile' && (
+                  <Box mt={3}>
+                    <Typography variant="subtitle1">Mobile Platform Configuration</Typography>
+                    <FormControl fullWidth margin="normal" required>
+                      <InputLabel id="mobile-platform-label">Platform</InputLabel>
+                      <Select
+                        labelId="mobile-platform-label"
+                        id="mobilePlatform"
+                        value={formData.platformData.mobile.platform}
+                        onChange={(e) => handleMobileChange('platform', e.target.value)}
+                        label="Mobile Platform"
+                        input={<OutlinedInput label="Mobile Platform" />}
+                      >
+                        <MenuItem value="android">Android</MenuItem>
+                        <MenuItem value="ios">iOS</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    <Box mt={2}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Application File (Required)
+                      </Typography>
+                      <input
+                        accept={formData.platformData.mobile.platform === 'android' ? '.apk' : '.ipa'}
+                        style={{ display: 'none' }}
+                        id="mobile-app-upload"
+                        type="file"
+                        onChange={(e) => handleFileUpload(e, 'mobile')}
+                        required
+                      />
+                      <label htmlFor="mobile-app-upload">
+                        <Button
+                          variant="contained"
+                          color="default"
+                          component="span"
+                          startIcon={<CloudUploadIcon />}
+                          fullWidth
+                        >
+                          Upload {formData.platformData.mobile.platform === 'android' ? 'APK' : 'IPA'}
+                        </Button>
+                      </label>
+                      {formData.platformData.mobile.appFile && (
+                        <Box mt={1}>
+                          <Chip
+                            label={formData.platformData.mobile.appFile}
+                            onDelete={() => handleMobileChange('appFile', '')}
+                            deleteIcon={<DeleteIcon />}
+                            variant="outlined"
+                          />
+                        </Box>
+                      )}
+                      {validationErrors.appFile && (
+                        <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                          Application file is required
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+
+                {formData.platform === 'desktop' && (
+                  <Box mt={3}>
+                    <Typography variant="subtitle1">Desktop Platform Configuration</Typography>
+                    <FormControl fullWidth margin="normal" required>
+                      <InputLabel id="desktop-os-label">Operating System</InputLabel>
+                      <Select
+                        labelId="desktop-os-label"
+                        id="desktopOS"
+                        value={formData.platformData.desktop.os}
+                        onChange={(e) => handleDesktopChange('os', e.target.value)}
+                        label="Operating System"
+                        input={<OutlinedInput label="Operating System" />}
+                      >
+                        <MenuItem value="windows">Windows</MenuItem>
+                        <MenuItem value="macos">macOS</MenuItem>
+                        <MenuItem value="linux">Linux</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    <Box mt={2}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Installer File (Required)
+                      </Typography>
+                      <input
+                        accept=".exe,.dmg,.deb,.rpm"
+                        style={{ display: 'none' }}
+                        id="desktop-installer-upload"
+                        type="file"
+                        onChange={(e) => handleFileUpload(e, 'desktop')}
+                        required
+                      />
+                      <label htmlFor="desktop-installer-upload">
+                        <Button
+                          variant="contained"
+                          color="default"
+                          component="span"
+                          startIcon={<CloudUploadIcon />}
+                          fullWidth
+                        >
+                          Upload Installer
+                        </Button>
+                      </label>
+                      {formData.platformData.desktop.installerFile && (
+                        <Box mt={1}>
+                          <Chip
+                            label={formData.platformData.desktop.installerFile}
+                            onDelete={() => handleDesktopChange('installerFile', '')}
+                            deleteIcon={<DeleteIcon />}
+                            variant="outlined"
+                          />
+                        </Box>
+                      )}
+                      {validationErrors.installerFile && (
+                        <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                          Installer file is required
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            <Box mb={4}>
+              <Typography variant="h6" gutterBottom>
+                Endpoints Configuration
+              </Typography>
+              {validationErrors.endpoints && formData.endpoints.length === 0 && (
+                <Typography variant="caption" color="error" gutterBottom>
+                  At least one endpoint is required
+                </Typography>
+              )}
+              
+              <Box mb={3}>
+                <Typography variant="subtitle1">Add New Endpoint</Typography>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} sm={8}>
+                    <TextField
+                      fullWidth
+                      label="Endpoint URL"
+                      value={newEndpoint.url}
+                      onChange={(e) => setNewEndpoint({ ...newEndpoint, url: e.target.value })}
+                      placeholder="https://example.com/api"
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<AddIcon />}
+                      onClick={addEndpoint}
+                      disabled={!newEndpoint.url}
+                      fullWidth
+                    >
+                      Add Endpoint
+                    </Button>
+                  </Grid>
+                </Grid>
+              </Box>
+
+              {formData.endpoints.length > 0 && (
+                <Box>
+                  <Typography variant="subtitle1" gutterBottom>
+                    Configured Endpoints ({formData.endpoints.length})
+                  </Typography>
+                  {formData.endpoints.map((endpoint, endpointIndex) => (
+                    <Accordion key={endpointIndex} defaultExpanded sx={{ mb: 2 }}>
+                     <Box sx={{marginLeft:'-20px'}} display="flex" alignItems="center" width="100%">
+
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Box display="flex" alignItems="center" width="100%">
+                          <Typography sx={{ flexGrow: 1 }}>{endpoint.url}</Typography>
+                          
+                        </Box>
+
+                      </AccordionSummary>
+                        <IconButton
+                            edge="center"
+                            aria-label="delete"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeEndpoint(endpointIndex);
+                            }}
+                            color="error"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                      </Box>
+                    
+                      <AccordionDetails>
+                        <Box width="100%">
+                          <Box mb={2}>
+                            <Typography variant="subtitle2">
+                              Credentials ({endpoint.credentials.length})
+                            </Typography>
+                            
+                            {endpoint.credentials.length > 0 && (
+                              <List dense>
+                                {endpoint.credentials.map((credential, credentialIndex) => (
+                                  <ListItem key={credentialIndex}>
+                                    <ListItemText
+                                      primary={credential.username}
+                                      secondary={`Password: ${'•'.repeat(credential.password.length)}`}
+                                    />
+                                    <ListItemSecondaryAction>
+                                      <IconButton
+                                        edge="end"
+                                        aria-label="delete"
+                                        onClick={() => removeCredential(endpointIndex, credentialIndex)}
+                                        color="error"
+                                      >
+                                        <DeleteIcon />
+                                      </IconButton>
+                                    </ListItemSecondaryAction>
+                                  </ListItem>
+                                ))}
+                              </List>
+                            )}
+                          </Box>
+
+                          <Box mt={2} p={2} border={1} borderColor="divider" borderRadius={4}>
+  <Typography variant="subtitle2" gutterBottom>
+    Add New Credential
+  </Typography>
+  <form onSubmit={(e) => {
+    e.preventDefault(); // Prevent default form submission
+    addCredential(endpointIndex);
+  }}>
+    <Grid container spacing={2}>
+      <Grid item xs={12} sm={6}>
+        <TextField
+          fullWidth
+          label="Username"
+          value={newCredential.username}
+          onChange={(e) => setNewCredential({ ...newCredential, username: e.target.value })}
+        />
+      </Grid>
+      <Grid item xs={12} sm={6}>
+        <TextField
+          fullWidth
+          label="Password"
+          type="password"
+          value={newCredential.password}
+          onChange={(e) => setNewCredential({ ...newCredential, password: e.target.value })}
+        />
+      </Grid>
+      <Grid item xs={12}>
+        <Button
+          type="submit" // Change to type="submit"
+          variant="outlined"
+          color="primary"
+          startIcon={<AddIcon />}
+          disabled={!newCredential.username || !newCredential.password}
+          fullWidth
+        >
+          Add Credential
+        </Button>
+      </Grid>
+    </Grid>
+  </form>
+</Box>
+
+                        </Box>
+                      </AccordionDetails>
+                    </Accordion>
                   ))}
                 </Box>
               )}
-            </Grid>
-            {renderTextField("Network", "platformData.network", 'text', <DnsIcon fontSize="small" color="action" />)}
-          </>
-        );
-      default:
-        return null;
-    }
+            </Box>
+          </CardContent>
+          <CardActions sx={{ justifyContent: 'flex-end', p: 2 }}>
+            <Button 
+              variant="outlined" 
+              onClick={handleBackToPentesterSelection}
+              sx={{ mr: 2 }}
+              disabled={submitting}
+            >
+              Back
+            </Button>
+            <Button 
+              variant="contained" 
+              color="primary"
+              onClick={handleSubmit}
+              disabled={submitting}
+              startIcon={submitting ? <CircularProgress size={20} /> : null}
+            >
+              {submitting ? 'Submitting...' : 'Submit'}
+            </Button>
+          </CardActions>
+        </Card>
+      </Box>
+    );
   };
 
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+        <CircularProgress size={80} />
+      </Box>
+    );
+  }
+
   return (
-    <Paper elevation={3} sx={{ 
-      p: 3, 
-      my: 4, 
-      borderRadius: 2,
-      borderLeft: '4px solid',
-      borderLeftColor: 'primary.main',
-      background: 'white'
-    }}>
-      <Box display="flex" alignItems="center" mb={3}>
-        <Badge
-          overlap="circular"
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          badgeContent={statusIcons[formData.status]}
-        >
-          <Avatar src={user.avatar} sx={{ 
-            width: 56, 
-            height: 56, 
-            mr: 2,
-            bgcolor: 'primary.main',
-            fontSize: '1.5rem',
-            fontWeight: 'bold'
-          }}>
-            {user.fullName?.charAt(0) || user.email?.charAt(0)}
-          </Avatar>
-        </Badge>
-        <Box>
-          <Typography variant="h6" fontWeight="bold">
-            {user.fullName || user.email}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {user.role || 'Pentester'} • {projectType}
-          </Typography>
-        </Box>
-      </Box>
-
-      <Tabs 
-        value={activeTab} 
-        onChange={handleTabChange} 
-        sx={{ 
-          mb: 3,
-          '& .MuiTabs-indicator': {
-            height: 3,
-          }
-        }}
-        variant="fullWidth"
-        indicatorColor="secondary"
-        textColor="secondary"
-      >
-        <Tab 
-          label="Environment" 
-          icon={<SettingsIcon fontSize="small" />} 
-          iconPosition="start" 
-          sx={{ minHeight: 48 }}
-        />
-        <Tab 
-          label="Access" 
-          icon={<TerminalIcon fontSize="small" />} 
-          iconPosition="start" 
-          sx={{ minHeight: 48 }}
-        />
-        <Tab 
-          label="Credentials" 
-          icon={<VpnKeyIcon fontSize="small" />} 
-          iconPosition="start" 
-          sx={{ minHeight: 48 }}
-        />
-      </Tabs>
-
-      {activeTab === 0 && (
-        <Grid container spacing={2}>
-          <Accordion 
-            expanded={expanded === 'panel1'} 
-            onChange={handleAccordionChange('panel1')}
-            sx={{ width: '100%' }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                Basic Configuration
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                {renderSelectField("Environment Type", "envType", [
-                  { value: 'docker', label: 'Docker Container' },
-                  { value: 'vm', label: 'Virtual Machine' },
-                  { value: 'ovf', label: 'OVF Package' },
-                  { value: 'other', label: 'Other' }
-                ])}
-                {renderTextField("Environment Image", "envImage", 'text', <CloudUploadIcon fontSize="small" color="action" />)}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion 
-            expanded={expanded === 'panel2'} 
-            onChange={handleAccordionChange('panel2')}
-            sx={{ width: '100%' }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                Platform Configuration ({platform})
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                {renderPlatformSpecificFields()}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion 
-            expanded={expanded === 'panel3'} 
-            onChange={handleAccordionChange('panel3')}
-            sx={{ width: '100%' }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                Resource Allocation
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                {renderTextField("CPU Cores", "config.cpu", 'number', null, 
-                  <InputAdornment position="end">cores</InputAdornment>
-                )}
-                {renderTextField("RAM", "config.ram", 'number', null, 
-                  <InputAdornment position="end">GB</InputAdornment>
-                )}
-                {renderTextField("Storage", "config.storage", 'number', null, 
-                  <InputAdornment position="end">GB</InputAdornment>
-                )}
-                {renderSelectField("OS", "config.os", [
-                  { value: 'linux', label: 'Linux' },
-                  { value: 'windows', label: 'Windows' },
-                  { value: 'macos', label: 'macOS' }
-                ])}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-        </Grid>
-      )}
-
-      {activeTab === 1 && (
-        <Grid container spacing={2}>
-          <Accordion 
-            expanded={expanded === 'panel4'} 
-            onChange={handleAccordionChange('panel4')}
-            sx={{ width: '100%' }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                Connection Details
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                {renderTextField("Address", "runtimeAccess.address", 'text', <DnsIcon fontSize="small" color="action" />)}
-                {renderTextField("Port", "runtimeAccess.port", 'number')}
-                {renderSelectField("Protocol", "runtimeAccess.protocol", [
-                  { value: 'ssh', label: 'SSH' },
-                  { value: 'rdp', label: 'RDP' },
-                  { value: 'http', label: 'HTTP' },
-                  { value: 'https', label: 'HTTPS' },
-                  { value: 'custom', label: 'Custom' }
-                ])}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion 
-            expanded={expanded === 'panel5'} 
-            onChange={handleAccordionChange('panel5')}
-            sx={{ width: '100%' }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                Authentication
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                {renderTextField("Username", "runtimeAccess.username", 'text')}
-                {renderPasswordField("Password", "runtimeAccess.password")}
-                {renderTextField("SSH Key Reference", "runtimeAccess.sshKeyReference", 'text', <VpnKeyIcon fontSize="small" color="action" />)}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion 
-            expanded={expanded === 'panel6'} 
-            onChange={handleAccordionChange('panel6')}
-            sx={{ width: '100%' }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                Advanced Settings
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                {renderTextField("Startup Script", "runtimeAccess.startupScript", 'text', <TerminalIcon fontSize="small" color="action" />, null, true)}
-                {renderTextField("Internal IP", "runtimeAccess.internalIP", 'text', <DnsIcon fontSize="small" color="action" />)}
-                {renderTextField("Volume Mount Path", "runtimeAccess.volumeMountPath", 'text', <StorageIcon fontSize="small" color="action" />)}
-                {renderSelectField("OS Platform", "runtimeAccess.osPlatform", [
-                  { value: 'linux', label: 'Linux' },
-                  { value: 'windows', label: 'Windows' },
-                  { value: 'macos', label: 'macOS' }
-                ])}
-                {renderEnvironmentVars()}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-        </Grid>
-      )}
-
-      {activeTab === 2 && (
-        <Grid container spacing={2}>
-          <Accordion 
-            expanded={expanded === 'panel7'} 
-            onChange={handleAccordionChange('panel7')}
-            sx={{ width: '100%' }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                Access Credentials
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                {renderTextField("Username", "accessCredentials.username", 'text')}
-                {renderPasswordField("Password", "accessCredentials.password")}
-                {renderTextField("Notes", "accessCredentials.notes", 'text', null, null, true)}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion 
-            expanded={expanded === 'panel8'} 
-            onChange={handleAccordionChange('panel8')}
-            sx={{ width: '100%' }}
-          >
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                Status & Logs
-              </Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                {renderSelectField("Status", "status", [
-                  { value: 'pending', label: 'Pending' },
-                  { value: 'initializing', label: 'Initializing' },
-                  { value: 'active', label: 'Active' },
-                  { value: 'failed', label: 'Failed' },
-                  { value: 'archived', label: 'Archived' }
-                ])}
-                {renderTextField("Logs", "logs", 'text', null, null, true)}
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-        </Grid>
-      )}
-
-      <Box mt={4} display="flex" justifyContent="flex-end">
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={handleSubmit}
-          startIcon={<CloudUploadIcon />}
-          sx={{ 
-            minWidth: 200,
-            borderRadius: 2,
-            boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.1)',
-            '&:hover': {
-              boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.15)'
-            }
-          }}
-        >
-          Save Configuration
-        </Button>
-      </Box>
-    </Paper>
+    <>
+      {!showForm && renderEnvironmentSelection()}
+      {showForm && renderDevOpsForm()}
+    </>
   );
 };
 
-export default DevOpsInfoForm;
+export default memo(DevOpsInfoForm);

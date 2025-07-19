@@ -64,3 +64,14 @@ const basePath = "/api/devops/project/pentesters"
     });
 
   }
+
+  export const submitDevOpsInfo = async (data)=>{
+const basePath = "/api/devops/project/save/info"
+  
+  
+      return apiFetch(basePath , {
+        method:"post" , 
+        body:JSON.stringify({data})
+    })
+
+  }
