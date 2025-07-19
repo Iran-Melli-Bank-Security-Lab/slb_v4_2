@@ -62,8 +62,7 @@ const DevOpsInfoForm = () => {
   const [showForm, setShowForm] = useState(false);
   const [environmentType, setEnvironmentType] = useState('OVF');
   
-  // Form state
-  const [formData, setFormData] = useState({
+  const getInitialFormData = () => ({
     project: projectId || '',
     pentester: '',
     platform: 'web',
@@ -88,6 +87,9 @@ const DevOpsInfoForm = () => {
     },
     endpoints: []
   });
+
+  // Form state
+  const [formData, setFormData] = useState(getInitialFormData);
 
   // Validation state
   const [validationErrors, setValidationErrors] = useState({
@@ -166,20 +168,23 @@ const DevOpsInfoForm = () => {
     setShowForm(true);
   };
 
-  const handleEnvironmentTypeChange = (e) => {
-    const newEnvType = e.target.value;
-    setEnvironmentType(newEnvType);
-    setFormData(prev => ({
-      ...prev,
-      platformData: {
-        ...prev.platformData,
-        web: {
-          ...prev.platformData.web,
-          environmentType: newEnvType
-        }
+const handleEnvironmentTypeChange = (e) => {
+  const newEnvType = e.target.value;
+  setEnvironmentType(newEnvType);
+
+  setFormData(prev => ({
+    ...prev,
+    platform: ['Production', 'Development'].includes(newEnvType) ? 'web' : prev.platform,
+    platformData: {
+      ...prev.platformData,
+      web: {
+        ...prev.platformData.web,
+        environmentType: newEnvType
       }
-    }));
-  };
+    }
+  }));
+};
+
 
   const handleWebAccessChange = useCallback((field, value) => {
     setFormData(prev => ({
@@ -310,64 +315,89 @@ const addCredential = useCallback((endpointIndex) => {
     });
   }, []);
 
-  const validateForm = () => {
-    const errors = {
-      pentester: !formData.pentester && !['Production', 'Development'].includes(environmentType),
-      platform: !formData.platform,
-      address: formData.platform === 'web' && !formData.platformData.web.accessInfo.address,
-      port: formData.platform === 'web' && !formData.platformData.web.accessInfo.port,
-      appFile: formData.platform === 'mobile' && !formData.platformData.mobile.appFile,
-      installerFile: formData.platform === 'desktop' && !formData.platformData.desktop.installerFile,
-      endpoints: formData.endpoints.length === 0
+const validateForm = () => {
+  const isShared = ['Production', 'Development'].includes(environmentType);
+
+  const errors = {
+    pentester: !isShared && !formData.pentester,
+    platform: !formData.platform || (isShared && formData.platform !== 'web'),
+    address: !isShared && formData.platform === 'web' && !formData.platformData.web.accessInfo.address,
+    port: !isShared && formData.platform === 'web' && !formData.platformData.web.accessInfo.port,
+    appFile: !isShared && formData.platform === 'mobile' && !formData.platformData.mobile.appFile,
+    installerFile: !isShared && formData.platform === 'desktop' && !formData.platformData.desktop.installerFile,
+    endpoints: formData.endpoints.length === 0
+  };
+
+  setValidationErrors(errors);
+  return !Object.values(errors).some(Boolean);
+};
+
+
+
+const handleSubmit = async () => {
+  const isShared = ['Production', 'Development'].includes(environmentType);
+
+  if (!validateForm()) {
+    toast.error('Please fill in all required fields');
+    return;
+  }
+
+  try {
+    setSubmitting(true);
+
+    const baseData = {
+      projectId,
+      submittedBy: userId,
+      platformType: 'web',
+      endpoints: formData.endpoints,
+      platformData: {
+        web: {
+          ...formData.platformData.web,
+          environmentType // 👈 مطمئن شو environmentType هم هست
+        }
+      },
+      isShared,
     };
 
-    setValidationErrors(errors);
-    return !Object.values(errors).some(error => error);
-  };
+    const submissionData = isShared
+      ? baseData
+      : {
+          ...baseData,
+          pentesterId: formData.pentester,
+          platformType: formData.platform,
+          platformData: formData.platformData
+        };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      toast.error('Please fill in all required fields');
-      return;
+    const response = await submitDevOpsInfo( submissionData );
+
+    if (response.success) {
+      toast.success('DevOps information submitted successfully');
+      setFormData(getInitialFormData());
+setSelectedPentester(null);
+setShowForm(false);
+    } else {
+      throw new Error(response.message || 'Failed to submit DevOps information');
     }
+  } catch (error) {
+    console.error('Submission error:', error);
+    toast.error(error.message || 'Failed to submit DevOps information');
+  } finally {
+    setSubmitting(false);
+  }
+};
 
-    try {
-      setSubmitting(true);
-      
-      // Prepare the data for submission
-      const submissionData = {
-        projectId: projectId,
-        pentesterId: formData.pentester,
-        environmentType: environmentType,
-        platformType: formData.platform,
-        platformData: formData.platformData,
-        endpoints: formData.endpoints,
-        submittedBy: userId,
-        submissionDate: new Date().toISOString()
-      };
 
-      console.log("submissionData : "  , submissionData )
-      // Submit to the API
-      const response = await submitDevOpsInfo(submissionData);
-      
-      if (response.success) {
-        toast.success('DevOps information submitted successfully');
-       
-      } else {
-        throw new Error(response.message || 'Failed to submit DevOps information');
-      }
-    } catch (error) {
-      console.error('Submission error:', error);
-      toast.error(error.message || 'Failed to submit DevOps information');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+
 
   const handleBackToPentesterSelection = () => {
     setShowForm(false);
+      setFormData(getInitialFormData());
     setSelectedPentester(null);
   };
+
+  
+
+
 
   const renderEnvironmentSelection = () => (
     <Box sx={{ p: 3 }}>
