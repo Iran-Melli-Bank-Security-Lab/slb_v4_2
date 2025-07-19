@@ -226,9 +226,9 @@ const DoProject = () => {
   return (
     <Container maxWidth="xl" className="py-8 px-4 sm:px-6 lg:px-8">
 
-       <ProjectInfo
+       {/* <ProjectInfo
         devOpsInfo={staticDevOpsInfo}
-      /> 
+      />  */}
 
 
       <ProjectStatus
