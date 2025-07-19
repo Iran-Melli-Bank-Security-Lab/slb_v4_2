@@ -1061,6 +1061,8 @@ import { useParams } from 'react-router';
 import styled, { keyframes } from 'styled-components';
 import { useUserId } from "../../../hooks/useUserId";
 import { getBugs } from '../../../api/bugs/getBugs';
+import { updateBugStatus } from '../../../api/bugs/updateBugStatus';
+import { apiFetch } from '../../../api/api';
 
 
 
@@ -1347,38 +1349,77 @@ const TestDataView = () => {
   const { id: projectId } = useParams();
   const userId = useUserId();
 
-    useEffect(() => {
-      const fetchBugs = async () => {
-        try {
-          const data = await getBugs(projectId, userId);
-          const bugTree = data[0].bugScopes; 
-          console.log("bugTree : " , bugTree )
-          // const updatedBugTree = bugTree.map(bug => ({ 
-          //   ...bug, 
-          //   status: STATUS_OPTIONS.some(opt => opt.value === bug.status) ? bug.status : undefined
-          // }));
-          setData(bugTree);
-          // if (data.startDate) {
-          //   setStartDate(data.startDate);
-          // }
-          // setProgress(calculateProgress(updatedBugTree));
-        } catch (error) {
-          console.error('Failed to fetch bug status:', error);
-        } 
-      };
+    // useEffect(() => {
+    //   const fetchBugs = async () => {
+    //     try {
+    //       const data = await getBugs(projectId, userId);
+    //       const bugTree = data[0].bugScopes; 
+    //       console.log("bugTree : " , bugTree )
+    //       // const updatedBugTree = bugTree.map(bug => ({ 
+    //       //   ...bug, 
+    //       //   status: STATUS_OPTIONS.some(opt => opt.value === bug.status) ? bug.status : undefined
+    //       // }));
+    //       setData(bugTree);
+    //       // if (data.startDate) {
+    //       //   setStartDate(data.startDate);
+    //       // }
+    //       // setProgress(calculateProgress(updatedBugTree));
+    //     } catch (error) {
+    //       console.error('Failed to fetch bug status:', error);
+    //     } 
+    //   };
       
-      fetchBugs();
-    }, [projectId, userId]);
+    //   fetchBugs();
+    // }, [projectId, userId]);
   
 
 
   // Calculate progress based on completed items
-useEffect(() => {
+
+  useEffect(() => {
+  const fetchBugs = async () => {
+    try {
+      const data = await getBugs(projectId, userId);
+      const bugTree = data[0].bugScopes; 
+      console.log("bugTree : ", bugTree);
+      
+      // Initialize selectedItems based on the status of each item
+      const initialSelectedItems = {};
+      
+      const processItems = (items) => {
+        items.forEach(item => {
+          // Only set status if it's one of the valid options
+          if (['pass', 'failed', 'notAccessible', 'notApplicable'].includes(item.status)) {
+            initialSelectedItems[item.id] = item.status;
+          }
+          
+          // Process children recursively
+          if (item.children && item.children.length > 0) {
+            processItems(item.children);
+          }
+        });
+      };
+      
+      processItems(bugTree);
+      
+      setData(bugTree);
+      setSelectedItems(initialSelectedItems);
+      
+    } catch (error) {
+      console.error('Failed to fetch bug status:', error);
+    } 
+  };
+  
+  fetchBugs();
+}, [projectId, userId]);
+
+
+  useEffect(() => {
   // Get all leaf nodes (actual testable items)
   const testableItems = flattenData(data)?.filter(item => !item.children || item.children.length === 0);
   const totalItems = testableItems.length;
 
-  // Count completed items (any status selection)
+  // Count completed items (any status selection except 'notAttempted')
   const completedItems = testableItems?.filter(
     item => selectedItems[item.id] && 
            ['pass', 'failed', 'notApplicable', 'notAccessible'].includes(selectedItems[item.id])
@@ -1386,10 +1427,9 @@ useEffect(() => {
 
   const newProgress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
   setProgress(newProgress);
-}, [selectedItems]);
-
-
-  // Flatten data for progress calculation
+}, [selectedItems, data]);
+  
+   
   const flattenData = (items) => {
     let flatItems = [];
     items?.forEach(item => {
@@ -1428,21 +1468,145 @@ useEffect(() => {
     }));
   };
 
-  const handleRadioChange = (id, value) => {
+ const handleRadioChange = async (id, value) => {
+  const newSelectedItems = {
+    ...selectedItems,
+    [id]: value
+  };
+  
+  setSelectedItems(newSelectedItems);
+
+  try {
+    await updateBugStatus(projectId, userId, id, value);
+  } catch(error) {
+    console.error("Error updating bug status:", error);
+    // Revert the change if the API call fails
     setSelectedItems(prev => ({
       ...prev,
-      [id]: value
+      [id]: prev[id] // revert to previous value
     }));
-  };
+  }
+};
 
-  const handleSelectAll = () => {
-    const allIds = flattenData(data).map(item => item.id);
-    const newSelectedItems = {};
-    allIds.forEach(id => {
-      newSelectedItems[id] = 'pass';
+
+  // const handleSelectAll = () => {
+  //   const allIds = flattenData(data).map(item => item.id);
+  //   const newSelectedItems = {};
+  //   allIds.forEach(id => {
+  //     newSelectedItems[id] = 'pass';
+  //   });
+  //   setSelectedItems(newSelectedItems);
+  // };
+
+
+// const handleSelectAll = async () => {
+//   try {
+//     // Get all testable items (leaf nodes)
+//     const testableItems = flattenData(data).filter(item => !item.children?.length);
+    
+//     // Identify items that need updating (no status or notAttempted)
+//     const itemsToUpdate = testableItems.filter(item => {
+//       const currentStatus = selectedItems[item.id];
+//       return !currentStatus || currentStatus === 'notAttempted';
+//     });
+
+//     if (itemsToUpdate.length === 0) {
+//       return; // Nothing to update
+//     }
+
+//     // Optimistic UI update
+//     const newSelectedItems = { ...selectedItems };
+//     itemsToUpdate.forEach(item => {
+//       newSelectedItems[item.id] = 'pass';
+//     });
+//     setSelectedItems(newSelectedItems);
+
+//     // Send individual updates using fetch
+//     const updatePromises = itemsToUpdate.map(item => {
+//       return fetch('http://localhost:4000/api/projects/bulk/update/bug/status', {
+//         method: 'POST',
+//          credentials: 'include',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({
+//           projectId,
+//           userId,
+//           bugId: item.id,
+//           status: 'pass'
+//         })
+//       });
+//     });
+
+//     // Wait for all updates to complete
+//     await Promise.all(updatePromises);
+    
+//     console.log('All updates completed successfully');
+    
+//   } catch (error) {
+//     console.error("Error in select all:", error);
+//     // Revert optimistic update on error
+//     setSelectedItems(prev => ({ ...prev }));
+//   }
+// };
+
+
+const handleSelectAll = async () => {
+  try {
+    // Get all testable items (leaf nodes)
+    const testableItems = flattenData(data).filter(item => !item.children?.length);
+    
+    // Identify items that need updating (no status or notAttempted)
+    const itemsToUpdate = testableItems.filter(item => {
+      const currentStatus = selectedItems[item.id];
+      return !currentStatus || currentStatus === 'notAttempted';
+    });
+
+    if (itemsToUpdate.length === 0) {
+      return; // Nothing to update
+    }
+
+    // Create the bulk update payload
+    const updates = itemsToUpdate.map(item => ({
+      bugId: item.id,
+      status: 'pass'
+    }));
+
+    // Optimistic UI update
+    const newSelectedItems = { ...selectedItems };
+    itemsToUpdate.forEach(item => {
+      newSelectedItems[item.id] = 'pass';
     });
     setSelectedItems(newSelectedItems);
-  };
+
+    // Send bulk update to backend using fetch
+    const response = await fetch('http://localhost:4000/api/projects/bulk/update/bug/status', {
+      method: 'POST',
+       credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        projectId,
+        userId,
+        updates
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update statuses');
+    }
+
+    const result = await response.json();
+    console.log('Bulk update successful:', result);
+    
+  } catch (error) {
+    console.error("Error in select all:", error);
+    // Revert optimistic update on error
+    setSelectedItems(prev => ({ ...prev }));
+  }
+};
+
 
   const handleDeselectAll = () => {
     setSelectedItems({});
