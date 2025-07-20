@@ -1,910 +1,522 @@
-import React, { memo, useState } from "react";
+import React, { useState } from "react";
 import {
-  Avatar, Box, Card, Chip, Divider, Grid, List, ListItem, ListItemText,
-  CardContent, ListItemAvatar, Typography, Tooltip, IconButton, LinearProgress,
-  Badge, alpha, Button, Fade, Grow, Zoom
+  Box, Card, Typography, Grid, Divider, Chip, Avatar,
+  IconButton, Collapse, Tooltip, Paper, Badge
 } from "@mui/material";
 import {
-  Person as PersonIcon,
-  Code as CodeIcon,
-  Cloud as CloudIcon,
   Settings as SettingsIcon,
-  Star as StarIcon,
-  Group as GroupIcon,
-  CalendarToday as CalendarIcon,
-  Link as LinkIcon,
-  OpenInNew as OpenInNewIcon,
-  Verified as VerifiedIcon,
-  MoreVert as MoreVertIcon,
-  Work as WorkIcon,
-  Timeline as TimelineIcon,
-  Assessment as AssessmentIcon,
-  Circle as CircleIcon,
-  Bolt as BoltIcon,
-  Palette as PaletteIcon,
-  Dashboard as DashboardIcon
+  Code as CodeIcon,
+  Dns as DnsIcon,
+  Storage as StorageIcon,
+  VpnKey as KeyIcon,
+  Public as PublicIcon,
+  Computer as ComputerIcon,
+  PhoneIphone as MobileIcon,
+  Web as WebIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  DeveloperBoard as FrameworkIcon,
+  Cloud as CloudIcon,
+  Lock as LockIcon,
+  CheckCircle as CheckIcon,
+  Warning as WarningIcon,
+  Info as InfoIcon,
+  ContentCopy as CopyIcon
 } from "@mui/icons-material";
-import { styled, keyframes } from "@mui/material/styles";
-import DetailItem from "../DetailItem"
-// Luxury color palette inspired by modern design systems
-const luxuryColors = {
-  primary: "#4361EE",       // Vibrant electric blue
-  secondary: "#3A0CA3",     // Deep royal purple
-  accent: "#7209B7",        // Rich magenta
-  success: "#4CC9F0",       // Bright cyan
-  warning: "#F8961E",       // Golden orange
-  error: "#F72585",         // Electric pink
-  dark: "#1A1A2E",          // Navy darkness
-  light: "#F8F9FA",         // Pure white
-  textPrimary: "#2B2D42",    // Dark blue-gray
-  textSecondary: "#8D99AE",  // Soft blue-gray
-  background: "#FFFFFF",     // Crisp white
-  paper: "#F8F7FF",         // Subtle purple tint
-  glow: "rgba(67, 97, 238, 0.4)" // Blue glow
+import { styled, alpha } from "@mui/material/styles";
+
+// Luxury color palette
+const colors = {
+  primary: "#4361EE",
+  secondary: "#3A0CA3",
+  accent: "#7209B7",
+  success: "#4CC9F0",
+  warning: "#F8961E",
+  error: "#F72585",
+  dark: "#1A1A2E",
+  light: "#F8F9FA"
 };
 
-// Gradient definitions with vibrant colors
-const gradients = {
-  header: `linear-gradient(135deg, ${luxuryColors.primary} 0%, ${luxuryColors.secondary} 100%)`,
-  success: `linear-gradient(90deg, ${luxuryColors.success} 0%, ${luxuryColors.accent} 100%)`,
-  warning: `linear-gradient(90deg, ${luxuryColors.warning} 0%, ${luxuryColors.error} 100%)`,
-  cardHover: `linear-gradient(135deg, ${alpha(luxuryColors.primary, 0.1)} 0%, ${alpha(luxuryColors.secondary, 0.1)} 100%)`
-};
-
-// Custom animations
-const floatAnimation = keyframes`
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-5px); }
-  100% { transform: translateY(0px); }
-`;
-
-const glowAnimation = keyframes`
-  0% { box-shadow: 0 0 0 0 ${alpha(luxuryColors.primary, 0.4)}; }
-  70% { box-shadow: 0 0 20px 10px ${alpha(luxuryColors.primary, 0)}; }
-  100% { box-shadow: 0 0 0 0 ${alpha(luxuryColors.primary, 0)}; }
-`;
-
-const pulseAnimation = keyframes`
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-`;
-
-// Styled components with luxury design
-const LuxuryCard = styled(Card)(({ theme }) => ({
-  borderRadius: "24px",
+// Styled components
+const SectionCard = styled(Paper)(({ theme }) => ({
+  borderRadius: "16px",
   overflow: "hidden",
-  boxShadow: `0 15px 35px ${alpha(luxuryColors.dark, 0.1)}`,
-  transition: "all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1)",
-  background: luxuryColors.background,
-  border: `1px solid ${alpha(luxuryColors.primary, 0.1)}`,
+  boxShadow: `0 8px 32px ${alpha(colors.dark, 0.08)}`,
+  transition: "all 0.3s ease",
   "&:hover": {
-    transform: "translateY(-5px)",
-    boxShadow: `0 20px 50px ${alpha(luxuryColors.dark, 0.2)}`,
-    borderColor: alpha(luxuryColors.primary, 0.3)
+    transform: "translateY(-4px)",
+    boxShadow: `0 12px 40px ${alpha(colors.dark, 0.12)}`
   }
 }));
 
-const HeaderGradient = styled(Box)(({ theme }) => ({
-  background: gradients.header,
-  padding: theme.spacing(5, 4, 4, 4),
-  color: "white",
-  position: "relative",
-  overflow: "hidden",
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: -50,
-    right: -50,
-    width: "150px",
-    height: "150px",
-    borderRadius: "50%",
-    background: `radial-gradient(circle, ${alpha(luxuryColors.light, 0.1)} 0%, transparent 70%)`
-  },
-  "&::after": {
-    content: '""',
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: "4px",
-    background: gradients.success,
-    animation: `${glowAnimation} 3s infinite`
-  }
-}));
-
-const StatusPill = styled(Chip)(({ status }) => ({
-  position: "absolute",
-  top: 24,
-  right: 24,
-  fontWeight: 800,
-  fontSize: "0.7rem",
-  letterSpacing: "1px",
-  textTransform: "uppercase",
-  padding: "6px 16px",
-  backgroundColor: status === "active" 
-    ? `${luxuryColors.success}30` 
-    : `${luxuryColors.error}30`,
-  color: "white",
-  backdropFilter: "blur(10px)",
-  border: `1px solid ${status === "active" 
-    ? luxuryColors.success 
-    : luxuryColors.error}`,
-  boxShadow: `0 4px 15px ${status === "active" 
-    ? alpha(luxuryColors.success, 0.3) 
-    : alpha(luxuryColors.error, 0.3)}`,
-  animation: `${pulseAnimation} 2s infinite`,
-  "& .MuiChip-icon": {
-    color: "white",
-    opacity: 0.8
-  }
-}));
-
-const DetailCard = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3.5),
-  background: luxuryColors.paper,
-  borderRadius: "18px",
-  height: "100%",
-  border: `1px solid ${alpha(luxuryColors.primary, 0.1)}`,
-  boxShadow: `0 8px 20px ${alpha(luxuryColors.dark, 0.05)}`,
-  transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1)",
+const SectionHeader = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  padding: theme.spacing(3),
+  background: `linear-gradient(135deg, ${alpha(colors.primary, 0.1)} 0%, transparent 100%)`,
+  borderBottom: `1px solid ${alpha(colors.primary, 0.1)}`,
+  cursor: "pointer",
   "&:hover": {
-    transform: "translateY(-8px)",
-    boxShadow: `0 15px 35px ${alpha(luxuryColors.dark, 0.15)}`,
-    background: gradients.cardHover,
-    borderColor: alpha(luxuryColors.primary, 0.3)
+    background: `linear-gradient(135deg, ${alpha(colors.primary, 0.15)} 0%, transparent 100%)`
   }
 }));
 
-const TechPill = styled(Chip)(({ theme }) => ({
+const InfoBadge = styled(Chip)(({ type }) => ({
   borderRadius: "12px",
   fontWeight: 700,
   fontSize: "0.65rem",
-  letterSpacing: "0.5px",
-  height: "28px",
-  padding: theme.spacing(0.5, 2),
-  transition: "all 0.3s ease",
-  "&.MuiChip-outlined": {
-    borderWidth: "2px"
-  },
+  padding: "4px 8px",
+  backgroundColor: type === 'success' ? `${colors.success}20` :
+                type === 'warning' ? `${colors.warning}20` :
+                type === 'error' ? `${colors.error}20` : `${colors.primary}20`,
+  color: type === 'success' ? colors.success :
+       type === 'warning' ? colors.warning :
+       type === 'error' ? colors.error : colors.primary,
+  border: `1px solid ${type === 'success' ? colors.success :
+          type === 'warning' ? colors.warning :
+          type === 'error' ? colors.error : colors.primary}`
+}));
+
+const ClickableText = styled(Typography)(({ theme }) => ({
+  cursor: "pointer",
   "&:hover": {
-    transform: "scale(1.05)",
-    boxShadow: `0 5px 15px ${alpha(luxuryColors.primary, 0.2)}`
+    color: colors.primary,
+    textDecoration: "underline"
   }
 }));
 
-const TimelineItem = styled(Box)(({ theme }) => ({
-  minWidth: "260px",
-  padding: theme.spacing(3),
-  marginRight: theme.spacing(3),
-  background: luxuryColors.paper,
-  borderRadius: "16px",
-  borderLeft: `5px solid ${luxuryColors.primary}`,
-  boxShadow: `0 10px 25px ${alpha(luxuryColors.dark, 0.08)}`,
-  transition: "all 0.4s ease",
-  "&:hover": {
-    transform: "translateY(-8px) scale(1.02)",
-    boxShadow: `0 15px 35px ${alpha(luxuryColors.dark, 0.15)}`,
-    borderLeft: `5px solid ${luxuryColors.accent}`
-  }
-}));
+const CopyButton = ({ value, tooltip = "Copy to clipboard" }) => {
+  const [copied, setCopied] = useState(false);
 
-const ProgressBar = styled(LinearProgress)(({ theme }) => ({
-  height: "10px",
-  borderRadius: "8px",
-  backgroundColor: alpha(luxuryColors.light, 0.2),
-  boxShadow: `inset 0 1px 3px ${alpha(luxuryColors.dark, 0.2)}`,
-  "& .MuiLinearProgress-bar": {
-    borderRadius: "8px",
-    background: gradients.success,
-    boxShadow: `0 0 10px ${alpha(luxuryColors.success, 0.5)}`,
-    animation: `${glowAnimation} 3s infinite`
-  }
-}));
-
-const FloatingActionButton = styled(Button)(({ theme }) => ({
-  position: "absolute",
-  right: 24,
-  bottom: -24,
-  minWidth: "auto",
-  width: "56px",
-  height: "56px",
-  borderRadius: "50%",
-  background: gradients.warning,
-  color: "white",
-  boxShadow: `0 10px 25px ${alpha(luxuryColors.warning, 0.4)}`,
-  transition: "all 0.3s ease",
-  animation: `${floatAnimation} 4s infinite ease-in-out`,
-  "&:hover": {
-    transform: "scale(1.1)",
-    background: gradients.warning,
-    boxShadow: `0 15px 35px ${alpha(luxuryColors.warning, 0.6)}`
-  }
-}));
-
-function ProjectInfo({ projectData, devOpsInfo }) {
-  const progress = projectData.progress || 0;
-  const [hoveredItem, setHoveredItem] = useState(null);
-  
-  // Calculate project status
-  const getProjectStatus = () => {
-    if (progress >= 100) return { text: "COMPLETED", status: "active" };
-    if (progress >= 75) return { text: "ON TRACK", status: "active" };
-    if (progress >= 50) return { text: "IN PROGRESS", status: "active" };
-    if (progress >= 25) return { text: "DELAYED", status: "inactive" };
-    return { text: "AT RISK", status: "inactive" };
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const projectStatus = getProjectStatus();
-
   return (
-    <LuxuryCard>
-      <HeaderGradient>
-        <StatusPill 
-          label={projectStatus.text} 
-          status={projectStatus.status}
-          icon={
-            projectStatus.status === "active" ? 
-              <BoltIcon fontSize="small" /> : 
-              <CircleIcon fontSize="small" />
-          }
-        />
-        
-        <Box display="flex" alignItems="flex-end" mb={1}>
-          <Typography variant="h3" fontWeight="900" sx={{ 
-            letterSpacing: "-1px",
-            lineHeight: 1.2,
-            textShadow: `0 2px 10px ${alpha(luxuryColors.dark, 0.2)}`,
-            position: "relative",
-            zIndex: 2
+    <Tooltip title={copied ? "Copied!" : tooltip} arrow>
+      <IconButton size="small" onClick={handleCopy} sx={{ ml: 1 }}>
+        <CopyIcon fontSize="small" />
+      </IconButton>
+    </Tooltip>
+  );
+};
+
+const DetailRow = ({ icon, label, value, children, copyable = false }) => (
+  <Box sx={{ display: "flex", mb: 2, alignItems: "flex-start" }}>
+    <Box sx={{ 
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: 40,
+      height: 40,
+      borderRadius: "12px",
+      bgcolor: alpha(colors.primary, 0.1),
+      color: colors.primary,
+      mr: 2,
+      flexShrink: 0
+    }}>
+      {icon}
+    </Box>
+    <Box sx={{ flex: 1 }}>
+      <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 0.5 }}>
+        {label}
+      </Typography>
+      {value && (
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Typography variant="body1" fontWeight={500}>
+            {value}
+          </Typography>
+          {copyable && <CopyButton value={value} />}
+        </Box>
+      )}
+      {children}
+    </Box>
+  </Box>
+);
+
+const DevOpsInfoDisplay = ({ devOpsInfo }) => {
+  const [expandedSections, setExpandedSections] = useState({
+    platform: true,
+    endpoints: true,
+    technology: true
+  });
+
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const renderPlatformInfo = () => {
+    if (!devOpsInfo.platformData) return null;
+    
+    const platform = devOpsInfo.platform;
+    const data = devOpsInfo.platformData[platform];
+
+    return (
+      <SectionCard>
+        <SectionHeader onClick={() => toggleSection('platform')}>
+          <Avatar sx={{ 
+            bgcolor: alpha(colors.primary, 0.1),
+            color: colors.primary,
+            mr: 2
           }}>
-            {projectData.title}
-          </Typography>
-          {projectData.isVerified && (
-            <Tooltip 
-              title="Verified Project" 
-              placement="top"
-              TransitionComponent={Zoom}
-              arrow
-            >
-              <Badge
-                overlap="circular"
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                sx={{ ml: 2, mb: 0.5 }}
-                badgeContent={
-                  <Avatar sx={{ 
-                    width: 28, 
-                    height: 28,
-                    bgcolor: luxuryColors.warning,
-                    boxShadow: `0 4px 15px ${alpha(luxuryColors.warning, 0.5)}`
-                  }}>
-                    <VerifiedIcon fontSize="small" />
-                  </Avatar>
-                }
-              >
-                <Box />
-              </Badge>
-            </Tooltip>
-          )}
-        </Box>
-        
-        <Typography variant="h6" sx={{ 
-          opacity: 0.9, 
-          fontWeight: 400,
-          letterSpacing: "0.5px",
-          position: "relative",
-          zIndex: 2
-        }}>
-          {projectData.subtitle || "Premium Project Dashboard"}
-        </Typography>
-        
-        {/* Progress with animated bar */}
-        <Box mt={4} position="relative" zIndex={2}>
-          <Box display="flex" justifyContent="space-between" mb={1.5}>
-            <Typography variant="caption" fontWeight="700" letterSpacing="1px">
-              PROJECT PROGRESS
+            {platform === 'web' ? <WebIcon /> :
+             platform === 'mobile' ? <MobileIcon /> : <ComputerIcon />}
+          </Avatar>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" fontWeight={700}>
+              {platform.charAt(0).toUpperCase() + platform.slice(1)} Platform
             </Typography>
-            <Typography variant="caption" fontWeight="800" sx={{ 
-              background: gradients.success,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent"
-            }}>
-              {progress}%
+            <Typography variant="body2" color="textSecondary">
+              Configuration and deployment details
             </Typography>
           </Box>
-          <ProgressBar variant="determinate" value={progress} />
-          <Box display="flex" justifyContent="space-between" mt={1.5}>
-            <Typography variant="caption" fontWeight="600">
-              {projectData.startDate}
-            </Typography>
-            <Typography variant="caption" fontWeight="600">
-              {projectData.endDate}
-            </Typography>
-          </Box>
-        </Box>
-
-        <FloatingActionButton aria-label="Quick action">
-          <BoltIcon fontSize="medium" />
-        </FloatingActionButton>
-      </HeaderGradient>
-
-      <CardContent sx={{ p: 5, pt: 7 }}>
-        {/* Project Description */}
-        <Box mb={5}>
-          <Typography 
-            variant="body1" 
-            color={luxuryColors.textSecondary}
-            sx={{ 
-              lineHeight: 1.9,
-              fontSize: "1rem",
-              letterSpacing: "0.3px"
-            }}
-          >
-            {projectData.description || "This premium project dashboard showcases the highest quality design with smooth animations and attention to detail."}
-          </Typography>
-        </Box>
-
-        <Divider sx={{ 
-          my: 5, 
-          borderColor: alpha(luxuryColors.primary, 0.1),
-          borderWidth: "2px" 
-        }} />
-
-        {/* Main Cards Grid */}
-        <Grid container spacing={4}>
-          {/* Project Details Card */}
-          <Grid item xs={12} md={4}>
-            <Grow in={true} timeout={800}>
-              <DetailCard>
-                <Box display="flex" alignItems="center" mb={4}>
-                  <Avatar sx={{ 
-                    bgcolor: alpha(luxuryColors.primary, 0.1),
-                    color: luxuryColors.primary,
-                    width: 48,
-                    height: 48,
-                    mr: 2,
-                    border: `2px solid ${alpha(luxuryColors.primary, 0.2)}`
-                  }}>
-                    <DashboardIcon fontSize="medium" />
-                  </Avatar>
-                  <Typography 
-                    variant="h5" 
-                    fontWeight="800"
-                    color={luxuryColors.textPrimary}
-                    sx={{ letterSpacing: "0.5px" }}
-                  >
-                    Project Details
-                  </Typography>
-                </Box>
-
-                <Box sx={{ "& > *:not(:last-child)": { mb: 3 } }}>
-                  <DetailItem
-                    icon={
-                      <Avatar sx={{ 
-                        bgcolor: alpha(luxuryColors.primary, 0.1),
-                        color: luxuryColors.primary,
-                        width: 36,
-                        height: 36
-                      }}>
-                        <CalendarIcon fontSize="small" />
-                      </Avatar>
-                    }
-                    title="Timeline"
-                    value={`${projectData.startDate} - ${projectData.endDate}`}
-                    subtext={`${projectData.duration || "3 months"}`}
-                    titleColor={luxuryColors.textPrimary}
-                    valueColor={luxuryColors.textSecondary}
-                  />
-                  <DetailItem
-                    icon={
-                      <Avatar sx={{ 
-                        bgcolor: alpha(luxuryColors.accent, 0.1),
-                        color: luxuryColors.accent,
-                        width: 36,
-                        height: 36
-                      }}>
-                        <PersonIcon fontSize="small" />
-                      </Avatar>
-                    }
-                    title="Owner"
-                    value={
-                      <Box display="flex" alignItems="center">
-                        <Avatar 
-                          sx={{ 
-                            width: 28, 
-                            height: 28, 
-                            mr: 2,
-                            bgcolor: alpha(luxuryColors.secondary, 0.1),
-                            color: luxuryColors.secondary,
-                            fontSize: "0.9rem",
-                            fontWeight: 700,
-                            border: `1px solid ${alpha(luxuryColors.secondary, 0.3)}`
-                          }}
-                        >
-                          {projectData.owner.charAt(0)}
-                        </Avatar>
-                        <Typography fontWeight="600">
-                          {projectData.owner}
-                        </Typography>
-                      </Box>
-                    }
-                    subtext={projectData.ownerRole || "Project Manager"}
-                    titleColor={luxuryColors.textPrimary}
-                    valueColor={luxuryColors.textSecondary}
-                  />
-                  <DetailItem
-                    icon={
-                      <Avatar sx={{ 
-                        bgcolor: alpha(luxuryColors.success, 0.1),
-                        color: luxuryColors.success,
-                        width: 36,
-                        height: 36
-                      }}>
-                        <WorkIcon fontSize="small" />
-                      </Avatar>
-                    }
-                    title="Project Type"
-                    value={projectData.type || "Web Application"}
-                    titleColor={luxuryColors.textPrimary}
-                    valueColor={luxuryColors.textSecondary}
-                  />
-                </Box>
-              </DetailCard>
-            </Grow>
-          </Grid>
-
-          {/* DevOps Information Card */}
-          <Grid item xs={12} md={4}>
-            <Grow in={true} timeout={1000}>
-              <DetailCard>
-                <Box display="flex" alignItems="center" mb={4}>
-                  <Avatar sx={{ 
-                    bgcolor: alpha(luxuryColors.error, 0.1),
-                    color: luxuryColors.error,
-                    width: 48,
-                    height: 48,
-                    mr: 2,
-                    border: `2px solid ${alpha(luxuryColors.error, 0.2)}`
-                  }}>
-                    <SettingsIcon fontSize="medium" />
-                  </Avatar>
-                  <Typography 
-                    variant="h5" 
-                    fontWeight="800"
-                    color={luxuryColors.textPrimary}
-                    sx={{ letterSpacing: "0.5px" }}
-                  >
-                    DevOps
-                  </Typography>
-                </Box>
-
-                <Box sx={{ "& > *:not(:last-child)": { mb: 3 } }}>
-                  <DetailItem
-                    icon={
-                      <Avatar sx={{ 
-                        bgcolor: alpha(luxuryColors.primary, 0.1),
-                        color: luxuryColors.primary,
-                        width: 36,
-                        height: 36
-                      }}>
-                        <CodeIcon fontSize="small" />
-                      </Avatar>
-                    }
-                    title="Repository"
-                    value={
-                      <Box 
-                        display="flex" 
-                        alignItems="center"
-                        sx={{
-                          "&:hover": {
-                            "& a": {
-                              color: luxuryColors.primary,
-                              textDecoration: "underline"
-                            },
-                            "& svg": {
-                              color: luxuryColors.primary
-                            }
-                          }
-                        }}
-                      >
-                        <LinkIcon sx={{ 
-                          color: luxuryColors.textSecondary, 
-                          mr: 1.5, 
-                          fontSize: "1.2rem" 
-                        }} />
-                        <a 
-                          href={devOpsInfo.repoUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          style={{ 
-                            color: luxuryColors.textSecondary,
-                            textDecoration: "none",
-                            fontSize: "0.95rem",
-                            transition: "color 0.2s ease",
-                            fontWeight: 500
-                          }}
-                        >
-                          {devOpsInfo.repoUrl.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
-                        </a>
-                        <OpenInNewIcon sx={{ 
-                          color: luxuryColors.textSecondary, 
-                          ml: 1.5, 
-                          fontSize: "1.1rem",
-                          transition: "color 0.2s ease"
-                        }} />
-                      </Box>
-                    }
-                    titleColor={luxuryColors.textPrimary}
-                    valueColor={luxuryColors.textSecondary}
-                  />
-                  <DetailItem
-                    icon={
-                      <Avatar sx={{ 
-                        bgcolor: alpha(luxuryColors.warning, 0.1),
-                        color: luxuryColors.warning,
-                        width: 36,
-                        height: 36
-                      }}>
-                        <SettingsIcon fontSize="small" />
-                      </Avatar>
-                    }
-                    title="CI/CD Pipeline"
-                    value={devOpsInfo.ciTool}
-                    subtext={`Last build: ${devOpsInfo.lastBuild || "2 days ago"}`}
-                    titleColor={luxuryColors.textPrimary}
-                    valueColor={luxuryColors.textSecondary}
-                  />
-                  <DetailItem
-                    icon={
-                      <Avatar sx={{ 
-                        bgcolor: alpha(luxuryColors.success, 0.1),
-                        color: luxuryColors.success,
-                        width: 36,
-                        height: 36
-                      }}>
-                        <CloudIcon fontSize="small" />
-                      </Avatar>
-                    }
-                    title="Deployment"
-                    value={devOpsInfo.deploymentTarget}
-                    subtext={`Last deploy: ${devOpsInfo.lastDeploy || "1 day ago"}`}
-                    titleColor={luxuryColors.textPrimary}
-                    valueColor={luxuryColors.textSecondary}
-                  />
-                </Box>
-              </DetailCard>
-            </Grow>
-          </Grid>
-
-          {/* Team Members Card */}
-          <Grid item xs={12} md={4}>
-            <Grow in={true} timeout={1200}>
-              <DetailCard>
-                <Box display="flex" alignItems="center" justifyContent="space-between" mb={4}>
-                  <Box display="flex" alignItems="center">
-                    <Avatar sx={{ 
-                      bgcolor: alpha(luxuryColors.secondary, 0.1),
-                      color: luxuryColors.secondary,
-                      width: 48,
-                      height: 48,
-                      mr: 2,
-                      border: `2px solid ${alpha(luxuryColors.secondary, 0.2)}`
-                    }}>
-                      <GroupIcon fontSize="medium" />
-                    </Avatar>
-                    <Typography 
-                      variant="h5" 
-                      fontWeight="800"
-                      color={luxuryColors.textPrimary}
-                      sx={{ letterSpacing: "0.5px" }}
-                    >
-                      Team Members
+          <IconButton size="small">
+            {expandedSections.platform ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </IconButton>
+        </SectionHeader>
+        
+        <Collapse in={expandedSections.platform}>
+          <Box sx={{ p: 3 }}>
+            {platform === 'web' && (
+              <>
+                <DetailRow 
+                  icon={<SettingsIcon />}
+                  label="Environment Type"
+                  value={data.environmentType}
+                />
+                
+                {data.vmInfo && (
+                  <>
+                    <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
+                      Virtual Machine Details
                     </Typography>
-                  </Box>
-                  <Chip 
-                    label={`${projectData.team.length}`}
-                    size="medium"
-                    sx={{
-                      bgcolor: alpha(luxuryColors.primary, 0.1),
-                      color: luxuryColors.primary,
-                      fontWeight: 800,
-                      fontSize: "0.8rem",
-                      height: "28px",
-                      border: `1px solid ${alpha(luxuryColors.primary, 0.2)}`
-                    }}
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <DetailRow 
+                          icon={<ComputerIcon />}
+                          label="VM Name"
+                          value={data.vmInfo.vmName}
+                          copyable
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <DetailRow 
+                          icon={<StorageIcon />}
+                          label="OS Type"
+                          value={data.vmInfo.osType}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <DetailRow 
+                          icon={<SettingsIcon />}
+                          label="CPU Cores"
+                          value={data.vmInfo.cpuCores}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <DetailRow 
+                          icon={<StorageIcon />}
+                          label="Memory"
+                          value={data.vmInfo.memory}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <DetailRow 
+                          icon={<StorageIcon />}
+                          label="Storage"
+                          value={data.vmInfo.storage}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <DetailRow 
+                          icon={<PublicIcon />}
+                          label="IP Address"
+                          value={data.vmInfo.ipAddress}
+                          copyable
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <DetailRow 
+                          icon={<DnsIcon />}
+                          label="Hostname"
+                          value={data.vmInfo.hostname}
+                          copyable
+                        />
+                      </Grid>
+                    </Grid>
+                  </>
+                )}
+                
+                {data.dockerInfo && (
+                  <>
+                    <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
+                      Docker Configuration
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <DetailRow 
+                          icon={<CloudIcon />}
+                          label="Image Name"
+                          value={data.dockerInfo.imageName}
+                          copyable
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <DetailRow 
+                          icon={<SettingsIcon />}
+                          label="Container Name"
+                          value={data.dockerInfo.containerName}
+                          copyable
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <DetailRow 
+                          icon={<StorageIcon />}
+                          label="Port Mapping"
+                          value={data.dockerInfo.portMapping}
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <DetailRow 
+                          icon={<StorageIcon />}
+                          label="Volume Mapping"
+                          value={data.dockerInfo.volumeMapping}
+                        />
+                      </Grid>
+                    </Grid>
+                  </>
+                )}
+              </>
+            )}
+            
+            {platform === 'mobile' && (
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <DetailRow 
+                    icon={<MobileIcon />}
+                    label="Platform"
+                    value={data.platform}
                   />
-                </Box>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <DetailRow 
+                    icon={<StorageIcon />}
+                    label="App File"
+                    value={data.appFile || 'Not specified'}
+                  />
+                </Grid>
+              </Grid>
+            )}
+          </Box>
+        </Collapse>
+      </SectionCard>
+    );
+  };
 
-                <List sx={{ py: 0 }}>
-                  {projectData.team.map((member, index) => (
-                    <ListItem 
-                      key={index} 
-                      sx={{ 
-                        px: 0, 
-                        py: 2,
-                        transition: "all 0.3s ease",
-                        borderRadius: "12px",
-                        mb: 1,
-                        "&:hover": { 
-                          bgcolor: alpha(luxuryColors.primary, 0.05),
-                          transform: "translateX(8px)"
-                        }
-                      }}
-                      onMouseEnter={() => setHoveredItem(index)}
-                      onMouseLeave={() => setHoveredItem(null)}
-                      secondaryAction={
-                        <Fade in={hoveredItem === index}>
-                          <IconButton edge="end" size="small" sx={{ 
-                            bgcolor: alpha(luxuryColors.primary, 0.1),
-                            "&:hover": {
-                              bgcolor: alpha(luxuryColors.primary, 0.2)
-                            }
-                          }}>
-                            <MoreVertIcon fontSize="small" />
-                          </IconButton>
-                        </Fade>
-                      }
-                    >
-                      <ListItemAvatar>
-                        <Tooltip 
-                          title={member.status === "active" ? "Active member" : "Inactive"} 
-                          placement="top"
-                          arrow
-                        >
-                          <Avatar
-                            sx={{
-                              width: 42,
-                              height: 42,
-                              bgcolor: member.status === "active" 
-                                ? alpha(luxuryColors.primary, 0.1) 
-                                : alpha(luxuryColors.textSecondary, 0.05),
-                              color: member.status === "active" 
-                                ? luxuryColors.primary 
-                                : luxuryColors.textSecondary,
-                              border: member.status === "active" 
-                                ? `2px solid ${alpha(luxuryColors.primary, 0.3)}` 
-                                : `1px solid ${alpha(luxuryColors.textSecondary, 0.1)}`,
-                              fontSize: "1rem",
-                              fontWeight: 600,
-                              transition: "all 0.3s ease",
-                              "&:hover": {
-                                transform: "scale(1.1)"
-                              }
-                            }}
-                            src={member.avatarUrl}
-                          >
-                            {member.avatar || member.name.charAt(0)}
-                          </Avatar>
-                        </Tooltip>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Typography 
-                            fontWeight="700"
-                            color={luxuryColors.textPrimary}
-                            sx={{ fontSize: "1rem", letterSpacing: "0.2px" }}
-                          >
-                            {member.name}
-                            {member.isLead && (
-                              <Tooltip title="Team Lead">
-                                <StarIcon 
-                                  sx={{ 
-                                    color: luxuryColors.warning, 
-                                    ml: 1.5, 
-                                    fontSize: "1.2rem",
-                                    verticalAlign: "middle"
-                                  }} 
-                                />
-                              </Tooltip>
-                            )}
-                          </Typography>
-                        }
-                        secondary={
-                          <Box component="span" sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-                            <Typography 
-                              variant="body2" 
-                              color={luxuryColors.textSecondary}
-                              sx={{ 
-                                mr: 1.5,
-                                fontSize: "0.85rem",
-                                letterSpacing: "0.1px"
-                              }}
-                            >
-                              {member.role}
-                            </Typography>
-                            {member.skills?.slice(0, 2).map((skill, i) => (
-                              <TechPill
-                                key={i}
-                                label={skill}
-                                size="small"
-                                variant="outlined"
-                                sx={{ 
-                                  mr: 1,
-                                  bgcolor: "transparent",
-                                  borderColor: alpha(luxuryColors.primary, 0.2),
-                                  color: luxuryColors.primary,
-                                  fontSize: "0.7rem"
-                                }}
-                              />
-                            ))}
-                            {member.skills?.length > 2 && (
-                              <TechPill
-                                label={`+${member.skills.length - 2}`}
-                                size="small"
-                                sx={{ 
-                                  bgcolor: alpha(luxuryColors.primary, 0.05),
-                                  color: luxuryColors.primary,
-                                  fontSize: "0.7rem"
-                                }}
-                              />
-                            )}
-                          </Box>
-                        }
+  const renderEndpoints = () => {
+    if (!devOpsInfo.endpoints?.length) return null;
+
+    return (
+      <SectionCard sx={{ mt: 3 }}>
+        <SectionHeader onClick={() => toggleSection('endpoints')}>
+          <Avatar sx={{ 
+            bgcolor: alpha(colors.accent, 0.1),
+            color: colors.accent,
+            mr: 2
+          }}>
+            <DnsIcon />
+          </Avatar>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" fontWeight={700}>
+              Endpoints
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              {devOpsInfo.endpoints.length} configured access points
+            </Typography>
+          </Box>
+          <IconButton size="small">
+            {expandedSections.endpoints ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </IconButton>
+        </SectionHeader>
+        
+        <Collapse in={expandedSections.endpoints}>
+          <Box sx={{ p: 3 }}>
+            {devOpsInfo.endpoints.map((endpoint, index) => (
+              <Box key={index} sx={{ 
+                mb: 3,
+                p: 2,
+                borderRadius: "12px",
+                bgcolor: alpha(colors.primary, 0.03),
+                borderLeft: `3px solid ${colors.primary}`
+              }}>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                  {endpoint.isDns ? (
+                    <DnsIcon sx={{ color: colors.success, mr: 1.5 }} />
+                  ) : (
+                    <PublicIcon sx={{ color: colors.primary, mr: 1.5 }} />
+                  )}
+                  <ClickableText 
+                    fontWeight={600}
+                    onClick={() => window.open(endpoint.url, '_blank')}
+                  >
+                    {endpoint.url}
+                  </ClickableText>
+                  {endpoint.ip && (
+                    <>
+                      <InfoBadge 
+                        label={endpoint.ip} 
+                        size="small" 
+                        sx={{ ml: 1.5, cursor: "pointer" }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigator.clipboard.writeText(endpoint.ip);
+                        }}
                       />
-                    </ListItem>
-                  ))}
-                </List>
-              </DetailCard>
-            </Grow>
-          </Grid>
-        </Grid>
+                      <CopyButton value={endpoint.ip} tooltip="Copy IP" />
+                    </>
+                  )}
+                </Box>
+                
+                {endpoint.credentials?.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1 }}>
+                      Access Credentials
+                    </Typography>
+                    <Grid container spacing={2}>
+                      {endpoint.credentials.map((cred, i) => (
+                        <Grid item xs={12} sm={6} key={i}>
+                          <Paper sx={{ p: 2, borderRadius: "12px" }}>
+                            <DetailRow 
+                              icon={<KeyIcon />}
+                              label="Username"
+                              value={cred.username}
+                              copyable
+                            />
+                            <DetailRow 
+                              icon={<LockIcon />}
+                              label="Password"
+                              value="••••••••"
+                              copyable={!!cred.password}
+                            >
+                              {cred.password && (
+                                <Box sx={{ display: "none" }}>{cred.password}</Box>
+                              )}
+                            </DetailRow>
+                          </Paper>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                )}
+              </Box>
+            ))}
+          </Box>
+        </Collapse>
+      </SectionCard>
+    );
+  };
 
-        {/* Technologies Section */}
-        <Box mt={6}>
-          <Box display="flex" alignItems="center" mb={4}>
-            <Avatar sx={{ 
-              bgcolor: alpha(luxuryColors.primary, 0.1),
-              color: luxuryColors.primary,
-              width: 48,
-              height: 48,
-              mr: 2,
-              border: `2px solid ${alpha(luxuryColors.primary, 0.2)}`
-            }}>
-              <CodeIcon fontSize="medium" />
-            </Avatar>
-            <Typography 
-              variant="h5" 
-              fontWeight="800"
-              color={luxuryColors.textPrimary}
-              sx={{ letterSpacing: "0.5px" }}
-            >
+  const renderTechnologyStack = () => {
+    if (!devOpsInfo.technologyStack) return null;
+
+    const { technologyStack } = devOpsInfo;
+    const platform = devOpsInfo.platform;
+
+    return (
+      <SectionCard sx={{ mt: 3 }}>
+        <SectionHeader onClick={() => toggleSection('technology')}>
+          <Avatar sx={{ 
+            bgcolor: alpha(colors.secondary, 0.1),
+            color: colors.secondary,
+            mr: 2
+          }}>
+            <CodeIcon />
+          </Avatar>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="h6" fontWeight={700}>
               Technology Stack
             </Typography>
+            <Typography variant="body2" color="textSecondary">
+              Platform architecture and components
+            </Typography>
           </Box>
-          
-          <Box display="flex" flexWrap="wrap" gap={2}>
-            {projectData.technologies?.map((tech, index) => (
-              <TechPill
-                key={index}
-                label={tech}
-                variant="outlined"
-                sx={{
-                  borderColor: alpha(luxuryColors.primary, 0.3),
-                  color: luxuryColors.primary,
-                  "&:hover": {
-                    bgcolor: alpha(luxuryColors.primary, 0.1),
-                    borderColor: luxuryColors.primary,
-                    transform: "translateY(-2px)"
-                  }
-                }}
-              />
-            ))}
-            
-            {projectData.frameworks?.map((framework, index) => (
-              <TechPill
-                key={`fw-${index}`}
-                label={framework}
-                sx={{
-                  bgcolor: alpha(luxuryColors.secondary, 0.1),
-                  color: luxuryColors.secondary,
-                  border: `1px solid ${alpha(luxuryColors.secondary, 0.3)}`,
-                  "&:hover": {
-                    bgcolor: alpha(luxuryColors.secondary, 0.2),
-                    transform: "translateY(-2px)"
-                  }
-                }}
-              />
-            ))}
-          </Box>
-        </Box>
-
-        {/* Timeline Section */}
-        {projectData.timeline && (
-          <>
-            <Divider sx={{ 
-              my: 6, 
-              borderColor: alpha(luxuryColors.primary, 0.1),
-              borderWidth: "2px" 
-            }} />
-            <Box>
-              <Box display="flex" alignItems="center" mb={4}>
-                <Avatar sx={{ 
-                  bgcolor: alpha(luxuryColors.accent, 0.1),
-                  color: luxuryColors.accent,
-                  width: 48,
-                  height: 48,
-                  mr: 2,
-                  border: `2px solid ${alpha(luxuryColors.accent, 0.2)}`
-                }}>
-                  <TimelineIcon fontSize="medium" />
-                </Avatar>
-                <Typography 
-                  variant="h5" 
-                  fontWeight="800"
-                  color={luxuryColors.textPrimary}
-                  sx={{ letterSpacing: "0.5px" }}
-                >
-                  Project Milestones
-                </Typography>
-              </Box>
-              <Box display="flex" overflow="auto" py={2} sx={{
-                scrollbarWidth: "thin",
-                "&::-webkit-scrollbar": {
-                  height: "8px"
-                },
-                "&::-webkit-scrollbar-thumb": {
-                  backgroundColor: alpha(luxuryColors.primary, 0.3),
-                  borderRadius: "4px",
-                  "&:hover": {
-                    backgroundColor: luxuryColors.primary
-                  }
-                }
-              }}>
-                {projectData.timeline.map((item, index) => (
-                  <TimelineItem key={index}>
-                    <Typography 
-                      variant="subtitle1" 
-                      fontWeight="800"
-                      color={luxuryColors.textPrimary}
-                      sx={{ letterSpacing: "0.2px" }}
-                    >
-                      {item.date}
-                    </Typography>
-                    <Typography 
-                      variant="body2" 
-                      color={luxuryColors.textSecondary}
-                      sx={{ mt: 1.5, fontSize: "0.9rem", lineHeight: 1.7 }}
-                    >
-                      {item.event}
-                    </Typography>
-                    <Chip 
-                      label={item.status} 
-                      size="small" 
-                      sx={{ 
-                        mt: 2,
-                        fontSize: "0.7rem",
-                        fontWeight: 800,
-                        letterSpacing: "0.5px",
-                        height: "26px",
-                        bgcolor: item.status === "Completed" 
-                          ? alpha(luxuryColors.success, 0.1) 
-                          : item.status === "Pending" 
-                            ? alpha(luxuryColors.warning, 0.1) 
-                            : alpha(luxuryColors.info, 0.1),
-                        color: item.status === "Completed" 
-                          ? luxuryColors.success 
-                          : item.status === "Pending" 
-                            ? luxuryColors.warning 
-                            : luxuryColors.info,
-                        border: `1px solid ${item.status === "Completed" 
-                          ? alpha(luxuryColors.success, 0.3) 
-                          : item.status === "Pending" 
-                            ? alpha(luxuryColors.warning, 0.3) 
-                            : alpha(luxuryColors.info, 0.3)}`,
-                        "&:hover": {
-                          transform: "scale(1.05)"
-                        }
-                      }} 
+          <IconButton size="small">
+            {expandedSections.technology ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </IconButton>
+        </SectionHeader>
+        
+        <Collapse in={expandedSections.technology}>
+          <Box sx={{ p: 3 }}>
+            {platform === 'web' && technologyStack.web && (
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6} md={4}>
+                  <DetailRow 
+                    icon={<CodeIcon />}
+                    label="Frontend Language"
+                    value={technologyStack.web.frontendLanguage}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                  <DetailRow 
+                    icon={<CodeIcon />}
+                    label="Backend Language"
+                    value={technologyStack.web.backendLanguage}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6} md={4}>
+                  <DetailRow 
+                    icon={<StorageIcon />}
+                    label="Databases"
+                    value={technologyStack.web.databases?.join(', ')}
+                  />
+                </Grid>
+                {technologyStack.web.frameworks?.length > 0 && (
+                  <Grid item xs={12}>
+                    <DetailRow 
+                      icon={<FrameworkIcon />}
+                      label="Frameworks"
+                      value={
+                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                          {technologyStack.web.frameworks.map((fw, i) => (
+                            <Chip 
+                              key={i}
+                              label={fw}
+                              size="small"
+                              sx={{
+                                bgcolor: alpha(colors.secondary, 0.1),
+                                color: colors.secondary
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      }
                     />
-                  </TimelineItem>
-                ))}
-              </Box>
-            </Box>
-          </>
-        )}
-      </CardContent>
-    </LuxuryCard>
-  );
-}
+                  </Grid>
+                )}
+              </Grid>
+            )}
+          </Box>
+        </Collapse>
+      </SectionCard>
+    );
+  };
 
-export default memo(ProjectInfo);
+  return (
+    <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
+      <Typography variant="h4" fontWeight={800} sx={{ mb: 4 }}>
+        DevOps Configuration
+      </Typography>
+      
+      {renderPlatformInfo()}
+      {renderEndpoints()}
+      {renderTechnologyStack()}
+    </Box>
+  );
+};
+
+export default DevOpsInfoDisplay;
