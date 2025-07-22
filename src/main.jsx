@@ -21,6 +21,7 @@ import CreateProject from './pages/CreateProject';
 import DevOps from "./pages/DevOps"
 import EditProjectForm from './pages/EditProject';
 import DevOpsInfoForm from './pages/DevOpsInfo';
+import BugReport from './pages/BugReport';
 const router = createBrowserRouter([
   {
     Component: App,
@@ -64,6 +65,11 @@ const router = createBrowserRouter([
             path:"devopsinfo/:projectId",
             Component:DevOpsInfoForm
             
+          }, 
+          {
+            path:"bugReportForm/:id/:label/:projectId",
+            Component:BugReport
+            
           }
         ],
       },
@@ -71,6 +77,7 @@ const router = createBrowserRouter([
         path: '/sign-in',
         Component: SignInPage,
       },
+
     ],
   },
 ]);
