@@ -280,7 +280,7 @@ const ChildrenContainer = styled.div`
   margin-left: 1.5rem;
 `;
 
-const TestDataView = () => {
+const BugTable = () => {
   const [expandedItems, setExpandedItems] = useState({});
   const [selectedItems, setSelectedItems] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
@@ -288,7 +288,7 @@ const TestDataView = () => {
   const [progress, setProgress] = useState(0);
   const [data , setData] = useState(); 
 
-  const { id: projectId } = useParams();
+  const { id: projectId , projectManager} = useParams();
   const userId = useUserId();
 
   const navigate = useNavigate() 
@@ -296,7 +296,7 @@ const TestDataView = () => {
   useEffect(() => {
   const fetchBugs = async () => {
     try {
-      const data = await getBugs(projectId, userId);
+      const data = await getBugs(projectId, userId , projectManager );
       const bugTree = data[0].bugScopes; 
       console.log("bugTree : ", bugTree);
       
@@ -389,9 +389,7 @@ const handleRadioChange = async (item, value) => {
   const { id, label , wstg  } = item;
 
 
-  console.log(`Selected "${value}" for:`);
-  console.log("Label:", label);
-  console.log("ID:", id);
+  
   console.log("################################ item ************************************* : " , item )
   const newSelectedItems = {
     ...selectedItems,
@@ -407,7 +405,7 @@ const handleRadioChange = async (item, value) => {
    // If "failed", open new tab with query params
     if (value === 'failed') {
       const encodedLabel = encodeURIComponent(label);
-      const url = `/bugReportForm/${id}/${encodedLabel}/${projectId}`;
+      const url = `/bugReportForm/${id}/${wstg}/${encodedLabel}/${projectId}/${projectManager}`;
       window.open(url, '_blank');
     }
 
@@ -612,4 +610,4 @@ const handleSelectAll = async () => {
   );
 };
 
-export default TestDataView;
+export default BugTable

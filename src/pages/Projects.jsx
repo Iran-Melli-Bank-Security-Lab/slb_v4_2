@@ -137,7 +137,9 @@ const columns = useMemo(() => [
       title="My Projects"
       overrideRows={projects} // optional: allow injecting preloaded rows
       doubleClickable
-      onRowDoubleClick={(row) => navigate(`/do-project/${row._id}`)}
+      onRowDoubleClick={(row) => {
+        console.log(" row in line 141: " , row )
+        return navigate(`/do-project/${row?.project?._id}/${row?.manager?._id}`)}}
     />
   );
 }

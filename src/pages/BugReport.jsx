@@ -1,297 +1,132 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router';
-import { 
-  Container, 
-  Typography, 
-  Button, 
-  Card, 
-  CardContent, 
-  Grid, 
-  Box,
-  Divider,
-  IconButton,
-  Snackbar,
-  Alert,
-  CircularProgress,
-  Fab,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Checkbox,
-  FormControlLabel,
-  Chip
-} from '@mui/material';
-import { 
-  BugReport as BugReportIcon, 
-  Add as AddIcon,
-  Close as CloseIcon,
-  CheckCircle as CheckCircleIcon,
-  Pending as PendingIcon,
-  CloudUpload as CloudUploadIcon,
-  Delete as DeleteIcon
-} from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
+import BugReportDialog from '../components/doProject/bugForm/BugReportDialog';
+import { fetchReports } from '../api/bugs/fetchReport';
+import { useUserId } from '../hooks/useUserId';
 
-// داده‌های استاتیک برای گزارش‌های باگ
+// Static data for bug reports
 const sampleBugReports = [
   {
     _id: '1',
-    labelfa: 'تزریق SQL',
     label: 'SQL Injection',
     wstg: 'WSTG-INPV-05',
     CVSS: '8.8',
     severity: 'High',
     CVE: 'CVE-2021-1234',
-    impact: 'این آسیب‌پذیری می‌تواند منجر به افشای اطلاعات حساس از پایگاه داده شود.',
-    description: 'در صفحه لاگین، پارامتر username در برابر تزریق SQL آسیب‌پذیر است.',
-    solutions: '1. استفاده از prepared statements\n2. اعتبارسنجی ورودی‌ها\n3. محدود کردن دسترسی به پایگاه داده',
+    impact: 'This vulnerability can lead to sensitive data disclosure from the database.',
+    description: 'On the login page, the username parameter is vulnerable to SQL injection.',
+    solutions: '1. Use prepared statements\n2. Validate inputs\n3. Limit database access',
     tools: ['Burp Suite', 'SQLmap'],
     pocs: [
-      { path: 'poc1.pdf', originalname: 'اثبات مفهوم SQLi.pdf' },
-      { path: 'screenshot1.png', originalname: 'اسکرین‌شوت آسیب‌پذیری.png' }
+      { path: 'poc1.pdf', originalname: 'SQLi_POC.pdf' },
+      { path: 'screenshot1.png', originalname: 'Vulnerability_Screenshot.png' }
     ],
     state: 'Verified',
     path: '/login.php',
     exploits: "' OR '1'='1",
     refrence: 'https://owasp.org/www-community/attacks/SQL_Injection',
-    vector: 'حمله از طریق پارامتر username',
-    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H'
+    vector: 'Attack through username parameter',
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H',
+    securingByOptions: {
+      webServerSettings: true,
+      modificationInProgramCode: false
+    },
+    securingByWAF: 'YES'
   },
   {
     _id: '2',
-    labelfa: 'XSS ذخیره‌شده',
     label: 'Stored XSS',
     wstg: 'WSTG-INPV-02',
     CVSS: '7.5',
     severity: 'Medium',
-    impact: 'مهاجم می‌تواند اسکریپت‌های مخرب را در صفحه ذخیره کند که برای تمام کاربران اجرا می‌شود.',
-    description: 'در بخش نظرات، ورودی کاربر بدون اعتبارسنجی و فیلتر کردن ذخیره می‌شود.',
-    solutions: '1. اعتبارسنجی و فیلتر کردن ورودی‌ها\n2. استفاده از Content Security Policy\n3. رمزگذاری خروجی',
+    impact: 'Attacker can store malicious scripts on the page that will execute for all users.',
+    description: 'In the comments section, user input is stored without validation or filtering.',
+    solutions: '1. Validate and filter inputs\n2. Use Content Security Policy\n3. Encode outputs',
     tools: ['Burp Suite', 'OWASP ZAP'],
     pocs: [
-      { path: 'xss-poc.html', originalname: 'نمونه حمله XSS.html' }
+      { path: 'xss-poc.html', originalname: 'XSS_Attack_Sample.html' }
     ],
     state: 'Pending',
     path: '/comments',
     refrence: 'https://owasp.org/www-community/attacks/xss/',
-    vector: 'حمله از طریق فیلد نظر در فرم نظرات',
-    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:L/I:L/A:N'
-  },
-  {
-    _id: '3',
-    labelfa: 'اعتبارسنجی ناقص',
-    label: 'Broken Authentication',
-    wstg: 'WSTG-ATHN-01',
-    CVSS: '6.5',
-    severity: 'Medium',
-    impact: 'مهاجم می‌تواند با استفاده از حملات brute-force به حساب کاربری دسترسی پیدا کند.',
-    description: 'سیستم محدودیتی در تعداد تلاش‌های ناموفق برای ورود ندارد.',
-    solutions: '1. پیاده‌سازی محدودیت تلاش ورود\n2. استفاده از احراز هویت دو مرحله‌ای\n3. پیاده‌سازی مکانیزم قفل حساب',
-    tools: ['Burp Suite', 'Hydra'],
-    pocs: [],
-    state: 'New',
-    path: '/login',
-    refrence: 'https://owasp.org/www-project-top-ten/2017/A2_2017-Broken_Authentication',
-    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:N'
+    vector: 'Attack through comment field in the form',
+    cvssVector: 'CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:L/I:L/A:N',
+    securingByOptions: {
+      webServerSettings: false,
+      modificationInProgramCode: true
+    },
+    securingByWAF: 'Somewhat'
   }
 ];
 
-const StatusChip = ({ status }) => {
-  const statusMap = {
-    'New': { color: 'primary', label: 'جدید', icon: <BugReportIcon /> },
-    'Pending': { color: 'warning', label: 'در حال بررسی', icon: <PendingIcon /> },
-    'Verified': { color: 'success', label: 'تایید شده', icon: <CheckCircleIcon /> }
+
+
+import { 
+  BugReport as BugReportIcon, 
+  Add as AddIcon,
+  CheckCircle as CheckCircleIcon,
+  Pending as PendingIcon,
+  CloudUpload as CloudUploadIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  Info as InfoIcon
+} from '@mui/icons-material';
+
+const StatusBadge = ({ status }) => {
+  const statusClasses = {
+    'New': 'bg-blue-100 text-blue-800 border-blue-300',
+    'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    'Verified': 'bg-green-100 text-green-800 border-green-300'
+  };
+  
+  const statusIcons = {
+    'New': <BugReportIcon className="w-4 h-4 mr-1" />,
+    'Pending': <PendingIcon className="w-4 h-4 mr-1" />,
+    'Verified': <CheckCircleIcon className="w-4 h-4 mr-1" />
   };
   
   return (
-    <Chip
-      icon={statusMap[status]?.icon}
-      label={statusMap[status]?.label}
-      color={statusMap[status]?.color}
-      size="small"
-      variant="outlined"
-    />
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusClasses[status]}`}>
+      {statusIcons[status]}
+      {status}
+    </span>
   );
 };
 
-const SeverityChip = ({ severity }) => {
-  const severityMap = {
-    'Low': { color: 'success', label: 'کم' },
-    'Medium': { color: 'warning', label: 'متوسط' },
-    'High': { color: 'error', label: 'زیاد' },
-    'Critical': { color: 'error', label: 'بحرانی' }
+const SeverityBadge = ({ severity }) => {
+  const severityClasses = {
+    'Low': 'bg-green-100 text-green-800',
+    'Medium': 'bg-yellow-100 text-yellow-800',
+    'High': 'bg-orange-100 text-orange-800',
+    'Critical': 'bg-red-100 text-red-800'
+  };
+  
+  const severityIcons = {
+    'Low': <InfoIcon className="w-4 h-4 mr-1" />,
+    'Medium': <WarningIcon className="w-4 h-4 mr-1" />,
+    'High': <WarningIcon className="w-4 h-4 mr-1" />,
+    'Critical': <ErrorIcon className="w-4 h-4 mr-1" />
   };
   
   return (
-    <Chip
-      label={severityMap[severity]?.label}
-      color={severityMap[severity]?.color}
-      size="small"
-    />
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${severityClasses[severity]}`}>
+      {severityIcons[severity]}
+      {severity}
+    </span>
   );
 };
-
-const StyledCard = styled(Card)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  transition: 'box-shadow 0.3s',
-  '&:hover': {
-    boxShadow: theme.shadows[4]
-  }
-}));
 
 const BugReportForm = () => {
-  const { id, label, projectid } = useParams();
+  const { label, id, projectId, projectManager } = useParams();
+  const userId = useUserId();
   const [reports, setReports] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // تغییر به false برای نمایش داده‌های استاتیک
+  const [isLoading, setIsLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
     severity: 'success'
   });
   const [openForm, setOpenForm] = useState(false);
-  const [files, setFiles] = useState([]);
-  const [filePreviews, setFilePreviews] = useState([]);
-  
-  const [newBug, setNewBug] = useState({
-    id: id,
-    label: label,
-    labelfa: '',
-    wstg: '',
-    CVSS: '',
-    severity: 'Medium',
-    CVE: '',
-    impact: '',
-    other_information: '',
-    pocs: [],
-    verify: false,
-    path: '',
-    solutions: '',
-    exploits: '',
-    tools: [],
-    state: 'New',
-    description: '',
-    refrence: '',
-    securingByOptions: {
-      webServerSettings: false,
-      modificationInProgramCode: false
-    },
-    securingByWAF: '',
-    vector: '',
-    cvssVector: ''
-  });
-
-  const severityOptions = ['Low', 'Medium', 'High', 'Critical'];
-  const toolOptions = ['Burp Suite', 'Nmap', 'Metasploit', 'OWASP ZAP', 'SQLmap', 'Other'];
-
-  // استفاده از داده‌های استاتیک به جای فراخوانی API
-  useEffect(() => {
-    setReports(sampleBugReports);
-  }, []);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    try {
-      // شبیه‌سازی ارسال فرم
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newReport = {
-        ...newBug,
-        _id: Math.random().toString(36).substr(2, 9),
-        pocs: filePreviews.map(file => ({ 
-          path: file.name, 
-          originalname: file.name 
-        }))
-      };
-      
-      setReports([newReport, ...reports]);
-      
-      setNewBug({
-        id: id,
-        label: label,
-        labelfa: '',
-        wstg: '',
-        CVSS: '',
-        severity: 'Medium',
-        CVE: '',
-        impact: '',
-        other_information: '',
-        pocs: [],
-        verify: false,
-        path: '',
-        solutions: '',
-        exploits: '',
-        tools: [],
-        state: 'New',
-        description: '',
-        refrence: '',
-        securingByOptions: {
-          webServerSettings: false,
-          modificationInProgramCode: false
-        },
-        securingByWAF: '',
-        vector: '',
-        cvssVector: ''
-      });
-      setFiles([]);
-      setFilePreviews([]);
-      setOpenForm(false);
-      setSnackbar({
-        open: true,
-        message: 'گزارش با موفقیت ثبت شد',
-        severity: 'success'
-      });
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: error.message,
-        severity: 'error'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    setFiles([...files, ...selectedFiles]);
-    
-    // Create previews
-    const previews = selectedFiles.map(file => ({
-      name: file.name,
-      type: file.type,
-      preview: URL.createObjectURL(file)
-    }));
-    setFilePreviews([...filePreviews, ...previews]);
-  };
-
-  const removeFile = (index) => {
-    const newFiles = [...files];
-    const newPreviews = [...filePreviews];
-    
-    newFiles.splice(index, 1);
-    newPreviews.splice(index, 1);
-    
-    setFiles(newFiles);
-    setFilePreviews(newPreviews);
-  };
-
-  const handleToolChange = (event) => {
-    const {
-      target: { value },
-    } = event;
-    setNewBug({
-      ...newBug,
-      tools: typeof value === 'string' ? value.split(',') : value,
-    });
-  };
 
   const handleCloseSnackbar = () => {
     setSnackbar(prev => ({ ...prev, open: false }));
@@ -305,463 +140,231 @@ const BugReportForm = () => {
     setOpenForm(false);
   };
 
+  useEffect(() => {
+    const getReports = async() => {
+      const result = await fetchReports(projectId, userId, projectManager, id);
+      setReports(result);
+      console.log("result in line 147 : " , result )
+    }
+    getReports();
+  }, []);
+
+  // Function to render RTL text with line breaks
+  const renderRtlText = (text) => {
+    if (!text) return null;
+    
+    return (
+      <div dir="rtl" className="text-right whitespace-pre-line bg-gray-50 p-3 rounded-lg border border-gray-200">
+        {text.split('\n').map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <Container maxWidth="lg" sx={{ py: 4, position: 'relative' }}>
-      <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-        <BugReportIcon color="error" sx={{ mr: 1 }} />
-        گزارش باگ برای: {decodeURIComponent(label)}
-      </Typography>
+    <div className="max-w-6xl mx-auto py-6 px-4 relative">
+      <div className="flex items-center mb-6">
+        <BugReportIcon className="text-red-500 mr-2" />
+        <h1 className="text-2xl font-bold text-gray-800">
+          Bug Reports for: {decodeURIComponent(label)}
+        </h1>
+      </div>
       
       {reports.length > 0 && (
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
+        <button
           onClick={handleOpenForm}
-          sx={{ mb: 3 }}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 mb-6 transition-colors"
         >
-          افزودن گزارش جدید
-        </Button>
+          <AddIcon className="mr-2" />
+          Add New Report
+        </button>
       )}
 
       {isLoading ? (
-        <CircularProgress sx={{ display: 'block', mx: 'auto', my: 4 }} />
+        <div className="flex justify-center my-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
       ) : reports.length === 0 ? (
-        <Grid
-          container
-          justifyContent="center"
-          alignItems="center"
-          sx={{ height: '50vh' }}
-        >
-          <Fab
-            color="primary"
-            aria-label="add"
-            size="large"
+        <div className="flex flex-col items-center justify-center h-64">
+          <button
             onClick={handleOpenForm}
-            sx={{
-              width: 80,
-              height: 80,
-              fontSize: '2rem'
-            }}
+            className="p-6 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-lg"
           >
-            <AddIcon fontSize="large" />
-          </Fab>
-        </Grid>
+            <AddIcon className="text-3xl" />
+          </button>
+          <p className="mt-4 text-gray-600">No reports yet. Click to add your first report.</p>
+        </div>
       ) : (
-        reports.map((report) => (
-          <StyledCard key={report._id}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6">{report.labelfa || report.label}</Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <StatusChip status={report.state} />
-                  <SeverityChip severity={report.severity} />
-                </Box>
-              </Box>
-              
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                <strong>CVSS:</strong> {report.CVSS} | <strong>CVE:</strong> {report.CVE || 'ندارد'} | <strong>WSTG:</strong> {report.wstg || 'ندارد'}
-              </Typography>
-              
-              <Typography variant="body1" paragraph>
-                {report.description}
-              </Typography>
-              
-              {report.impact && (
-                <>
-                  <Typography variant="subtitle2">تأثیر:</Typography>
-                  <Typography variant="body2" paragraph>
-                    {report.impact}
-                  </Typography>
-                </>
-              )}
-              
-              {report.solutions && (
-                <>
-                  <Typography variant="subtitle2">راهکارهای اصلاحی:</Typography>
-                  <Typography variant="body2" paragraph>
-                    {report.solutions.split('\n').map((line, i) => (
-                      <React.Fragment key={i}>
-                        {line}
-                        <br />
-                      </React.Fragment>
-                    ))}
-                  </Typography>
-                </>
-              )}
-              
-              {report.tools?.length > 0 && (
-                <>
-                  <Typography variant="subtitle2">ابزارهای استفاده شده:</Typography>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                    {report.tools.map((tool, index) => (
-                      <Chip key={index} label={tool} size="small" />
-                    ))}
-                  </Box>
-                </>
-              )}
-              
-              {report.pocs?.length > 0 && (
-                <>
-                  <Typography variant="subtitle2">مدارک و مستندات:</Typography>
-                  <Grid container spacing={1} sx={{ mt: 1 }}>
-                    {report.pocs.map((poc, index) => (
-                      <Grid item key={index}>
-                        <a 
-                          href="#" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setSnackbar({
-                              open: true,
-                              message: `فایل ${poc.originalname} در حالت دمو قابل نمایش نیست`,
-                              severity: 'info'
-                            });
-                          }}
-                          style={{ textDecoration: 'none' }}
-                        >
-                          <Chip
-                            icon={<CloudUploadIcon />}
-                            label={poc.originalname}
-                            variant="outlined"
-                            clickable
-                          />
-                        </a>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </>
-              )}
-              
-              {report.path && (
-                <Typography variant="body2" color="text.secondary">
-                  <strong>مسیر:</strong> {report.path}
-                </Typography>
-              )}
-              
-              {report.exploits && (
-                <>
-                  <Typography variant="subtitle2">نمونه اکسپلویت:</Typography>
-                  <Typography variant="body2" paragraph sx={{ fontFamily: 'monospace' }}>
-                    {report.exploits}
-                  </Typography>
-                </>
-              )}
-              
-              {report.refrence && (
-                <Typography variant="body2">
-                  <strong>منبع:</strong> <a href={report.refrence} target="_blank" rel="noopener noreferrer">{report.refrence}</a>
-                </Typography>
-              )}
-            </CardContent>
-          </StyledCard>
-        ))
-      )}
-      
-      <Dialog open={openForm} onClose={handleCloseForm} fullWidth maxWidth="md">
-        <DialogTitle>
-          ایجاد گزارش باگ جدید
-          <IconButton
-            aria-label="close"
-            onClick={handleCloseForm}
-            sx={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-              color: (theme) => theme.palette.grey[500],
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent dividers>
-          <form onSubmit={handleSubmit}>
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="عنوان فارسی (labelfa)"
-                  value={newBug.labelfa}
-                  onChange={(e) => setNewBug({ ...newBug, labelfa: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="WSTG"
-                  value={newBug.wstg}
-                  onChange={(e) => setNewBug({ ...newBug, wstg: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="CVSS"
-                  value={newBug.CVSS}
-                  onChange={(e) => setNewBug({ ...newBug, CVSS: e.target.value })}
-                  required
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>شدت باگ</InputLabel>
-                  <Select
-                    value={newBug.severity}
-                    label="شدت باگ"
-                    onChange={(e) => setNewBug({ ...newBug, severity: e.target.value })}
-                    required
-                  >
-                    {severityOptions.map((option) => (
-                      <MenuItem key={option} value={option}>{option}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="CVE"
-                  value={newBug.CVE}
-                  onChange={(e) => setNewBug({ ...newBug, CVE: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="مسیر (Path)"
-                  value={newBug.path}
-                  onChange={(e) => setNewBug({ ...newBug, path: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="توضیحات"
-                  multiline
-                  rows={4}
-                  value={newBug.description}
-                  onChange={(e) => setNewBug({ ...newBug, description: e.target.value })}
-                  required
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="تأثیر (Impact)"
-                  multiline
-                  rows={3}
-                  value={newBug.impact}
-                  onChange={(e) => setNewBug({ ...newBug, impact: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="اطلاعات دیگر"
-                  multiline
-                  rows={3}
-                  value={newBug.other_information}
-                  onChange={(e) => setNewBug({ ...newBug, other_information: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="راهکارهای اصلاحی (Solutions)"
-                  multiline
-                  rows={4}
-                  value={newBug.solutions}
-                  onChange={(e) => setNewBug({ ...newBug, solutions: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="اکسپلویت (Exploits)"
-                  multiline
-                  rows={3}
-                  value={newBug.exploits}
-                  onChange={(e) => setNewBug({ ...newBug, exploits: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="مرجع (Reference)"
-                  value={newBug.refrence}
-                  onChange={(e) => setNewBug({ ...newBug, refrence: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="بردار حمله (Vector)"
-                  value={newBug.vector}
-                  onChange={(e) => setNewBug({ ...newBug, vector: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="بردار CVSS (CVSS Vector)"
-                  value={newBug.cvssVector}
-                  onChange={(e) => setNewBug({ ...newBug, cvssVector: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>ابزارهای استفاده شده</InputLabel>
-                  <Select
-                    multiple
-                    value={newBug.tools}
-                    onChange={handleToolChange}
-                    label="ابزارهای استفاده شده"
-                    renderValue={(selected) => (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((value) => (
-                          <Chip key={value} label={value} />
-                        ))}
-                      </Box>
-                    )}
-                  >
-                    {toolOptions.map((tool) => (
-                      <MenuItem key={tool} value={tool}>
-                        {tool}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              
-              <Grid item xs={12}>
-                <Typography variant="subtitle1" gutterBottom>
-                  راهکارهای امنیتی
-                </Typography>
-                <FormControlLabel
-                  control={
-                    <Checkbox 
-                      checked={newBug.securingByOptions.webServerSettings} 
-                      onChange={(e) => setNewBug({
-                        ...newBug,
-                        securingByOptions: {
-                          ...newBug.securingByOptions,
-                          webServerSettings: e.target.checked
-                        }
-                      })} 
-                    />
-                  }
-                  label="تنظیمات وب سرور"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox 
-                      checked={newBug.securingByOptions.modificationInProgramCode} 
-                      onChange={(e) => setNewBug({
-                        ...newBug,
-                        securingByOptions: {
-                          ...newBug.securingByOptions,
-                          modificationInProgramCode: e.target.checked
-                        }
-                      })} 
-                    />
-                  }
-                  label="تغییر در کد برنامه"
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="امن‌سازی توسط WAF"
-                  value={newBug.securingByWAF}
-                  onChange={(e) => setNewBug({ ...newBug, securingByWAF: e.target.value })}
-                />
-              </Grid>
-              
-              <Grid item xs={12}>
-                <input
-                  accept="image/*,.pdf,.doc,.docx"
-                  style={{ display: 'none' }}
-                  id="bug-attachments"
-                  type="file"
-                  multiple
-                  onChange={handleFileChange}
-                />
-                <label htmlFor="bug-attachments">
-                  <Button 
-                    variant="outlined" 
-                    startIcon={<CloudUploadIcon />}
-                    component="span"
-                    fullWidth
-                  >
-                    افزودن مدارک و مستندات (POCs)
-                  </Button>
-                </label>
+        <div className="space-y-6">
+          {reports.map((report) => (
+            <div key={report._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <h2 className="text-xl font-semibold text-gray-800">{report.label}</h2>
+                  <div className="flex space-x-2">
+                    <StatusBadge status={report.state} />
+                    <SeverityBadge severity={report.severity} />
+                  </div>
+                </div>
                 
-                {filePreviews.length > 0 && (
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom>
-                      فایل‌های انتخاب شده:
-                    </Typography>
-                    <Grid container spacing={1}>
-                      {filePreviews.map((file, index) => (
-                        <Grid item key={index}>
-                          <Chip
-                            icon={<CloudUploadIcon />}
-                            label={file.name}
-                            onDelete={() => removeFile(index)}
-                            deleteIcon={<DeleteIcon />}
-                            variant="outlined"
-                          />
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </Box>
-                )}
-              </Grid>
-            </Grid>
-          </form>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseForm} color="error">انصراف</Button>
-          <Button 
-            onClick={handleSubmit}
-            variant="contained"
-            disabled={isLoading}
-            startIcon={isLoading ? <CircularProgress size={20} /> : null}
-          >
-            ثبت گزارش
-          </Button>
-        </DialogActions>
-      </Dialog>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm text-gray-600">
+                  <div>
+                    <span className="font-medium">CVSS:</span> {report.CVSS}
+                  </div>
+                  <div>
+                    <span className="font-medium">CVE:</span> {report.CVE || 'N/A'}
+                  </div>
+                  <div>
+                    <span className="font-medium">WSTG:</span> {report.wstg || 'N/A'}
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <p className="text-gray-700">{report.description}</p>
+                </div>
+                
+                <div className="space-y-4">
+                  {report.impact && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-800 mb-2">Impact</h3>
+                      {renderRtlText(report.impact)}
+                    </div>
+                  )}
+                  
+                  {report.solutions && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-800 mb-2">Solutions</h3>
+                      {renderRtlText(report.solutions)}
+                    </div>
+                  )}
+                  
+                  {report.tools?.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-800 mb-2">Tools Used</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {report.tools.map((tool, index) => (
+                          <span key={index} className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                            {tool}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {report.pocs?.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-800 mb-2">Proof of Concepts</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {report.pocs.map((poc, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setSnackbar({
+                                open: true,
+                                message: `File ${poc.originalname} cannot be displayed in demo mode`,
+                                severity: 'info'
+                              });
+                            }}
+                            className="flex items-center px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors"
+                          >
+                            <CloudUploadIcon className="text-gray-500 mr-2" />
+                            <span className="truncate">{poc.originalname}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {report.path && (
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">Path:</span> {report.path}
+                    </div>
+                  )}
+                  
+                  {report.exploits && (
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-800 mb-2">Exploit</h3>
+                      {renderRtlText(report.exploits)}
+                    </div>
+                  )}
+                  
+                  {report.refrence && (
+                    <div className="text-sm">
+                      <span className="font-medium">Reference:</span>{' '}
+                      <a href={report.refrence} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {report.refrence}
+                      </a>
+                    </div>
+                  )}
+                  
+                  {report.cvssVector && (
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">CVSS Vector:</span> {report.cvssVector}
+                    </div>
+                  )}
+                  
+                  <div className="mt-4">
+                    <h3 className="text-lg font-medium text-gray-800 mb-2">Securing Options</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <span className="font-medium">Web Server Settings:</span>{' '}
+                        {report.securingByOptions.webServerSettings ? (
+                          <span className="text-green-600">Yes</span>
+                        ) : (
+                          <span className="text-red-600">No</span>
+                        )}
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <span className="font-medium">Program Code Modification:</span>{' '}
+                        {report.securingByOptions.modificationInProgramCode ? (
+                          <span className="text-green-600">Yes</span>
+                        ) : (
+                          <span className="text-red-600">No</span>
+                        )}
+                      </div>
+                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <span className="font-medium">WAF Possibility:</span>{' '}
+                        <span className="text-blue-600">{report.securingByWAF}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <BugReportDialog open={openForm} onClose={handleCloseForm} />
       
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Container>
+      {snackbar.open && (
+        <div className={`fixed top-4 left-4 right-4 md:right-auto z-50 flex justify-center`}>
+          <div className={`px-4 py-3 rounded shadow-lg max-w-md w-full ${
+            snackbar.severity === 'success' ? 'bg-green-100 text-green-800' :
+            snackbar.severity === 'error' ? 'bg-red-100 text-red-800' :
+            snackbar.severity === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-blue-100 text-blue-800'
+          }`}>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                {snackbar.severity === 'success' && <CheckCircleIcon className="mr-2" />}
+                {snackbar.severity === 'error' && <ErrorIcon className="mr-2" />}
+                {snackbar.severity === 'warning' && <WarningIcon className="mr-2" />}
+                {snackbar.severity === 'info' && <InfoIcon className="mr-2" />}
+                <span>{snackbar.message}</span>
+              </div>
+              <button onClick={handleCloseSnackbar} className="ml-4 text-gray-500 hover:text-gray-700">
+                &times;
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

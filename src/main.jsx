@@ -43,7 +43,7 @@ const router = createBrowserRouter([
             Component: Managing ,
           },
           {
-            path:'do-project/:id' , 
+            path:'do-project/:id/:projectManager' , 
             Component:DoProjectPage
           }, 
           {
@@ -67,7 +67,7 @@ const router = createBrowserRouter([
             
           }, 
           {
-            path:"bugReportForm/:id/:label/:projectId",
+            path:"bugReportForm/:id/:wstg/:label/:projectId/:projectManager",
             Component:BugReport
             
           }
