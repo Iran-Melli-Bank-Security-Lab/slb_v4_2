@@ -311,8 +311,6 @@ const ProjectForm = () => {
                 formData.platform
             );
 
-            console.log("********** result : " , success , project )
-            console.log( "****** devOpsId : " , user.user.id )
            
             socket.emit("createProject" , {
                 projectId : project._id , 
