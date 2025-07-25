@@ -11,3 +11,15 @@ export const fetchReports = async (projectId, userId , projectManager, id) => {
         method: "GET",
     });
 };
+
+export const fetchReportById = async (reportId) => {
+    
+    const basePath = "/api/projects/user/report/byid"
+
+    const params = new URLSearchParams({ reportId });
+
+    // call apiFetch with the full URL
+    return apiFetch(`${basePath}?${params.toString()}`, {
+        method: "GET",
+    });
+};
