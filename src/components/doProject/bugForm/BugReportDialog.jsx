@@ -24,36 +24,102 @@ import CVSSv4Calculator from './CVSSv4Calculator';
 import { creatReport } from '../../../api/bugs/createReport';
 import { useParams } from 'react-router';
 import { useUserId } from '../../../hooks/useUserId';
+import { useSocket } from '../../../context/SocketContext';
+import { toast } from 'react-toastify';
 
-// Helper component for file previews
+// Update the valid file types in handleFileChange
+const validTypes = [
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 
+  'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+  'video/x-msvideo', 'video/x-matroska', 'video/3gpp'
+];
+
+// Update the FilePreview component
 const FilePreview = ({ file, onDelete, isExisting = false }) => {
   const [preview, setPreview] = useState(null);
-console.log(" rerender in file preview *********************************************: " )
-  useEffect(() => {
-    if (!isExisting && file.type?.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = () => setPreview(reader.result);
-      reader.readAsDataURL(file);
-    } else if (isExisting && file.type?.startsWith('image/')) {
-      setPreview(file.thumbnail || file.url);
-    }
-  }, [file, isExisting]);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [isVideo, setIsVideo] = useState(false);
+  const backendURL =import.meta.env.VITE_API_URL || "http://localhost:4000" ; 
 
-  const renderPreview = () => {
-    if (preview && (file.type?.startsWith('image/') || isExisting)) {
-      return <img src={preview} alt={file.name} className="w-full h-full object-cover" />;
+  useEffect(() => {
+    let objectUrl = null;
+    let isMounted = true;
+
+    const determineFileType = () => {
+      // Handle both new files and existing files
+      if (isExisting) {
+        return file.type || (file.url?.includes('.webm') ? 'video/webm' : '');
+      }
+      return file.type;
+    };
+
+    const fileType = determineFileType();
+
+    if (!isExisting) {
+      // Handle NEW files (File objects)
+      if (file instanceof File || file instanceof Blob) {
+        if (fileType?.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = () => isMounted && setPreview(reader.result);
+          reader.readAsDataURL(file);
+        } else if (fileType?.startsWith('video/') || file.name?.endsWith('.webm')) {
+          setIsVideo(true);
+          try {
+            objectUrl = URL.createObjectURL(file);
+            isMounted && setPreview(objectUrl);
+          } catch (error) {
+            console.error("Error creating object URL:", error);
+            isMounted && setPreview(null);
+          }
+        }
+      }
+    } else {
+      // Handle EXISTING files (from backend)
+      if (fileType?.startsWith('image/') || file.url) {
+        setPreview(`${backendURL}/${file.url}`);
+      } else if (fileType?.startsWith('video/') || file.url?.includes('.webm')) {
+        setIsVideo(true);
+        setPreview(`${backendURL}/${file.url}`);
+      }
     }
-    if (file.type?.startsWith('video/') || (isExisting && file.type?.includes('video'))) {
-      return <VideocamIcon className="text-gray-400 text-2xl" />;
+
+    return () => {
+      isMounted = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [file, isExisting, backendURL]);
+  const renderPreview = () => {
+    if (preview && !isVideo) {
+      return <img src={preview} alt={file.name} className="w-full h-full object-cover" />;
+    } else if (isVideo) {
+      return (
+        <div className="relative w-full h-full flex items-center justify-center">
+          <VideocamIcon className="text-gray-400 text-2xl" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <svg className="w-8 h-8 text-white bg-black bg-opacity-50 rounded-full" 
+                 fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" 
+                    clipRule="evenodd" />
+            </svg>
+          </div>
+        </div>
+      );
     }
     return <InsertDriveFileIcon className="text-gray-400 text-2xl" />;
   };
 
   return (
     <div className="relative group w-20">
-      <div className="w-18 h-18 flex items-center justify-center border border-gray-200 rounded-md overflow-hidden bg-gray-50">
-        {renderPreview()}
-      </div>
+      <ButtonBase
+        onClick={() => setPreviewOpen(true)}
+        className="w-full"
+      >
+        <div className="w-18 h-18 flex items-center justify-center border border-gray-200 rounded-md overflow-hidden bg-gray-50">
+          {renderPreview()}
+        </div>
+      </ButtonBase>
+      
+      {/* Delete button */}
       <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <IconButton
           size="small"
@@ -66,12 +132,41 @@ console.log(" rerender in file preview *****************************************
           <DeleteIcon fontSize="small" />
         </IconButton>
       </div>
+      
       <div className="text-xs text-gray-500 truncate mt-1">{file.name}</div>
       <div className="text-xs text-gray-400">{formatFileSize(file.size)}</div>
+      
+      {/* Preview Modal */}
+      <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle className="bg-gray-50 border-b flex justify-between items-center">
+          <span>{file.name}</span>
+          <IconButton onClick={() => setPreviewOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent className="bg-black flex justify-center items-center p-0">
+          <div className="max-h-[80vh] w-full flex justify-center">
+            {preview && !isVideo && (
+              <img 
+                src={preview} 
+                alt={file.name} 
+                className="max-h-[80vh] object-contain"
+              />
+            )}
+            {preview && isVideo && (
+              <video 
+                src={preview} 
+                controls
+                autoPlay
+                className="max-h-[80vh]"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
-
 // Helper function to format file size
 const formatFileSize = (bytes) => {
   if (!bytes) return '0 Bytes';
@@ -85,6 +180,7 @@ const formatFileSize = (bytes) => {
 const BugReportDialog = ({ open, onClose, initialData }) => {
     const { id, label , wstg , projectId ,projectManager   } = useParams();
     const userId = useUserId() ; 
+    const socket = useSocket();
 
   const [isLoading, setIsLoading] = useState(false);
   const [cvssDialogOpen, setCvssDialogOpen] = useState(false);
@@ -110,19 +206,35 @@ const BugReportDialog = ({ open, onClose, initialData }) => {
   });
 
   const fileInputRef = useRef(null);
-
   // Load initial data if provided (for edit mode)
   useEffect(() => {
-    if (initialData) {
-      setFormData(prev => ({
-        ...prev,
-        ...initialData,
-        existingFiles: initialData.files || []
-      }));
-      if (initialData.cvssScore) {
+    if (initialData && open) {
+      setFormData({
+        _id:initialData._id ,
+        cve: initialData.CVE || '',
+        path: initialData.path || '',
+        impact: initialData.impact || '',
+        exploit: initialData.exploits || '',
+        solution: initialData.solutions || '',
+        tools: Array.isArray(initialData.tools) ? initialData.tools.join(', ') : initialData.tools || '',
+        reference: initialData.other_information || '',
+        webServerSecuring: initialData.securingByOptions?.webServerSettings || false,
+        codeModificationSecuring: initialData.securingByOptions?.modificationInProgramCode || false,
+        wafPossibility: initialData.securingByWAF || '',
+        files: [],
+        existingFiles: initialData.pocs ? initialData.pocs.map(poc => ({
+          id: poc.filename,
+          name: poc.originalname,
+          type: poc.type,
+          url: poc.path,
+          size: poc.size
+        })) : []
+      });
+      
+      if (initialData.CVSS) {
         setCvssData({
-          score: initialData.cvssScore,
-          severity: initialData.cvssSeverity,
+          score: parseFloat(initialData.CVSS),
+          severity: initialData.severity,
           vector: initialData.cvssVector
         });
       }
@@ -162,8 +274,17 @@ const BugReportDialog = ({ open, onClose, initialData }) => {
 
     const newFiles = Array.from(e.target.files);
     const validFiles = newFiles.filter(file => {
-      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'video/quicktime'];
-      const isValidType = validTypes.some(type => file.type.includes(type));
+ const validTypes = [
+      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+      'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+      'video/x-msvideo', 'video/x-matroska', 'video/3gpp',
+      'video/x-flv', 'application/octet-stream' // Fallback for WebM
+    ];     
+     // Special case for WebM files from Ubuntu
+    const isWebM = file.name.endsWith('.webm') || 
+                  file.type === 'video/webm' || 
+                  file.type === 'application/octet-stream';
+    const isValidType = validTypes.some(type => file.type.includes(type)) || isWebM;
       const isValidSize = file.size <= 1000 * 1024 * 1024; // 1000MB
       return isValidType && isValidSize;
     });
@@ -245,11 +366,18 @@ const triggerFileInput = () => {
     await creatReport(submissionData , initialData)
 
     
-    alert(initialData ? 'Report updated successfully!' : 'Report submitted successfully!');
+    
+    toast.success(initialData ? 'Report updated successfully!' : 'Report submitted successfully!');
+    
     onClose();
+     socket.emit("addReport" , {
+                projectId , 
+                pentester  :userId ,  
+                projectManager , 
+            } )
   } catch (error) {
     console.error('Submission error:', error);
-    alert('Failed to submit report. Please try again.');
+    toast.error('Failed to submit report. Please try again.')
   } finally {
     setIsLoading(false);
   }
