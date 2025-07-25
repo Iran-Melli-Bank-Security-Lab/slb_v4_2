@@ -1,0 +1,427 @@
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router";
+import { fetchReportById } from "../api/bugs/fetchReport";
+import { useUserId } from "../hooks/useUserId";
+
+import {
+  BugReport as BugReportIcon,
+  CheckCircle as CheckCircleIcon,
+  Pending as PendingIcon,
+  CloudUpload as CloudUploadIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  Info as InfoIcon,
+  MoreVert as MoreVertIcon,
+} from "@mui/icons-material";
+import { format } from "date-fns";
+import { toast } from "react-toastify";
+import {
+  Menu,
+  MenuItem,
+  IconButton,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
+
+const StatusBadge = ({ status }) => {
+  const statusClasses = {
+    New: "bg-blue-100 text-blue-800 border-blue-300",
+    Pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+    Verified: "bg-green-100 text-green-800 border-green-300",
+  };
+
+  const statusIcons = {
+    New: <BugReportIcon className="w-4 h-4 mr-1" />,
+    Pending: <PendingIcon className="w-4 h-4 mr-1" />,
+    Verified: <CheckCircleIcon className="w-4 h-4 mr-1" />,
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusClasses[status]}`}
+    >
+      {statusIcons[status]}
+      {status}
+    </span>
+  );
+};
+
+const SeverityBadge = ({ severity }) => {
+  const severityClasses = {
+    Low: "bg-green-100 text-green-800",
+    Medium: "bg-yellow-100 text-yellow-800",
+    High: "bg-orange-100 text-orange-800",
+    Critical: "bg-red-100 text-red-800",
+  };
+
+  const severityIcons = {
+    Low: <InfoIcon className="w-4 h-4 mr-1" />,
+    Medium: <WarningIcon className="w-4 h-4 mr-1" />,
+    High: <WarningIcon className="w-4 h-4 mr-1" />,
+    Critical: <ErrorIcon className="w-4 h-4 mr-1" />,
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${severityClasses[severity]}`}
+    >
+      {severityIcons[severity]}
+      {severity}
+    </span>
+  );
+};
+
+const ReportDetailsManager = () => {
+  const { reportId } = useParams();
+  const userId = useUserId();
+  const [report, setReport] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // State for the menu
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleAction = (action) => {
+    handleMenuClose();
+    toast.info(`Action "${action}" would be performed on report "${report.label}"`);
+    // Here you would typically make an API call to update the report status
+  };
+
+  useEffect(() => {
+    const getReport = async () => {
+      try {
+        setIsLoading(true);
+        const result = await fetchReportById(reportId);
+        setReport(result);
+      } catch (error) {
+        console.error("Error fetching report:", error);
+        toast.error("Failed to load report");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    getReport();
+  }, [reportId]);
+
+  // Function to render RTL text with line breaks
+  const renderRtlText = (text) => {
+    if (!text) return null;
+
+    return (
+      <div
+        dir="rtl"
+        className="text-right whitespace-pre-line bg-gray-50 p-3 rounded-lg border border-gray-200"
+      >
+        {text.split("\n").map((line, i) => (
+          <React.Fragment key={i}>
+            {line}
+            <br />
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center my-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!report) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <p className="mt-4 text-gray-600">Report not found.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-6xl mx-auto py-6 px-4 relative">
+      <div className="flex items-center mb-6">
+        <BugReportIcon className="text-red-500 mr-2" />
+        <h1 className="text-2xl font-bold text-gray-800">
+          Bug Report: {report.label}
+        </h1>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+        <div className="p-6">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">
+              {report.label}
+            </h2>
+            <div className="flex space-x-2">
+              <StatusBadge status={report.state} />
+              <SeverityBadge severity={report.severity} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm text-gray-600">
+            <div>
+              <span className="font-medium">CVSS:</span> {report.CVSS}
+            </div>
+            <div>
+              <span className="font-medium">CVE:</span>{" "}
+              {report.CVE || "N/A"}
+            </div>
+            <div>
+              <span className="font-medium">WSTG:</span>{" "}
+              {report.wstg || "N/A"}
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <p className="text-gray-700">{report.description}</p>
+          </div>
+
+          <div className="space-y-4">
+            {report.impact && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">
+                  Impact
+                </h3>
+                {renderRtlText(report.impact)}
+              </div>
+            )}
+
+            {report.solutions && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">
+                  Solutions
+                </h3>
+                {renderRtlText(report.solutions)}
+              </div>
+            )}
+
+            {report.tools?.length > 0 && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">
+                  Tools Used
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {report.tools.map((tool, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm"
+                    >
+                      {tool}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {report.pocs?.length > 0 && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">
+                  Proof of Concepts
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {report.pocs.map((poc, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        toast.info(
+                          `File ${poc.originalname} cannot be displayed in demo mode`
+                        );
+                      }}
+                      className="flex items-center px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors"
+                    >
+                      <CloudUploadIcon className="text-gray-500 mr-2" />
+                      <span className="truncate">{poc.originalname}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {report.path && (
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">Path:</span> {report.path}
+              </div>
+            )}
+
+            {report.exploits && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">
+                  Exploit
+                </h3>
+                {renderRtlText(report.exploits)}
+              </div>
+            )}
+
+            {report.refrence && (
+              <div className="text-sm">
+                <span className="font-medium">Reference:</span>{" "}
+                <a
+                  href={report.refrence}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                >
+                  {report.refrence}
+                </a>
+              </div>
+            )}
+
+            {report.cvssVector && (
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">CVSS Vector:</span>{" "}
+                {report.cvssVector}
+              </div>
+            )}
+
+            <div className="mt-4">
+              <h3 className="text-lg font-medium text-gray-800 mb-2">
+                Securing Options
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <span className="font-medium">
+                    Web Server Settings:
+                  </span>{" "}
+                  {report.securingByOptions.webServerSettings ? (
+                    <span className="text-green-600">Yes</span>
+                  ) : (
+                    <span className="text-red-600">No</span>
+                  )}
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <span className="font-medium">
+                    Program Code Modification:
+                  </span>{" "}
+                  {report.securingByOptions.modificationInProgramCode ? (
+                    <span className="text-green-600">Yes</span>
+                  ) : (
+                    <span className="text-red-600">No</span>
+                  )}
+                </div>
+                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <span className="font-medium">WAF Possibility:</span>{" "}
+                  <span className="text-blue-600">
+                    {report.securingByWAF}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              {report.created_at && (
+                <div className="flex items-center text-sm text-gray-600">
+                  <svg
+                    className="w-4 h-4 mr-2 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <div>
+                    <span className="font-medium text-gray-700">
+                      Created:{" "}
+                    </span>
+                    <span>
+                      {format(
+                        new Date(report.created_at),
+                        "MMM dd, yyyy HH:mm"
+                      )}
+                    </span>
+                  </div>
+                </div>
+              )}
+              {report.updated_at && (
+                <div className="flex items-center text-sm text-gray-600">
+                  <svg
+                    className="w-4 h-4 mr-2 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                  <div>
+                    <span className="font-medium text-gray-700">
+                      Updated:{" "}
+                    </span>
+                    <span>
+                      {format(
+                        new Date(report.updated_at),
+                        "MMM dd, yyyy HH:mm"
+                      )}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <IconButton
+                aria-label="more"
+                aria-controls="report-actions-menu"
+                aria-haspopup="true"
+                onClick={handleMenuOpen}
+                className="focus:outline-none"
+              >
+                <MoreVertIcon />
+              </IconButton>
+              <Menu
+                id="report-actions-menu"
+                anchorEl={anchorEl}
+                keepMounted
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+              >
+                <MenuItem onClick={() => handleAction("verify")}>
+                  <ListItemIcon>
+                    <CheckCircleIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Verify Report" />
+                </MenuItem>
+                <MenuItem onClick={() => handleAction("reject")}>
+                  <ListItemIcon>
+                    <ErrorIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Reject Report" />
+                </MenuItem>
+                <MenuItem onClick={() => handleAction("duplicate")}>
+                  <ListItemIcon>
+                    <PendingIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText primary="Duplicate Report" />
+                </MenuItem>
+              </Menu>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ReportDetailsManager;
