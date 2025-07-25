@@ -22,6 +22,8 @@ import DevOps from "./pages/DevOps"
 import EditProjectForm from './pages/EditProject';
 import DevOpsInfoForm from './pages/DevOpsInfo';
 import BugReport from './pages/BugReport';
+import ProjectReport from './pages/ProjectReport';
+import ReportDetailsManager from './pages/ReportDetailsManager';
 const router = createBrowserRouter([
   {
     Component: App,
@@ -70,7 +72,18 @@ const router = createBrowserRouter([
             path:"bugReportForm/:id/:wstg/:label/:projectId/:projectManager",
             Component:BugReport
             
+          },
+           {
+            path:"project/:projectId/reports",
+            Component:ProjectReport
+            
+          },
+          {
+            path:"project/report/:reportId",
+            Component:ReportDetailsManager
+            
           }
+
         ],
       },
       {
