@@ -6,6 +6,7 @@ import CircularProgress  from "@mui/material/CircularProgress";
 import DescriptionIcon from "@mui/icons-material/Description";
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
 import PeopleIcon from "@mui/icons-material/People";
+import ArticleIcon from "@mui/icons-material/Article";
 
 const DataTable = lazy(() => import("../components/projects/DataTable"));
 const AssignPentester = lazy(
@@ -39,6 +40,11 @@ const ManagerProjects = () => {
 
   const handleViewIdentifier = (projectId) => {
     window.open(`/projects/${projectId}/info`, "_blank");
+  };
+
+  const handleViewReports = (projectId) => {
+    console.log("row in line 46 : " , projectId )
+    window.open(`/project/${projectId._id }/reports`, "_blank");
   };
 
   const columns = useMemo(() => [
@@ -92,6 +98,21 @@ const ManagerProjects = () => {
         >
           Generate
         </Button>
+      ),
+    },
+    {
+      id: "viewReports",
+      label: "Reports",
+      sortable: false,
+      render: (row) => (
+        <Tooltip title="View project reports">
+          <IconButton
+            onClick={() => handleViewReports(row)}
+            color="primary"
+          >
+            <ArticleIcon />
+          </IconButton>
+        </Tooltip>
       ),
     },
     { id: "version", label: "Version", sortable: true },
