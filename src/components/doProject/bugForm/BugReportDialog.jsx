@@ -41,6 +41,7 @@ const FilePreview = ({ file, onDelete, isExisting = false }) => {
   const [isVideo, setIsVideo] = useState(false);
   const backendURL =import.meta.env.VITE_API_URL || "http://localhost:4000" ; 
 
+
   useEffect(() => {
     let objectUrl = null;
     let isMounted = true;
@@ -189,6 +190,7 @@ const BugReportDialog = ({ open, onClose, initialData }) => {
     severity: null,
     vector: null
   });
+  
 
   const [formData, setFormData] = useState({
     cve: '',
@@ -206,6 +208,20 @@ const BugReportDialog = ({ open, onClose, initialData }) => {
   });
 
   const fileInputRef = useRef(null);
+  const [cvssDialogKey, setCvssDialogKey] = useState(0);
+ 
+ useEffect(() => {
+    if (open) {
+      // فقط برای حالت جدید (نه Edit) کلید را تغییر دهید
+      if (!initialData) {
+        setCvssDialogKey(prev => prev + 1);
+      }
+    }
+  }, [open, initialData]);
+
+
+
+
   // Load initial data if provided (for edit mode)
   useEffect(() => {
     if (initialData && open) {
@@ -363,17 +379,36 @@ const triggerFileInput = () => {
     }
 
     
-    await creatReport(submissionData , initialData)
+   const {bugId} =  await creatReport(submissionData , initialData)
 
     
-    
     toast.success(initialData ? 'Report updated successfully!' : 'Report submitted successfully!');
-    
+    // Reset CVSS data only for new reports (not when editing)
+    // اگر حالت جدید بود، فرم را کاملا ریست کنید
+    if (!initialData) {
+      setFormData({
+        cve: '',
+        path: '',
+        impact: '',
+        exploit: '',
+        solution: '',
+        tools: '',
+        reference: '',
+        webServerSecuring: false,
+        codeModificationSecuring: false,
+        wafPossibility: '',
+        files: [],
+        existingFiles: []
+      });
+      setCvssData({
+        score: null,
+        severity: null,
+        vector: null
+      });
+    }
     onClose();
      socket.emit("addReport" , {
-                projectId , 
-                pentester  :userId ,  
-                projectManager , 
+               bugId
             } )
   } catch (error) {
     console.error('Submission error:', error);
@@ -738,8 +773,9 @@ const triggerFileInput = () => {
 
       {/* CVSS Calculator Dialog */}
     
-      <CVSSv4Calculator
-  open={cvssDialogOpen} 
+      <CVSSv4Calculator  
+       key={initialData ? 'edit-mode' : `new-mode-${cvssDialogKey}`}
+      open={cvssDialogOpen} 
   onClose={() => setCvssDialogOpen(false)}
   onScoreSelect={(cvssData) => {
     setCvssData(cvssData);

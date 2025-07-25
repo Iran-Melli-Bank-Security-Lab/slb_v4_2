@@ -12,6 +12,9 @@ import {
   Error as ErrorIcon,
   Info as InfoIcon,
   MoreVert as MoreVertIcon,
+  ContentCopy as DuplicateIcon,
+  NotInterested as NotApplicableIcon,
+  HelpOutline as NeedMoreInfoIcon,
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { toast } from "react-toastify";
@@ -21,19 +24,35 @@ import {
   IconButton,
   ListItemIcon,
   ListItemText,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Box,
+  Typography,
+  Slider,
 } from "@mui/material";
+import { verifyReport } from "../api/bugs/verifyReport";
 
 const StatusBadge = ({ status }) => {
   const statusClasses = {
     New: "bg-blue-100 text-blue-800 border-blue-300",
     Pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
     Verified: "bg-green-100 text-green-800 border-green-300",
+    Duplicate: "bg-purple-100 text-purple-800 border-purple-300",
+    "Not Applicable": "bg-gray-100 text-gray-800 border-gray-300",
+    "Need More Information": "bg-orange-100 text-orange-800 border-orange-300",
   };
 
   const statusIcons = {
     New: <BugReportIcon className="w-4 h-4 mr-1" />,
     Pending: <PendingIcon className="w-4 h-4 mr-1" />,
     Verified: <CheckCircleIcon className="w-4 h-4 mr-1" />,
+    Duplicate: <DuplicateIcon className="w-4 h-4 mr-1" />,
+    "Not Applicable": <NotApplicableIcon className="w-4 h-4 mr-1" />,
+    "Need More Information": <NeedMoreInfoIcon className="w-4 h-4 mr-1" />,
   };
 
   return (
@@ -76,9 +95,11 @@ const ReportDetailsManager = () => {
   const userId = useUserId();
   const [report, setReport] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
-  // State for the menu
   const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedAction, setSelectedAction] = useState(null);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [score, setScore] = useState(0);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -88,11 +109,55 @@ const ReportDetailsManager = () => {
     setAnchorEl(null);
   };
 
-  const handleAction = (action) => {
+  const handleActionSelect = (action) => {
+    setSelectedAction(action);
     handleMenuClose();
-    toast.info(`Action "${action}" would be performed on report "${report.label}"`);
-    // Here you would typically make an API call to update the report status
+    
+    if (action === "Need More Information") {
+      setIsDialogOpen(true);
+    } else {
+      handleAction(action);
+    }
   };
+
+  const handleAction = async (action) => {
+    let message = `Report status changed to "${action}"`;
+    if (action === "Need More Information") {
+      message += ` with feedback: ${feedbackText}`;
+    }
+    if (score > 0) {
+      message += ` and score: ${score}`;
+    }
+    console.log("action in line 130 : " , action)
+    
+    await verifyReport(reportId , action )
+    toast.success(message);
+    // API call would go here to update the report status
+    console.log({
+      action,
+      feedback: feedbackText,
+      score,
+      reportId
+    });
+    
+    // Reset states
+    setSelectedAction(null);
+    setFeedbackText("");
+    setScore(0);
+    setIsDialogOpen(false);
+  };
+
+  const handleScoreChange = (event, newValue) => {
+    setScore(newValue);
+  };
+
+  const actionItems = [
+    { name: "New", icon: <BugReportIcon fontSize="small" /> },
+    { name: "Verified", icon: <CheckCircleIcon fontSize="small" /> },
+    { name: "Duplicate", icon: <DuplicateIcon fontSize="small" /> },
+    { name: "Not Applicable", icon: <NotApplicableIcon fontSize="small" /> },
+    { name: "Need More Information", icon: <NeedMoreInfoIcon fontSize="small" /> },
+  ];
 
   useEffect(() => {
     const getReport = async () => {
@@ -110,7 +175,24 @@ const ReportDetailsManager = () => {
     getReport();
   }, [reportId]);
 
-  // Function to render RTL text with line breaks
+
+  // Function to check if file is an image
+  const isImageFile = (filename) => {
+    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filename);
+  };
+
+  // Function to check if file is a video
+  const isVideoFile = (filename) => {
+    return /\.(mp4|webm|ogg|mov|avi)$/i.test(filename);
+  };
+
+  // Function to handle file preview click
+  const handleFilePreview = (fileUrl) => {
+    window.open(fileUrl, '_blank');
+  };
+
+
+
   const renderRtlText = (text) => {
     if (!text) return null;
 
@@ -221,29 +303,81 @@ const ReportDetailsManager = () => {
               </div>
             )}
 
-            {report.pocs?.length > 0 && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  Proof of Concepts
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {report.pocs.map((poc, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        toast.info(
-                          `File ${poc.originalname} cannot be displayed in demo mode`
-                        );
-                      }}
-                      className="flex items-center px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors"
-                    >
-                      <CloudUploadIcon className="text-gray-500 mr-2" />
-                      <span className="truncate">{poc.originalname}</span>
-                    </button>
-                  ))}
+
+  {report.pocs?.length > 0 && (
+    <div>
+      <h3 className="text-lg font-medium text-gray-800 mb-2">
+        Proof of Concepts
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {report.pocs.map((poc, index) => {
+          const backendURL = import.meta.env.VITE_API_URL || "http://localhost:4000" ; 
+          const fileUrl = backendURL +"/" +poc.path  // Handle both URL and File object
+          const isImage = isImageFile(poc.originalname);
+          const isVideo = isVideoFile(poc.originalname);
+
+          return (
+            <div 
+              key={index}
+              className="relative group cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
+              onClick={() => handleFilePreview(fileUrl)}
+            >
+              {isImage ? (
+                <div className="h-48 bg-gray-100 flex items-center justify-center">
+                  <img
+                    src={fileUrl}
+                    alt={poc.originalname}
+                    className="max-h-full max-w-full object-contain"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EEE'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='12' fill='%23000' text-anchor='middle' dominant-baseline='middle'%3EImage%3C/text%3E%3C/svg%3E";
+                    }}
+                  />
+                </div>
+              ) : isVideo ? (
+                <div className="h-48 bg-gray-100 flex items-center justify-center">
+                  <video className="h-full w-full object-contain" controls>
+                    <source src={fileUrl} type={`video/${poc.originalname.split('.').pop()}`} />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+              ) : (
+                <div className="h-48 bg-gray-100 flex flex-col items-center justify-center p-4">
+                  <CloudUploadIcon className="text-gray-400 text-4xl mb-2" />
+                  <span className="text-sm text-gray-600 text-center truncate w-full">
+                    {poc.originalname}
+                  </span>
+                </div>
+              )}
+              
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+                <div className="bg-white bg-opacity-90 rounded-full p-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-200">
+                  <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
                 </div>
               </div>
-            )}
+              
+              <div className="p-3 bg-white">
+                <div className="flex items-center">
+                  <span className="text-sm font-medium text-gray-800 truncate">
+                    {poc.originalname}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {poc.size ? `${(poc.size / 1024).toFixed(1)} KB` : 'Size not available'}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  )}
+
+
+
+            
 
             {report.path && (
               <div className="text-sm text-gray-600">
@@ -397,29 +531,68 @@ const ReportDetailsManager = () => {
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
               >
-                <MenuItem onClick={() => handleAction("verify")}>
-                  <ListItemIcon>
-                    <CheckCircleIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Verify Report" />
-                </MenuItem>
-                <MenuItem onClick={() => handleAction("reject")}>
-                  <ListItemIcon>
-                    <ErrorIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Reject Report" />
-                </MenuItem>
-                <MenuItem onClick={() => handleAction("duplicate")}>
-                  <ListItemIcon>
-                    <PendingIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText primary="Duplicate Report" />
-                </MenuItem>
+                {actionItems.map((item) => (
+                  <MenuItem 
+                    key={item.name} 
+                    onClick={() => handleActionSelect(item.name)}
+                  >
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemText primary={item.name} />
+                  </MenuItem>
+                ))}
               </Menu>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Feedback Dialog */}
+      <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Provide Additional Information</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2, mb: 4 }}>
+            <Typography variant="body1" gutterBottom>
+              You're requesting more information for report: <strong>{report.label}</strong>
+            </Typography>
+            
+            <TextField
+              autoFocus
+              margin="dense"
+              id="feedback"
+              label="Detailed Feedback"
+              placeholder="Please specify what additional information is needed from the pentester..."
+              type="text"
+              fullWidth
+              variant="outlined"
+              multiline
+              rows={6}
+              value={feedbackText}
+              onChange={(e) => setFeedbackText(e.target.value)}
+              sx={{ mt: 3 }}
+            />
+            
+         
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsDialogOpen(false)} color="secondary">
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => {
+              if (!feedbackText.trim()) {
+                toast.warning("Please provide feedback before submitting");
+                return;
+              }
+              handleAction(selectedAction);
+            }}
+            variant="contained"
+            color="primary"
+          >
+            Submit Request
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

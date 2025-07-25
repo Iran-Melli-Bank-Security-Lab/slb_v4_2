@@ -27,6 +27,7 @@
     "@react-hook/window-size": "^3.1.1",
     "@reduxjs/toolkit": "^2.7.0",
     "@toolpad/core": "^0.14.0",
+    "ae-cvss-calculator": "^1.0.8",
     "babel-plugin-react-compiler": "^19.1.0-rc.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.10.0",
