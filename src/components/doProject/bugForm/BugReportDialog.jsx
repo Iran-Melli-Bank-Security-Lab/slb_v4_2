@@ -178,7 +178,7 @@ const formatFileSize = (bytes) => {
 };
 
 
-const BugReportDialog = ({ open, onClose, initialData }) => {
+const BugReportDialog = ({ open, onClose, initialData , onSuccess  }) => {
     const { id, label , wstg , projectId ,projectManager   } = useParams();
     const userId = useUserId() ; 
     const socket = useSocket();
@@ -406,10 +406,18 @@ const triggerFileInput = () => {
         vector: null
       });
     }
+
+
     onClose();
+    if(!initialData){
      socket.emit("addReport" , {
                bugId
             } )
+
+
+          }
+  if (onSuccess) onSuccess(); // <-- trigger refresh
+
   } catch (error) {
     console.error('Submission error:', error);
     toast.error('Failed to submit report. Please try again.')

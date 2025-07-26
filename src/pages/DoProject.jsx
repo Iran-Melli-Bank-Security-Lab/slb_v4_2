@@ -12,12 +12,17 @@ import PendingStatusContent from "../components/doProject/PendingStatusContent";
 import FinishStatusContent from "../components/doProject/FinishStatusContent";
 import ProjectInfo from "../components/doProject/projectInfo";
 import ProjectStatus from "../components/doProject/projectStatus";
+import { fetchProjectByUserProjectManager } from "../api/projects/fetchProjectById";
+import { useUserId } from "../hooks/useUserId";
+import ProjcetStates from "../components/doProject/projectStatus/ProjectStates";
+
+
 const staticDevOpsInfo = {
   project: "640a1b5e8f4b2a1f9c3d2e5f", // Mock project ID
   pentester: "640a1b5e8f4b2a1f9c3d2e60", // Mock user ID
-  
+
   platform: "web", // Can be 'web', 'mobile', or 'desktop'
-  
+
   platformData: {
     web: {
       environmentType: "vm", // OVF, VM, Docker, Production, Development
@@ -44,7 +49,7 @@ const staticDevOpsInfo = {
       }
     }
   },
-  
+
   endpoints: [
     {
       url: "https://api.example.com",
@@ -87,7 +92,7 @@ const staticDevOpsInfo = {
       }
     }
   ],
-  
+
   technologyStack: {
     web: {
       frontendLanguage: "TypeScript (React)",
@@ -97,7 +102,7 @@ const staticDevOpsInfo = {
       webServer: "NGINX"
     }
   },
-  
+
   isShared: true
 };
 
@@ -106,7 +111,8 @@ const staticDevOpsInfo = {
 
 const DoProject = () => {
 
-  const { id } = useParams();
+  const userId = useUserId()
+  const { id, projectManager } = useParams();
   const [projectStatus, setProjectStatus] = useState("open");
   const [workTime, setWorkTime] = useState(0);
   const [isTracking, setIsTracking] = useState(false);
@@ -116,13 +122,30 @@ const DoProject = () => {
   const [loading, setLoading] = useState(false);
   const [openHistoryModal, setOpenHistoryModal] = useState(false);
 
-  console.log("re-render **************** : " , id )
+  const [userProject, setUserProject] = useState({})
+
+  console.log("re-render **************** : ", id)
+
+  async function getProject() {
+
+    const result = await fetchProjectByUserProjectManager(id, userId, projectManager)
+
+    console.log("fetchProjectByUserProjectManager : ", result)
+    setUserProject(result)
+  }
+
+  useEffect(() => {
+    getProject()
+  }, [])
+
+
 
   useEffect(() => {
     setLoading(true);
     const savedData = localStorage.getItem(`projectTimeTracking-${id}`);
     if (savedData) {
       const { status, time, entries } = JSON.parse(savedData);
+      console.log("status in line 150 : ", status, time, entries)
       setProjectStatus(status);
       setWorkTime(time);
       setTimeEntries(entries);
@@ -175,37 +198,14 @@ const DoProject = () => {
     setExpanded(!expanded);
   };
 
-  const projectData = {
-    title: `E-commerce Platform Migration #${id}`,
-    description:
-      "Migration of legacy e-commerce platform to modern microservices architecture with CI/CD pipeline implementation.",
-    startDate: "2023-06-15",
-    endDate: "2023-12-20",
-    owner: "Jane Smith",
-    team: [
-      { name: "Alex Johnson", role: "DevOps Engineer", avatar: "AJ", status: "active" },
-      { name: "Maria Garcia", role: "Backend Developer", avatar: "MG", status: "active" },
-      { name: "Sam Wilson", role: "Frontend Developer", avatar: "SW", status: "active" },
-      { name: "Taylor Swift", role: "UI/UX Designer", avatar: "TS", status: "inactive" },
-    ],
-    technologies: ["AWS", "Kubernetes", "Docker", "Terraform", "React", "Node.js"],
-    progress: 65,
-    rating: 4.5,
-  };
 
-  const devOpsInfo = {
-    repoUrl: "https://github.com/company/ecommerce-migration",
-    ciTool: "GitHub Actions",
-    deploymentTarget: "AWS EKS",
-    monitoring: "Prometheus + Grafana",
-    logging: "ELK Stack",
-  };
+
 
   const statusComponents = {
-    open: <OpenStatusContent />,
-    pending: <PendingStatusContent />,
-    "in-progress": <InProgressContent progress={projectData.progress} />,
-    finish: <FinishStatusContent />,
+    Open: <OpenStatusContent />,
+    Pending: <PendingStatusContent />,
+    "In-Progress": <InProgressContent progress={0} />,
+    Finish: <FinishStatusContent />,
   };
 
   const totalWorkTime = timeEntries.reduce((sum, entry) => sum + entry.duration, 0) +
@@ -226,12 +226,13 @@ const DoProject = () => {
   return (
     <Container maxWidth="xl" className="py-8 px-4 sm:px-6 lg:px-8">
 
-       {/* <ProjectInfo
+      <ProjectInfo
         devOpsInfo={staticDevOpsInfo}
-      />  */}
+      />
 
 
-      <ProjectStatus
+<ProjcetStates />
+      {/* <ProjectStatus
         projectStatus={projectStatus}
         toggleExpand={toggleExpand}
         expanded={expanded}
@@ -243,8 +244,9 @@ const DoProject = () => {
         openHistoryModal={openHistoryModal}
         setOpenHistoryModal={setOpenHistoryModal}
         statusComponents={statusComponents}
-      />
+      /> */}
 
+    
     </Container>
   );
 };

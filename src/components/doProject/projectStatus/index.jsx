@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -13,7 +13,8 @@ import {
   Chip,
   Tooltip,
   Avatar,
-  useTheme
+  useTheme,
+  CircularProgress
 } from '@mui/material';
 import {
   CheckCircleOutline as CheckCircleOutlineIcon,
@@ -36,6 +37,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { styled } from '@mui/system';
 import TimerDisplay from "../timework/TimerDisplay"
 import SessionWorkModal from "../sessionWork/SessionWorkModal"
+import { fetchProjectByUserProjectManager } from "../../../api/projects/fetchProjectById";
+import { useParams } from 'react-router';
+import { useUserId } from '../../../hooks/useUserId';
+import { updateProjectStatus } from '../../../api/projects/updateProjectStatus';
 // استایل‌های سفارشی
 const GlowCard = styled(Card)(({ theme }) => ({
   borderRadius: '16px',
@@ -96,7 +101,7 @@ const GradientButton = styled(Button)(({ theme }) => ({
 
 const statusConfig = [
   { 
-    key: "open", 
+    key: "Open", 
     label: "Open", 
     icon: <LockOpenIcon />, 
     color: "#2196F3",
@@ -104,7 +109,7 @@ const statusConfig = [
     description: "Project is ready to start" 
   },
   { 
-    key: "pending", 
+    key: "Pending", 
     label: "Pending", 
     icon: <PendingActionsIcon />, 
     color: "#FFC107",
@@ -112,7 +117,7 @@ const statusConfig = [
     description: "Waiting for resources or approval" 
   },
   { 
-    key: "in-progress", 
+    key: "In-Progress", 
     label: "In Progress", 
     icon: <BuildIcon />, 
     color: "#3F51B5",
@@ -120,7 +125,7 @@ const statusConfig = [
     description: "Active development underway" 
   },
   { 
-    key: "finish", 
+    key: "Finish", 
     label: "Completed", 
     icon: <CheckCircleOutlineIcon />, 
     color: "#4CAF50",
@@ -129,28 +134,105 @@ const statusConfig = [
   },
 ];
 
-const statusProgressValues = {
-  'open': 0,
-  'pending': 30,
-  'in-progress': 65,
-  'finish': 100
-};
 
-const ProjectStatus = ({
-  projectStatus,
-  toggleExpand,
-  expanded,
-  handleStatusChange,
-  totalWorkTime,
-  isTracking,
-  lastStatusChange,
-  timeEntries,
-  openHistoryModal,
-  setOpenHistoryModal,
-  statusComponents,
-}) => {
+
+const ProjectStatus = ({statusComponents }) => {
+  const {id , projectManager } = useParams()
+  const userId = useUserId()
   const theme = useTheme();
   const [hoveredStatus, setHoveredStatus] = useState(null);
+  const [expanded, setExpanded] = useState(true);
+  const [openHistoryModal, setOpenHistoryModal] = useState(false);
+  const [projectData, setProjectData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentStatus, setCurrentStatus] = useState('Open'); // Initialize with default status
+
+  useEffect(() => {
+    const fetchProjectData = async () => {
+      try {
+        setLoading(true);
+        const result = await fetchProjectByUserProjectManager(id , userId , projectManager);
+        setProjectData(result);
+        setLoading(false);
+        if (result?.status) {
+          setCurrentStatus(result.status);
+        }
+      } catch (err) {
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+
+    fetchProjectData();
+  }, [id , userId , projectManager]);
+
+  const toggleExpand = () => {
+    setExpanded(!expanded);
+  };
+
+ const handleStatusChange = async (newStatus) => {
+    try {
+      // Optimistic UI update
+      const previousStatus = currentStatus;
+      setCurrentStatus(newStatus);
+      
+      // Update local state
+      setProjectData(prev => ({
+        ...prev,
+        status: newStatus,
+        stateChanges: [
+          ...(prev.stateChanges || []),
+          {
+            from: prev.status,
+            to: newStatus,
+            timestamp: new Date().toISOString()
+          }
+        ]
+      }));
+
+      // Call API to update status in database
+      await updateProjectStatus(projectData._id , newStatus);
+      
+    } catch (err) {
+      // Revert if API call fails
+      setCurrentStatus(previousStatus);
+      setError('Failed to update project status');
+      console.error('Error updating project status:', err);
+    }
+  };
+
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="200px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" height="200px">
+        <Typography color="error">{error}</Typography>
+      </Box>
+    );
+  }
+
+  if (!projectData) {
+    return null;
+  }
+
+  const { status, totalWorkTime, stateChanges = [] } = projectData;
+  
+  // Calculate if the project is currently being tracked (in-progress)
+  const isTracking = currentStatus === 'In-Progress';
+  
+  // Get the last status change timestamp
+  const lastStatusChange = stateChanges.length > 0 
+    ? stateChanges[stateChanges.length - 1].timestamp 
+    : null;
+
 
   return (
     <GlowCard className="mb-8">
@@ -206,44 +288,44 @@ const ProjectStatus = ({
             gap: '16px',
             mb: '24px'
           }}>
-            {statusConfig.map((status) => (
-              <Tooltip key={status.key} title={status.description} arrow>
+            {statusConfig.map((statusItem) => (
+              <Tooltip key={statusItem.key} title={statusItem.description} arrow>
                 <div>
                   <Box
-                    onClick={() => handleStatusChange(status.key)}
+                    onClick={() => handleStatusChange(statusItem.key)}
                     sx={{
-                      background: status.key === projectStatus ? status.gradient : '#fff',
-                      color: status.key === projectStatus ? '#fff' : theme.palette.text.primary,
-                      border: `1px solid ${status.key === projectStatus ? 'transparent' : theme.palette.divider}`,
+                      background: statusItem.key === currentStatus ? statusItem.gradient : '#fff',
+                      color: statusItem.key === status ? '#fff' : theme.palette.text.primary,
+                      border: `1px solid ${statusItem.key === status ? 'transparent' : theme.palette.divider}`,
                       borderRadius: '12px',
                       padding: '16px',
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
-                      boxShadow: status.key === projectStatus ? `0 8px 16px ${status.color}40` : '0 4px 12px rgba(0, 0, 0, 0.05)',
+                      boxShadow: statusItem.key === status ? `0 8px 16px ${statusItem.color}40` : '0 4px 12px rgba(0, 0, 0, 0.05)',
                       position: 'relative',
                       overflow: 'hidden',
                       '&:hover': {
                         transform: 'translateY(-4px)',
-                        boxShadow: `0 8px 24px ${status.color}40`
+                        boxShadow: `0 8px 24px ${statusItem.color}40`
                       }
                     }}
                   >
                     <Box display="flex" alignItems="center" mb={1}>
                       <Avatar
                         sx={{
-                          backgroundColor: status.key === projectStatus ? '#fff' : `${status.color}20`,
-                          color: status.key === projectStatus ? status.color : status.color,
+                          backgroundColor: statusItem.key === status ? '#fff' : `${statusItem.color}20`,
+                          color: statusItem.key === status ? statusItem.color : statusItem.color,
                           mr: 2,
                           width: 40,
                           height: 40
                         }}
                       >
-                        {status.icon}
+                        {statusItem.icon}
                       </Avatar>
-                      <Typography fontWeight="600">{status.label}</Typography>
+                      <Typography fontWeight="600">{statusItem.label}</Typography>
                     </Box>
                     <AnimatePresence>
-                      {hoveredStatus === status.key && (
+                      {hoveredStatus === statusItem.key && (
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
@@ -251,12 +333,12 @@ const ProjectStatus = ({
                           transition={{ duration: 0.2 }}
                         >
                           <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                            {status.description}
+                            {statusItem.description}
                           </Typography>
                         </motion.div>
                       )}
                     </AnimatePresence>
-                    {status.key === projectStatus && (
+                    {statusItem.key === status && (
                       <Box
                         sx={{
                           position: 'absolute',
@@ -276,35 +358,6 @@ const ProjectStatus = ({
             ))}
           </Box>
 
-          {/* Progress Section */}
-          {/* <Box sx={{ mb: '24px', p: '16px', background: '#fff', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)' }}>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-              <Box display="flex" alignItems="center">
-                <HourglassIcon sx={{ color: theme.palette.text.secondary, mr: 1 }} />
-                <Typography variant="subtitle2" fontWeight="600" color="text.secondary">
-                  PROJECT PROGRESS
-                </Typography>
-              </Box>
-              <StatusBadge 
-                status={projectStatus} 
-                label={`${statusProgressValues[projectStatus]}% COMPLETE`} 
-              />
-            </Box>
-            <LinearProgress
-              variant="determinate"
-              value={statusProgressValues[projectStatus]}
-              sx={{
-                height: '8px',
-                borderRadius: '4px',
-                backgroundColor: theme.palette.grey[200],
-                '& .MuiLinearProgress-bar': {
-                  borderRadius: '4px',
-                  background: statusConfig.find(s => s.key === projectStatus).gradient
-                }
-              }}
-            />
-          </Box> */}
-
           {/* Time Tracking Section */}
           <Box sx={{ 
             mb: '24px', 
@@ -322,13 +375,13 @@ const ProjectStatus = ({
               left: 0,
               width: '4px',
               height: '100%',
-              background: statusConfig.find(s => s.key === projectStatus).gradient
+              background: statusConfig.find(s => s.key === status).gradient
             }
           }}>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
               <Box display="flex" alignItems="center">
                 <TimeIcon sx={{ 
-                  color: statusConfig.find(s => s.key === projectStatus).color,
+                  color: statusConfig.find(s => s.key === status).color,
                   mr: 1.5,
                   fontSize: '28px'
                 }} />
@@ -341,12 +394,12 @@ const ProjectStatus = ({
                   Current Status:
                 </Typography>
                 <Chip
-                  label={projectStatus.replace('-', ' ').toUpperCase()}
+                  label={status.replace('-', ' ').toUpperCase()}
                   size="small"
                   sx={{
                     fontWeight: '700',
-                    backgroundColor: statusConfig.find(s => s.key === projectStatus).color + '20',
-                    color: statusConfig.find(s => s.key === projectStatus).color
+                    backgroundColor: statusConfig.find(s => s.key === status).color + '20',
+                    color: statusConfig.find(s => s.key === status).color
                   }}
                 />
               </Box>
@@ -376,7 +429,7 @@ const ProjectStatus = ({
               </Box>
 
               <Box display="flex" flexWrap="wrap" gap={2} justifyContent="center">
-                {projectStatus === "in-progress" ? (
+                {status === "In-Progress" ? (
                   <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                     <Button
                       variant="contained"
@@ -389,20 +442,20 @@ const ProjectStatus = ({
                         minWidth: '140px',
                         boxShadow: '0 4px 12px rgba(255, 152, 0, 0.2)'
                       }}
-                      onClick={() => handleStatusChange("pending")}
+                      onClick={() => handleStatusChange("Pending")}
                     >
                       PAUSE
                     </Button>
                   </motion.div>
                 ) : (
                   <motion.div 
-                    whileHover={{ scale: projectStatus !== "finish" ? 1.03 : 1 }} 
-                    whileTap={{ scale: projectStatus !== "finish" ? 0.97 : 1 }}
+                    whileHover={{ scale: status !== "Finish" ? 1.03 : 1 }} 
+                    whileTap={{ scale: status !== "Finish" ? 0.97 : 1 }}
                   >
                     <GradientButton
                       startIcon={<StartIcon />}
-                      disabled={projectStatus === "finish"}
-                      onClick={() => handleStatusChange("in-progress")}
+                      disabled={status === "Finish"}
+                      onClick={() => handleStatusChange("In-Progress")}
                     >
                       START WORK
                     </GradientButton>
@@ -410,27 +463,27 @@ const ProjectStatus = ({
                 )}
 
                 <motion.div 
-                  whileHover={{ scale: projectStatus === "in-progress" ? 1.03 : 1 }} 
-                  whileTap={{ scale: projectStatus === "in-progress" ? 0.97 : 1 }}
+                  whileHover={{ scale: status === "In-Progress" ? 1.03 : 1 }} 
+                  whileTap={{ scale: status === "In-Progress" ? 0.97 : 1 }}
                 >
                   <Button
                     variant="contained"
                     startIcon={<StopIcon />}
                     sx={{
-                      background: projectStatus === "in-progress" 
+                      background: status === "In-Progress" 
                         ? 'linear-gradient(135deg, #F44336 0%, #E57373 100%)' 
                         : 'rgba(0, 0, 0, 0.05)',
-                      color: projectStatus === "in-progress" ? 'white' : theme.palette.text.disabled,
+                      color: status === "In-Progress" ? 'white' : theme.palette.text.disabled,
                       fontWeight: '600',
                       borderRadius: '8px',
                       minWidth: '140px',
-                      boxShadow: projectStatus === "in-progress" 
+                      boxShadow: status === "In-Progress" 
                         ? '0 4px 12px rgba(244, 67, 54, 0.2)' 
                         : 'none',
-                      cursor: projectStatus === "in-progress" ? 'pointer' : 'not-allowed'
+                      cursor: status === "In-Progress" ? 'pointer' : 'not-allowed'
                     }}
-                    disabled={projectStatus !== "in-progress"}
-                    onClick={() => handleStatusChange("finish")}
+                    disabled={status !== "In-Progress"}
+                    onClick={() => handleStatusChange("Finish")}
                   >
                     COMPLETE
                   </Button>
@@ -439,39 +492,6 @@ const ProjectStatus = ({
             </Box>
           </Box>
 
-          {/* History Section */}
-          {timeEntries.length > 0 && (
-            <Box sx={{ 
-              mb: '24px',
-              textAlign: 'center'
-            }}>
-              <motion.div whileHover={{ scale: 1.02 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<HistoryIcon />}
-                  onClick={() => setOpenHistoryModal(true)}
-                  sx={{
-                    borderRadius: '8px',
-                    fontWeight: '600',
-                    borderColor: theme.palette.divider,
-                    color: theme.palette.text.secondary,
-                    '&:hover': {
-                      borderColor: theme.palette.primary.main,
-                      color: theme.palette.primary.main,
-                      backgroundColor: 'rgba(33, 150, 243, 0.04)'
-                    }
-                  }}
-                >
-                  VIEW WORK HISTORY ({timeEntries.length} SESSIONS)
-                </Button>
-              </motion.div>
-              <SessionWorkModal
-                open={openHistoryModal}
-                onClose={() => setOpenHistoryModal(false)}
-                timeEntries={timeEntries}
-              />
-            </Box>
-          )}
 
           <Divider sx={{ my: 3, borderColor: theme.palette.divider }} />
 
@@ -490,14 +510,18 @@ const ProjectStatus = ({
             }}>
               <Box display="flex" alignItems="center" mb={2}>
                 <TaskIcon sx={{ 
-                  color: statusConfig.find(s => s.key === projectStatus).color,
+                  color: statusConfig.find(s => s.key === status).color,
                   mr: 1.5
                 }} />
                 <Typography variant="h6" fontWeight="700">
-                  {projectStatus.toUpperCase()} STATUS DETAILS
+                  {status.toUpperCase()} STATUS DETAILS
                 </Typography>
               </Box>
-              {statusComponents[projectStatus]}
+              
+              {/* {statusComponents[status]} */}
+           
+           
+           
             </Box>
           </motion.div>
           
