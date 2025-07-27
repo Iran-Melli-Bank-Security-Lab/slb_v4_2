@@ -231,7 +231,7 @@ const DoProject = () => {
       />
 
 
-<ProjcetStates />
+<ProjcetStates statusComponents={statusComponents}/>
       {/* <ProjectStatus
         projectStatus={projectStatus}
         toggleExpand={toggleExpand}
@@ -245,6 +245,8 @@ const DoProject = () => {
         setOpenHistoryModal={setOpenHistoryModal}
         statusComponents={statusComponents}
       /> */}
+
+      {/* <ProjectStatus/> */}
 
     
     </Container>
