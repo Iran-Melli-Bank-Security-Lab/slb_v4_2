@@ -1,4 +1,4 @@
-import  { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -29,7 +29,7 @@ import { toast } from 'react-toastify';
 
 // Update the valid file types in handleFileChange
 const validTypes = [
-  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp',
   'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
   'video/x-msvideo', 'video/x-matroska', 'video/3gpp'
 ];
@@ -39,7 +39,7 @@ const FilePreview = ({ file, onDelete, isExisting = false }) => {
   const [preview, setPreview] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [isVideo, setIsVideo] = useState(false);
-  const backendURL =import.meta.env.VITE_API_URL || "http://localhost:4000" ; 
+  const backendURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 
   useEffect(() => {
@@ -97,10 +97,10 @@ const FilePreview = ({ file, onDelete, isExisting = false }) => {
         <div className="relative w-full h-full flex items-center justify-center">
           <VideocamIcon className="text-gray-400 text-2xl" />
           <div className="absolute inset-0 flex items-center justify-center">
-            <svg className="w-8 h-8 text-white bg-black bg-opacity-50 rounded-full" 
-                 fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" 
-                    clipRule="evenodd" />
+            <svg className="w-8 h-8 text-white bg-black bg-opacity-50 rounded-full"
+              fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                clipRule="evenodd" />
             </svg>
           </div>
         </div>
@@ -119,7 +119,7 @@ const FilePreview = ({ file, onDelete, isExisting = false }) => {
           {renderPreview()}
         </div>
       </ButtonBase>
-      
+
       {/* Delete button */}
       <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <IconButton
@@ -133,10 +133,10 @@ const FilePreview = ({ file, onDelete, isExisting = false }) => {
           <DeleteIcon fontSize="small" />
         </IconButton>
       </div>
-      
+
       <div className="text-xs text-gray-500 truncate mt-1">{file.name}</div>
       <div className="text-xs text-gray-400">{formatFileSize(file.size)}</div>
-      
+
       {/* Preview Modal */}
       <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle className="bg-gray-50 border-b flex justify-between items-center">
@@ -148,15 +148,15 @@ const FilePreview = ({ file, onDelete, isExisting = false }) => {
         <DialogContent className="bg-black flex justify-center items-center p-0">
           <div className="max-h-[80vh] w-full flex justify-center">
             {preview && !isVideo && (
-              <img 
-                src={preview} 
-                alt={file.name} 
+              <img
+                src={preview}
+                alt={file.name}
                 className="max-h-[80vh] object-contain"
               />
             )}
             {preview && isVideo && (
-              <video 
-                src={preview} 
+              <video
+                src={preview}
                 controls
                 autoPlay
                 className="max-h-[80vh]"
@@ -178,10 +178,10 @@ const formatFileSize = (bytes) => {
 };
 
 
-const BugReportDialog = ({ open, onClose, initialData , onSuccess  }) => {
-    const { id, label , wstg , projectId ,projectManager   } = useParams();
-    const userId = useUserId() ; 
-    const socket = useSocket();
+const BugReportDialog = ({ open, onClose, initialData, onSuccess }) => {
+  const { id, label, wstg, projectId, projectManager } = useParams();
+  const userId = useUserId();
+  const socket = useSocket();
 
   const [isLoading, setIsLoading] = useState(false);
   const [cvssDialogOpen, setCvssDialogOpen] = useState(false);
@@ -190,7 +190,7 @@ const BugReportDialog = ({ open, onClose, initialData , onSuccess  }) => {
     severity: null,
     vector: null
   });
-  
+
 
   const [formData, setFormData] = useState({
     cve: '',
@@ -209,8 +209,8 @@ const BugReportDialog = ({ open, onClose, initialData , onSuccess  }) => {
 
   const fileInputRef = useRef(null);
   const [cvssDialogKey, setCvssDialogKey] = useState(0);
- 
- useEffect(() => {
+
+  useEffect(() => {
     if (open) {
       // فقط برای حالت جدید (نه Edit) کلید را تغییر دهید
       if (!initialData) {
@@ -226,7 +226,7 @@ const BugReportDialog = ({ open, onClose, initialData , onSuccess  }) => {
   useEffect(() => {
     if (initialData && open) {
       setFormData({
-        _id:initialData._id ,
+        _id: initialData._id,
         cve: initialData.CVE || '',
         path: initialData.path || '',
         impact: initialData.impact || '',
@@ -246,7 +246,7 @@ const BugReportDialog = ({ open, onClose, initialData , onSuccess  }) => {
           size: poc.size
         })) : []
       });
-      
+
       if (initialData.CVSS) {
         setCvssData({
           score: parseFloat(initialData.CVSS),
@@ -290,25 +290,28 @@ const BugReportDialog = ({ open, onClose, initialData , onSuccess  }) => {
 
     const newFiles = Array.from(e.target.files);
     const validFiles = newFiles.filter(file => {
- const validTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-      'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
-      'video/x-msvideo', 'video/x-matroska', 'video/3gpp',
-      'video/x-flv', 'application/octet-stream' // Fallback for WebM
-    ];     
-     // Special case for WebM files from Ubuntu
-    const isWebM = file.name.endsWith('.webm') || 
-                  file.type === 'video/webm' || 
-                  file.type === 'application/octet-stream';
-    const isValidType = validTypes.some(type => file.type.includes(type)) || isWebM;
+      const validTypes = [
+        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+        'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+        'video/x-msvideo', 'video/x-matroska', 'video/3gpp',
+        'video/x-flv', 'application/octet-stream' // Fallback for WebM
+      ];
+      // Special case for WebM files from Ubuntu
+      const isWebM = file.name.endsWith('.webm') ||
+        file.type === 'video/webm' ||
+        file.type === 'application/octet-stream';
+      const isValidType = validTypes.some(type => file.type.includes(type)) || isWebM;
       const isValidSize = file.size <= 1000 * 1024 * 1024; // 1000MB
       return isValidType && isValidSize;
     });
-    
+
     setFormData(prev => ({
       ...prev,
       files: [...prev.files, ...validFiles]
     }));
+    e.target.value = null; // برای اجازه انتخاب مجدد فایل یکسان
+
+
   };
 
   const handleDeleteFile = (index) => {
@@ -328,103 +331,114 @@ const BugReportDialog = ({ open, onClose, initialData , onSuccess  }) => {
 
 
 
+  const recentClickRef = useRef(false);
 
 
-const triggerFileInput = () => {
- 
-  fileInputRef.current.click();
-};
+  const triggerFileInput = (e) => {
+    // جلوگیری از کلیک‌های مکرر یا اتوماتیک
+    if (recentClickRef.current) return;
+
+    recentClickRef.current = true;
+    setTimeout(() => {
+      recentClickRef.current = false;
+    }, 300); // یک فاصله کوتاه برای جلوگیری از کلیک تکراری
+
+    if (e.isTrusted && e.detail > 0) {
+      fileInputRef.current?.click();
+    }
+
+  };
 
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setIsLoading(true);
-  
-  try {
-    const submissionData = new FormData();
-    submissionData.append("id" , id )
-    submissionData.append("wstg" , wstg )
-    submissionData.append("label" , label )
-        submissionData.append("projectId" , projectId  )
-            submissionData.append("projectManager" , projectManager )
-            submissionData.append("userId" ,userId )
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const submissionData = new FormData();
+      submissionData.append("id", id)
+      submissionData.append("wstg", wstg)
+      submissionData.append("label", label)
+      submissionData.append("projectId", projectId)
+      submissionData.append("projectManager", projectManager)
+      submissionData.append("userId", userId)
 
 
 
 
 
 
-    // Append regular form data
-    Object.entries(formData).forEach(([key, value]) => {
-      if (key !== 'files' && key !== 'existingFiles') {
-        submissionData.append(key, value);
+      // Append regular form data
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key !== 'files' && key !== 'existingFiles') {
+          submissionData.append(key, value);
+        }
+      });
+
+      // Append new files
+      formData.files.forEach(file => {
+        submissionData.append('files', file);
+      });
+
+      // Append existing file IDs to keep
+      formData.existingFiles.forEach(file => {
+        submissionData.append('existingFiles', file.id);
+      });
+
+      // Append CVSS data if available
+      if (cvssData.score) {
+        submissionData.append('cvssScore', cvssData.score);
+        submissionData.append('cvssSeverity', cvssData.severity);
+        submissionData.append('cvssVector', cvssData.vector);
       }
-    });
-    
-    // Append new files
-    formData.files.forEach(file => {
-      submissionData.append('files', file);
-    });
-    
-    // Append existing file IDs to keep
-    formData.existingFiles.forEach(file => {
-      submissionData.append('existingFiles', file.id);
-    });
-    
-    // Append CVSS data if available
-    if (cvssData.score) {
-      submissionData.append('cvssScore', cvssData.score);
-      submissionData.append('cvssSeverity', cvssData.severity);
-      submissionData.append('cvssVector', cvssData.vector);
+
+
+      const { bugId } = await creatReport(submissionData, initialData)
+
+
+      toast.success(initialData ? 'Report updated successfully!' : 'Report submitted successfully!');
+      // Reset CVSS data only for new reports (not when editing)
+      // اگر حالت جدید بود، فرم را کاملا ریست کنید
+      if (!initialData) {
+        setFormData({
+          cve: '',
+          path: '',
+          impact: '',
+          exploit: '',
+          solution: '',
+          tools: '',
+          reference: '',
+          webServerSecuring: false,
+          codeModificationSecuring: false,
+          wafPossibility: '',
+          files: [],
+          existingFiles: []
+        });
+        setCvssData({
+          score: null,
+          severity: null,
+          vector: null
+        });
+      }
+
+
+      onClose();
+      if (!initialData) {
+        socket.emit("addReport", {
+          bugId
+        })
+
+
+      }
+      if (onSuccess) onSuccess(); // <-- trigger refresh
+
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast.error('Failed to submit report. Please try again.')
+    } finally {
+      setIsLoading(false);
     }
-
-    
-   const {bugId} =  await creatReport(submissionData , initialData)
-
-    
-    toast.success(initialData ? 'Report updated successfully!' : 'Report submitted successfully!');
-    // Reset CVSS data only for new reports (not when editing)
-    // اگر حالت جدید بود، فرم را کاملا ریست کنید
-    if (!initialData) {
-      setFormData({
-        cve: '',
-        path: '',
-        impact: '',
-        exploit: '',
-        solution: '',
-        tools: '',
-        reference: '',
-        webServerSecuring: false,
-        codeModificationSecuring: false,
-        wafPossibility: '',
-        files: [],
-        existingFiles: []
-      });
-      setCvssData({
-        score: null,
-        severity: null,
-        vector: null
-      });
-    }
-
-
-    onClose();
-    if(!initialData){
-     socket.emit("addReport" , {
-               bugId
-            } )
-
-
-          }
-  if (onSuccess) onSuccess(); // <-- trigger refresh
-
-  } catch (error) {
-    console.error('Submission error:', error);
-    toast.error('Failed to submit report. Please try again.')
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
 
   return (
@@ -440,7 +454,7 @@ const triggerFileInput = () => {
             </IconButton>
           </div>
         </DialogTitle>
-        
+
         <DialogContent dividers className="bg-gray-50 p-0">
           <div className="p-4">
             <Card className="shadow-lg rounded-lg overflow-hidden">
@@ -459,7 +473,7 @@ const triggerFileInput = () => {
                         {cvssData.score ? 'Edit CVSS' : 'Calculate CVSS'}
                       </Button>
                     </div>
-                    
+
                     {cvssData.score ? (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
@@ -467,8 +481,8 @@ const triggerFileInput = () => {
                           <div className="mt-1 text-2xl font-bold">
                             <span className={
                               cvssData.score >= 9 ? 'text-red-600' :
-                              cvssData.score >= 7 ? 'text-orange-600' :
-                              cvssData.score >= 4 ? 'text-yellow-600' : 'text-blue-600'
+                                cvssData.score >= 7 ? 'text-orange-600' :
+                                  cvssData.score >= 4 ? 'text-yellow-600' : 'text-blue-600'
                             }>
                               {cvssData.score}
                             </span>
@@ -479,8 +493,8 @@ const triggerFileInput = () => {
                           <div className="mt-1 text-lg font-medium">
                             <span className={
                               cvssData.severity === 'Critical' ? 'text-red-600' :
-                              cvssData.severity === 'High' ? 'text-orange-600' :
-                              cvssData.severity === 'Medium' ? 'text-yellow-600' : 'text-blue-600'
+                                cvssData.severity === 'High' ? 'text-orange-600' :
+                                  cvssData.severity === 'Medium' ? 'text-yellow-600' : 'text-blue-600'
                             }>
                               {cvssData.severity}
                             </span>
@@ -577,7 +591,7 @@ const triggerFileInput = () => {
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 text-right"
                       placeholder="راهکار توصیه شده برای رفع این آسیب‌پذیری"
-                     dir="rtl"
+                      dir="rtl"
                     />
                   </div>
 
@@ -677,42 +691,42 @@ const triggerFileInput = () => {
                   {/* File Upload Section */}
                   <div className="space-y-2 pt-4 border-t border-gray-200">
                     <label className="block text-sm font-medium text-gray-700">Upload Evidence (Images/Videos)</label>
-                    
+
                     {/* Existing files preview (for edit mode) */}
                     {formData.existingFiles.length > 0 && (
                       <div className="mb-4">
                         <h4 className="text-sm font-medium text-gray-700 mb-2">Existing Files:</h4>
                         <div className="flex flex-wrap gap-4">
                           {formData.existingFiles.map((file) => (
-                            <FilePreview 
-                              key={file.id} 
-                              file={file} 
-                              onDelete={() => handleDeleteExistingFile(file.id)} 
+                            <FilePreview
+                              key={file.id}
+                              file={file}
+                              onDelete={() => handleDeleteExistingFile(file.id)}
                               isExisting={true}
                             />
                           ))}
                         </div>
                       </div>
                     )}
-                    
+
                     {/* New files preview */}
                     {formData.files.length > 0 && (
                       <div className="mb-4">
                         <h4 className="text-sm font-medium text-gray-700 mb-2">New Files to Upload:</h4>
                         <div className="flex flex-wrap gap-4">
                           {formData.files.map((file, index) => (
-                            <FilePreview 
-                              key={index} 
-                              file={file} 
-                              onDelete={() => handleDeleteFile(index)} 
+                            <FilePreview
+                              key={index}
+                              file={file}
+                              onDelete={() => handleDeleteFile(index)}
                             />
                           ))}
                         </div>
                       </div>
                     )}
-                    
+
                     {/* Upload area */}
-                    <div 
+                    <div
                       onClick={triggerFileInput}
                       className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md bg-gray-50 hover:bg-gray-100 transition duration-150 cursor-pointer"
                     >
@@ -750,8 +764,8 @@ const triggerFileInput = () => {
                         </p>
                       </div>
                     </div>
-                  
-                  
+
+
                   </div>
 
                 </form>
@@ -780,15 +794,15 @@ const triggerFileInput = () => {
       </Dialog>
 
       {/* CVSS Calculator Dialog */}
-    
-      <CVSSv4Calculator  
-       key={initialData ? 'edit-mode' : `new-mode-${cvssDialogKey}`}
-      open={cvssDialogOpen} 
-  onClose={() => setCvssDialogOpen(false)}
-  onScoreSelect={(cvssData) => {
-    setCvssData(cvssData);
-  }}
-/>
+
+      <CVSSv4Calculator
+        key={initialData ? 'edit-mode' : `new-mode-${cvssDialogKey}`}
+        open={cvssDialogOpen}
+        onClose={() => setCvssDialogOpen(false)}
+        onScoreSelect={(cvssData) => {
+          setCvssData(cvssData);
+        }}
+      />
     </>
   );
 };

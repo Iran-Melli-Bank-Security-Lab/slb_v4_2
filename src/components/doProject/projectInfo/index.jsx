@@ -141,7 +141,7 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
     platform: false,
     endpoints: false,
     technology: false, 
-    dashboard:true 
+    
   });
 
   const toggleSection = (section) => {
@@ -253,7 +253,7 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
                   </>
                 )}
                 
-                {data.dockerInfo && (
+                {/* {data.dockerInfo && (
                   <>
                     <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
                       Docker Configuration
@@ -291,7 +291,7 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
                       </Grid>
                     </Grid>
                   </>
-                )}
+                )} */}
               </>
             )}
             
@@ -507,44 +507,7 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
     );
   };
 
-   const renderPlatformInfo1 = () => {
-    if (!devOpsInfo.platformData) return null;
-    
-    const platform = devOpsInfo.platform;
-    const data = devOpsInfo.platformData[platform];
-
-    return (
-      <SectionCard>
-        <SectionHeader onClick={() => toggleSection('dashboard')}>
-          <Avatar sx={{ 
-            bgcolor: alpha(colors.primary, 0.1),
-            color: colors.primary,
-            mr: 2
-          }}>
-            {platform === 'web' ? <WebIcon /> :
-             platform === 'mobile' ? <MobileIcon /> : <ComputerIcon />}
-          </Avatar>
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" fontWeight={700}>
-              {platform.charAt(0).toUpperCase() + platform.slice(1)} Platform
-            </Typography>
-            <Typography variant="body2" color="textSecondary">
-              Configuration and deployment details
-            </Typography>
-          </Box>
-          <IconButton size="small">
-            {expandedSections.platform ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </IconButton>
-        </SectionHeader>
-        
-        <Collapse in={expandedSections.platform}>
-          <Box sx={{ p: 3 }}>
-            
-          </Box>
-        </Collapse>
-      </SectionCard>
-    );
-  };
+ 
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>

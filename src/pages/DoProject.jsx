@@ -25,7 +25,7 @@ const staticDevOpsInfo = {
 
   platformData: {
     web: {
-      environmentType: "vm", // OVF, VM, Docker, Production, Development
+      environmentType: "OVF", // OVF, VM, Docker, Production, Development
       accessInfo: {
         address: "app.example.com",
         port: "8080",
