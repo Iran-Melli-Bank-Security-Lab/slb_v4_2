@@ -101,8 +101,8 @@ const columns = useMemo(() => [
       <Button
         size="small"
         variant="outlined"
-        onClick={() => window.open(`/reports/${row._id}`, '_blank')}
-      >
+        onClick={() => window.open(`/reports/${row?.project?._id}`, '_blank')}
+      >{console.log("row in line 105 : , " , row ) }
         View
       </Button>
     ),

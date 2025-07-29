@@ -28,3 +28,16 @@ export const fetchProjectByUserProjectManager = async(project, pentester  , proj
       method: "GET",
     });
   };
+
+  export const fetchUserProjectById = async (projectId, userId  ) => {
+    // choose your base path
+    const basePath ="/api/projects/user/project";
+  
+    // build a query string
+    const params = new URLSearchParams({ projectId , userId   });
+  
+    // call apiFetch with the full URL
+    return  apiFetch(`${basePath}?${params.toString()}`, {
+      method: "GET",
+    });
+  };

@@ -1,4 +1,4 @@
-//project reports to show the project report to manager of project 
+//project report table to show the reports of project to user  
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
@@ -17,10 +17,10 @@ import {
 } from "@mui/material";
 import DescriptionIcon from "@mui/icons-material/Description";
 import { useUserId } from "../hooks/useUserId";
-import { fetchAllReports } from "../api/bugs/fetchAllReports";
-import { fetchProjectById } from "../api/projects/fetchProjectById";
+import {  fetchAllUserReports } from "../api/bugs/fetchAllReports";
+import { fetchUserProjectById } from "../api/projects/fetchProjectById";
 
-const ProjectReport = () => {
+const UserProjectReport = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
@@ -29,21 +29,21 @@ const ProjectReport = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const userId  = useUserId()
-  console.log("userid as projectManager : " ,userId , projectId ) 
+  
   useEffect(() => {
     // Simulate API call to fetch project and reports
     const fetchData = async () => {
       try {
         // Replace with actual API calls
-        //userId here is manager Id because this page show the report to manager that manage project
-        const projectResponse = await fetchProjectById(projectId , userId  )
-        // const projectData = await projectResponse.json();
 
+        const projectResponse = await fetchUserProjectById(projectId , userId  )
+
+        console.log("project response line 41 : " , projectResponse)
         setProject(projectResponse);
 
-        const reportsResponse =  await fetchAllReports(projectId  , userId );
-        // const reportsData = await reportsResponse.json();
-        console.log(reportsResponse)
+        const reportsResponse =  await fetchAllUserReports(projectId  , userId );
+        // // const reportsData = await reportsResponse.json();
+        // console.log(reportsResponse)
         setReports(reportsResponse);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -166,4 +166,4 @@ const ProjectReport = () => {
   );
 };
 
-export default ProjectReport;
+export default UserProjectReport;
