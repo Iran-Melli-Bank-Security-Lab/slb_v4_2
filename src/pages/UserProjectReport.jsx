@@ -56,7 +56,7 @@ const UserProjectReport = () => {
   }, [projectId]);
 
   const handleRowDoubleClick = (reportId) => {
-    navigate(`/project/report/${reportId}`);
+    navigate(`/user/report/${reportId}`);
   };
 
   const handleChangePage = (event, newPage) => {
