@@ -12,7 +12,7 @@ const Projects = lazy(() => import('./pages/Projects'));
 const Managing = lazy(() => import('./pages/Managing'));
 const SignInPage = lazy(() => import('./pages/signIn'));
 // const MainReport = lazy(()=>import("./report/MainReport.jsx"))
-import MainReport from './report/MainReport';
+// import MainReport from './report/MainReport';
 import { Provider } from 'react-redux';
 import store from "./store"
 import { SocketProvider } from './context/SocketContext';
@@ -27,6 +27,9 @@ import ProjectReport from './pages/ProjectReport';
 import ReportDetailsManager from './pages/ReportDetailsManager';
 import UserProjectReport from './pages/UserProjectReport';
 import UserReportDetails from './pages/UserReportDetails';
+import Tickets from './pages/Tickets';
+import TicketView from './pages/TicketView';
+import TicketList from './pages/TicketList';
 
 const router = createBrowserRouter([
   {
@@ -97,11 +100,26 @@ const router = createBrowserRouter([
             Component:UserReportDetails
             
           } , 
-           {
-            path:"userreports",
-            Component:MainReport
+          {
+            path:"tickets",
+            Component:Tickets
             
-          }
+          } ,
+          {
+            path:"tickets/view",
+            Component:TicketView
+            
+          } , 
+          {
+            path:"tickets/list",
+            Component:TicketList
+            
+          } , 
+          //  {
+          //   path:"userreports",
+          //   Component:MainReport
+            
+          // }
 
         ],
       },
