@@ -1,0 +1,209 @@
+        /* * {
+            margin: 0;
+            padding: 0;
+            text-indent: 0;
+        } */
+
+        .ccs1 {
+            color: #FFF ;
+            font-family: Calibri; 
+            font-style: normal ;
+            font-weight: bold ;
+            text-decoration: none !important;
+            font-size: 11pt ;
+        }
+
+        .cccs1 {
+            color: #FFF ;
+            font-family: Calibri,btitr,Times New Roman, sans-serif ;
+            font-style: normal !important;
+            font-weight: bold;
+            text-decoration: none !important;
+            font-size: 11pt ;
+            text-align: center !important;
+            padding-top:8pt !important; 
+            padding-bottom: 8pt;
+            padding-left: 20pt !important;
+            padding-right: 22pt !important;
+            text-indent: 0pt !important;
+            direction: rtl;
+            text-align: center ;
+            
+        }
+        .ccs2 {
+            color: black !important;
+            font-family: Arial, sans-serif !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            text-decoration: none !important;
+            font-size: 12pt !important;
+        }
+
+        .ccs3 {
+            color: black ;
+            font-family: "bnazanin", Arial, sans-serif, serif ;
+            font-style: normal ;
+            font-weight: bold ; 
+            text-decoration: none !important;
+            font-size: 13pt ;
+           
+            
+        }
+
+        .ccs4 {
+            color: #FFF !important;
+            font-family: Arial, sans-serif !important;
+            font-style: normal !important;
+            font-weight: bold !important;
+            text-decoration: none !important;
+            font-size: 11pt !important;
+            vertical-align: 4pt !important;
+        }
+
+        .ccs5 {
+            color: #FFF !important;
+            font-family: Arial, sans-serif !important;
+            font-style: normal !important;
+            font-weight: bold !important;
+            text-decoration: none !important;
+            font-size: 9pt !important;
+        }
+
+        .ccs6 {
+            color: black !important;
+            font-family: Arial, sans-serif !important;
+            font-style: normal !important;
+            font-weight: bold !important;
+            text-decoration: none !important;
+            font-size: 11pt !important;
+        }
+
+        .ccs7 {
+            color: black !important;
+            font-family: "Times New Roman", serif !important;
+            font-style: normal !important;
+            font-weight: bold !important;
+            text-decoration: none !important;
+            font-size: 11pt !important;
+        }
+
+        .ccs8 {
+            color: black !important;
+            font-family: Arial, sans-serif !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            text-decoration: none !important;
+            font-size: 11pt !important;
+        }
+
+        .ccs9 {
+            color: black !important;
+            font-family: Arial, sans-serif !important;
+            font-style: normal !important;
+            font-weight: normal !important;
+            text-decoration: none !important;
+            font-size: 11pt !important;
+        }
+
+        .ccs10 {
+            color: black !important;
+            font-family: Arial, sans-serif !important;
+            font-style: normal !important;
+            font-weight: bold !important;
+            text-decoration: none !important;
+            font-size: 11pt !important;
+        }
+
+        .ccs11 {
+            color: black !important;
+            font-family: "Apple SD Gothic Neo", sans-serif !important;
+            font-style: normal !important;
+            font-weight: bold !important;
+            text-decoration: none !important;
+            font-size: 10.5pt !important;
+        }
+
+        .cctable,
+        .cctbody {
+            vertical-align: top !important;
+            overflow: visible  !important;
+        }
+        .r00 {
+            position: relative !important;
+            border: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            display: block !important;
+        }
+        .rx90 {
+            left: 50px ;
+        }
+
+        .rhbb {
+            height: auto !important;
+        }
+
+        .ry291 {
+            bottom: -277px;
+        }
+
+/* 
+        @media print {
+            .r00 {
+                position: absolute;
+                border: 0;
+                padding: 0;
+                margin: 0;
+                overflow: hidden;
+                display: block;
+            }
+            .rx90 {
+                left: 58px;
+            }
+    
+            .rhbb {
+                height: auto;
+            }
+    
+            .ry291 {
+                bottom: 326.905px;
+            }
+    
+          } */
+          
+          .img{
+            margin:auto !important; 
+            width: 350px !important;
+            height: 350px !important;
+            text-align: 'center' !important;
+
+          }
+
+          .imagerow{
+            /* height: 50px !important ; */
+          }
+          .pimage{
+            text-align: center !important;
+          }
+
+          .tdimage {
+            height: 50px;
+        }
+
+          @media print {
+            .ry291 {
+                bottom: -321.905px !important;
+            }
+            
+           
+            .rx90 {
+                left: 141px !important;
+            }
+
+            .pocx0{
+                left:33px !important ; 
+            }
+          }
+
+        

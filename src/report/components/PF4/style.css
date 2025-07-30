@@ -1,0 +1,33 @@
+
+.pf4x19{
+left:128px ;
+}
+.pf4c {
+    position: relative;
+ /* Adjust this as needed for absolute positioning */
+  display: flex;
+  width: 70%;
+  justify-content: flex-start; /* Or flex-end, center, etc. */
+  align-items: center;
+  /* Set the width of the parent as needed */
+  height: auto; /* Set the height of the parent as needed */
+
+ 
+
+}
+.pf4h{
+    bottom: -330px;
+}
+
+@media print {
+    .pf4c {
+        position: relative!important;
+        display: flex !important;
+        width: 70% !important ;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        height: auto !important;
+        bottom: -400px!important;
+        
+    }
+}

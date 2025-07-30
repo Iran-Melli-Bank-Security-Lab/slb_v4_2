@@ -1,0 +1,41 @@
+@font-face {
+    font-family: 'btitr';
+    src: url('BTITRBD.woff') format('woff');
+  
+}
+
+
+.btitrfont{
+    font-family: "btitr";
+    font-style: normal;
+    font-weight: normal;
+    visibility: visible;
+}
+.ch0{
+    height: 140px;
+}
+.cw3{
+    width: 823px;
+}
+.cx3{
+    left:-43px
+}
+
+
+
+.stateofbug{
+    position: relative;
+    right: -855px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 0%;
+    font-weight: bold;
+    width: 80px;
+    height: 16px;
+    bottom: 114px;
+    background-color: rgb(32, 101, 209);
+    color: white;
+
+}
