@@ -2,6 +2,7 @@ import React from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+
 import BugReportIcon from '@mui/icons-material/BugReport';
 import SettingsInputComponentIcon from '@mui/icons-material/SettingsInputComponent';
 import AddIcon from '@mui/icons-material/Add';
@@ -38,7 +39,26 @@ const BASE_NAVIGATION = [
     title: 'Managing',
     icon: <ManageAccountsIcon />,
   },
-  
+   {
+    kind: 'header',
+    title: 'Tiket System',
+  },
+   {
+    segment: 'tickets',
+    title: 'Tikets',
+    icon: <ManageAccountsIcon />,
+  },
+  {
+    segment: 'tickets/view',
+    title: 'Tickets Viwe',
+    icon: <ManageAccountsIcon />,
+  },
+   {
+    segment: 'tickets/list',
+    title: 'Ticket List',
+    icon: <ManageAccountsIcon />,
+  },
+
 ];
 
 
