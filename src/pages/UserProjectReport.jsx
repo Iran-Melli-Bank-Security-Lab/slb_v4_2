@@ -91,8 +91,7 @@ const UserProjectReport = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Pentester</TableCell>
-                <TableCell>Name</TableCell>
+                <TableCell>Bug Name</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Date</TableCell>
                 <TableCell>Actions</TableCell>
@@ -108,7 +107,7 @@ const UserProjectReport = () => {
                     onDoubleClick={() => handleRowDoubleClick(report._id)}
                     sx={{ cursor: "pointer" }}
                   >
-                    <TableCell>{report.pentester.lastName }</TableCell>
+                    {/* <TableCell>{report.pentester.lastName }</TableCell> */}
                     <TableCell>{report.label}</TableCell>
                     <TableCell>
                       <Box
