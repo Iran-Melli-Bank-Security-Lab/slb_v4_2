@@ -226,7 +226,8 @@ const UserReportDetails = () => {
                 </div>
 
                 <div className="mb-4">
-                  <p className="text-gray-700">{reports.description}</p>
+                  {/* <p className="text-gray-700">{reports.description}</p> */}
+                  {renderRtlText(reports.description)}
                 </div>
 
                 <div className="space-y-4">
