@@ -1,6 +1,6 @@
 import React from 'react';
-import getColor from '../../../utils/getColor';
-import { getMaxCvssValue } from '../../../utils/getMaxCvssValue';
+import getColor from '../../utils/getColor';
+import { getMaxCvssValue } from '../../utils/getMaxCvssValue';
 
 const MyTable = ({ data, className = "cy291" }) => {
 

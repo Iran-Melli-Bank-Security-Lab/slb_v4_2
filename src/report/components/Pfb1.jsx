@@ -3,7 +3,7 @@ import bgb from "../images/bg5.png"
 import PdfStructure from "./common/PdfStructure"
 import SummaryManagement from "./PFB/SummaryManagement"
 import CaptionTable_1 from "./PFB/CaptionTable_1"
-import { transformObject } from "../../utils/transformObject"
+import { transformObject } from "../utils/transformObject"
 import { useEffect, useState } from "react"
 
 function Pfb1({ page , pageNumber }) {

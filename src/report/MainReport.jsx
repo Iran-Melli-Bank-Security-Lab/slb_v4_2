@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { useLocation } from 'react-router-dom';
-import useAxiosPrivate from '../hooks/useAxiosPrivate';
+import { useLocation } from 'react-router';
+// import useAxiosPrivate from '../hooks/useAxiosPrivate';
 import Button from '@mui/material/Button';
-import Poc from "./pages/POC";
+// import Poc from "./pages/POC";
 import MainForm from './MainForm';
 import { calculatePageNumber } from '../utils/calculatePageNumber';
 import Pf10 from './components/Pf10';
 import Pf1a from './components/Pf1a';
+import { getAllBugsForReport } from '../api/bugs/getAllBugsForReport';
 
 const MainReport = () => {
 
@@ -40,13 +41,10 @@ const MainReport = () => {
   useEffect(() => {
     const getfoundedBugs = async () => {
       try {
-        const { data } = await axiosPrivate.get(`${serverIp}project/getbugs`, {
-          params: {
-            projectId: location.state?.project._id,
-          },
-        });
+        const result = await getAllBugsForReport(location.state?.project._id);
 
-        setReports(data); 
+        console.log("get All Reports of users : " , result )
+        setReports(result); 
 
         // Separate bugs by their ID prefix
         const bugsByCategory = data.reduce((acc, bug) => {

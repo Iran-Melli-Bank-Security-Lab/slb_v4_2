@@ -8,30 +8,30 @@ import Discription_1 from "./PFB2/Discription_1"
 import Discription_3 from "./PFB/Discription_3"
 import Discription_4 from "./PFB/Discription_4"
 import { useEffect, useState } from "react"
-import { truncateToOneDecimal } from "../../utils/truncateToOneDecimal"
-import { transformObject } from "../../utils/transformObject"
-import useAxiosPrivate from "../../hooks/useAxiosPrivate"
+import { truncateToOneDecimal } from "../utils/truncateToOneDecimal"
+import { transformObject } from "../utils/transformObject"
+// import useAxiosPrivate from "../../hooks/useAxiosPrivate"
 
 function Pfb2({ edarehKol = "بانک ملی ایران", page , project ,pageNumber }) {
 
-    const axiosPrivate = useAxiosPrivate() 
-    const serverIp = process.env.REACT_APP_SERVER_IP;
+    // const axiosPrivate = useAxiosPrivate() 
+    // const serverIp = process.env.REACT_APP_SERVER_IP;
 
     const [risk, setRisk] = useState(0)
-    const [pocUrl, setPocUrl] = useState("")
+    const [pocUrl, setPocUrl] = useState("http://pocurlinPfb2.ir")
 
-    useEffect(() => {
+    // useEffect(() => {
   
-      const getAddressOfProject = async () => {
+    //   const getAddressOfProject = async () => {
   
-        const { data } = await axiosPrivate.get(`${serverIp}project/pocurl/${project?._id}`)
+    //     const { data } = await axiosPrivate.get(`${serverIp}project/pocurl/${project?._id}`)
   
-        console.log("Path line 29 : ", data)
-        setPocUrl(data?.address)
-      }
+    //     console.log("Path line 29 : ", data)
+    //     setPocUrl(data?.address)
+    //   }
   
-      getAddressOfProject()
-    }, [])
+    //   getAddressOfProject()
+    // }, [])
 
     // const Page  = transformObject(page)
     useEffect(() => {

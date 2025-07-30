@@ -8,7 +8,7 @@ import PageNumber from "./common/PageNumber"
 import PhoneNumber from "./common/PhoneNumber"
 import Discription from "./PF11/Discription"
 import MyTable from "./PF13/MyTable"
-import { findSmallestPageObject } from "../../utils/findSmallestPageObject"
+import { findSmallestPageObject } from "../utils/findSmallestPageObject"
 import PdfStructure from "./common/PdfStructure"
 
 function Pf11({ page , pageNumber }) {

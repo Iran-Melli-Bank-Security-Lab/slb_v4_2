@@ -9,7 +9,7 @@ import PhoneNumber from "./common/PhoneNumber"
 import Discription from "./PF12/Discription"
 import MyTable from "./PF13/MyTable"
 import { upData } from "../utils/updateData"
-import { findSmallestPageObject } from "../../utils/findSmallestPageObject"
+import { findSmallestPageObject } from "../utils/findSmallestPageObject"
 
 function Pf12({page , pageNumber}) {
 

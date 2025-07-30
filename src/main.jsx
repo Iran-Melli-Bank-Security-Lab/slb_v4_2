@@ -11,8 +11,8 @@ const DashboardPage = lazy(() => import('./pages/index'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Managing = lazy(() => import('./pages/Managing'));
 const SignInPage = lazy(() => import('./pages/signIn'));
-const MainReport = lazy(()=>import("./report/MainReport"))
-
+// const MainReport = lazy(()=>import("./report/MainReport.jsx"))
+import MainReport from './report/MainReport';
 import { Provider } from 'react-redux';
 import store from "./store"
 import { SocketProvider } from './context/SocketContext';
