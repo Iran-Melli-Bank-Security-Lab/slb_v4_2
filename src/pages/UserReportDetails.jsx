@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import BugReportDialog from "../components/doProject/bugForm/BugReportDialog";
 import { fetchReportById, fetchReports } from "../api/bugs/fetchReport";
 import { useUserId } from "../hooks/useUserId";
@@ -78,21 +78,21 @@ const UserReportDetails = () => {
   //delete report 
    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState(null);
+  const navigate = useNavigate() 
 
   const handleDeleteClick =async (report) => {
     setReportToDelete(report);
     setDeleteModalOpen(true);
   };
-
   const handleConfirmDelete = async () => {
+    
     try {
       setIsLoading(true);
       // Call your API to delete the report
       await deleteReportById(reportToDelete._id);
-      // Refresh the reports list
-      const result = await fetchReports(projectId, userId, projectManager, id);
-      setReports(result);
+     
       toast.success("Report deleted successfully");
+      navigate(`/reports/${reports?.project}`)
     } catch (error) {
       toast.error("Failed to delete report");
     } finally {
@@ -121,6 +121,7 @@ const UserReportDetails = () => {
     try {
       setIsLoading(true);
       const result = await fetchReportById(reportId);
+      console.log("result in line 124 : " , result )
       setReports(result);
     } catch (error) {
       toast.error("Failed to load reports");
@@ -134,6 +135,7 @@ const UserReportDetails = () => {
   }, []);
 
   const handleEditClick = (report) => {
+    console.log("report in line 137  : " , report )
     setEditingReport(report);
     setOpenForm(true);
   };
@@ -430,7 +432,7 @@ const UserReportDetails = () => {
                   {/* Edit button aligned to the right */}
                   {/* Edit and Delete buttons aligned to the right */}
 <div className="flex gap-2">
-  <button
+  {/* <button
     onClick={() => handleEditClick(reports)}
     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-150 transform hover:scale-105"
   >
@@ -443,7 +445,7 @@ const UserReportDetails = () => {
       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
     </svg>
     Edit Report
-  </button>
+  </button> */}
   <button
     onClick={() => handleDeleteClick(reports)}
     className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-150 transform hover:scale-105"
@@ -503,12 +505,12 @@ const UserReportDetails = () => {
 )}
 
 
-      <BugReportDialog
+      {/* <BugReportDialog
         open={openForm}
         onClose={handleCloseForm}
         initialData={editingReport}
         onSuccess={getReport}
-      />
+      /> */}
     </div>
   );
 };
