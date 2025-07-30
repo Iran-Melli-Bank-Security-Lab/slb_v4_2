@@ -11,6 +11,7 @@ const DashboardPage = lazy(() => import('./pages/index'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Managing = lazy(() => import('./pages/Managing'));
 const SignInPage = lazy(() => import('./pages/signIn'));
+const MainReport = lazy(()=>import("./report/MainReport"))
 
 import { Provider } from 'react-redux';
 import store from "./store"
@@ -26,6 +27,7 @@ import ProjectReport from './pages/ProjectReport';
 import ReportDetailsManager from './pages/ReportDetailsManager';
 import UserProjectReport from './pages/UserProjectReport';
 import UserReportDetails from './pages/UserReportDetails';
+
 const router = createBrowserRouter([
   {
     Component: App,
@@ -93,6 +95,11 @@ const router = createBrowserRouter([
           {
             path:"user/report/:reportId",
             Component:UserReportDetails
+            
+          } , 
+           {
+            path:"userreports",
+            Component:MainReport
             
           }
 

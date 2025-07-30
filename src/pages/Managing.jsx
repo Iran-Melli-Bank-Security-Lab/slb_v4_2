@@ -7,6 +7,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import FingerprintIcon from "@mui/icons-material/Fingerprint";
 import PeopleIcon from "@mui/icons-material/People";
 import ArticleIcon from "@mui/icons-material/Article";
+import { useNavigate } from "react-router";
 
 const DataTable = lazy(() => import("../components/projects/DataTable"));
 const AssignPentester = lazy(
@@ -17,6 +18,7 @@ const ManagerProjects = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
 
+  const navigate = useNavigate()
 
   // Preload AssignPentester on mount
   useEffect(() => {
@@ -34,7 +36,11 @@ const ManagerProjects = () => {
     setOpenModal(true);
   };
 
-  const handleGenerateReport = (projectId) => {
+  const handleGenerateReport = (project) => {
+
+    console.log("project row in line 39 : " , project)
+    navigate('/userreports', { state: { project } });
+
     console.log(`Generating report for project ${projectId}`);
   };
 
@@ -93,7 +99,7 @@ const ManagerProjects = () => {
           variant="contained"
           size="small"
           startIcon={<DescriptionIcon />}
-          onClick={() => handleGenerateReport(row.id)}
+          onClick={() => handleGenerateReport(row)}
           sx={{ textTransform: "none" }}
         >
           Generate

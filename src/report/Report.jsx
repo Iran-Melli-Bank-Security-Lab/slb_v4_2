@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import useAxiosPrivate from '../hooks/useAxiosPrivate';
 import Button from '@mui/material/Button';
 import Poc from "./pages/POC";
