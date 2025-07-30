@@ -114,7 +114,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
       <SessionProvider>
               <ToastContainer 
-        position="top-right"
+        position="bottom-right"
         autoClose={2000}
         hideProgressBar={false}
         newestOnTop={false}
