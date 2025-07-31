@@ -1,101 +1,111 @@
-import React from 'react';
-import { useNavigate } from 'react-router';
-import SearchIcon from '@mui/icons-material/Search';
-import AddIcon from '@mui/icons-material/Add';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import AddIcon from "@mui/icons-material/Add";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import Tooltip from "@mui/material/Tooltip";
+import { getTickets } from "../api/ticket/getTicket";
+import { useUserId } from "../hooks/useUserId";
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 const TicketList = () => {
   const navigate = useNavigate();
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalTickets: 0,
+    limit: 5,
+  });
 
-  // Sample ticket data
-  const tickets = [
-    {
-      _id: 't1',
-      ticketNumber: 'TKT-1001',
-      title: 'مشکل ورود به سیستم در نسخه موبایل',
-      status: 'in-progress',
-      priority: 'high',
-      createdAt: '۱۴۰۲/۰۵/۱۵',
-      updatedAt: '۱۴۰۲/۰۵/۱۶',
-      reporter: { _id: 'u1', name: 'علی احمدی', avatar: 'https://i.pravatar.cc/150?img=5' },
-      assignedTo: { _id: 'u3', name: 'توسعه دهنده موبایل', avatar: 'https://i.pravatar.cc/150?img=7' }
-    },
-    {
-      _id: 't2',
-      ticketNumber: 'TKT-1002',
-      title: 'بهبود رابط کاربری صفحه داشبورد',
-      status: 'pending',
-      priority: 'medium',
-      createdAt: '۱۴۰۲/۰۵/۱۰',
-      updatedAt: '۱۴۰۲/۰۵/۱۲',
-      reporter: { _id: 'u4', name: 'مریم نظری', avatar: 'https://i.pravatar.cc/150?img=11' },
-      assignedTo: null
-    },
-    {
-      _id: 't3',
-      ticketNumber: 'TKT-1003',
-      title: 'خطای ۵۰۴ در API پرداخت',
-      status: 'closed',
-      priority: 'urgent',
-      createdAt: '۱۴۰۲/۰۵/۰۵',
-      updatedAt: '۱۴۰۲/۰۵/۰۸',
-      reporter: { _id: 'u5', name: 'حسن میرزایی', avatar: 'https://i.pravatar.cc/150?img=12' },
-      assignedTo: { _id: 'u6', name: 'سارا محمدی', avatar: 'https://i.pravatar.cc/150?img=13' }
-    },
-    {
-      _id: 't4',
-      ticketNumber: 'TKT-1004',
-      title: 'اضافه کردن قابلیت جستجوی پیشرفته',
-      status: 'in-progress',
-      priority: 'low',
-      createdAt: '۱۴۰۲/۰۵/۰۱',
-      updatedAt: '۱۴۰۲/۰۵/۰۳',
-      reporter: { _id: 'u7', name: 'رضا کریمی', avatar: 'https://i.pravatar.cc/150?img=14' },
-      assignedTo: { _id: 'u2', name: 'مدیر پروژه', avatar: 'https://i.pravatar.cc/150?img=9' }
-    }
-  ];
+  const userId = useUserId();
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        setLoading(true);
+        const result = await getTickets(
+          userId,
+          pagination.currentPage,
+          pagination.limit
+        );
+        setTickets(result.data);
+        setPagination((prev) => ({
+          ...prev,
+          totalPages: result.pages,
+          totalTickets: result.total,
+        }));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTickets();
+  }, [pagination.currentPage, pagination.limit, userId]);
 
   // Status translation
   const getStatusText = (status) => {
     switch (status) {
-      case 'pending': return 'در انتظار';
-      case 'in-progress': return 'در حال بررسی';
-      case 'closed': return 'بسته شده';
-      default: return status;
+      case "pending":
+        return "در انتظار";
+      case "in-progress":
+        return "در حال بررسی";
+      case "closed":
+        return "بسته شده";
+      default:
+        return status;
     }
   };
 
   // Status colors
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return 'bg-amber-100 text-amber-800';
-      case 'in-progress': return 'bg-blue-100 text-blue-800';
-      case 'closed': return 'bg-emerald-100 text-emerald-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "pending":
+        return "bg-amber-100 text-amber-800";
+      case "in-progress":
+        return "bg-blue-100 text-blue-800";
+      case "closed":
+        return "bg-emerald-100 text-emerald-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   // Priority dot colors
   const getPriorityDot = (priority) => {
     switch (priority) {
-      case 'high': return 'text-red-500';
-      case 'urgent': return 'text-red-700';
-      case 'medium': return 'text-amber-500';
-      case 'low': return 'text-emerald-500';
-      default: return 'text-gray-500';
+      case "high":
+        return "text-red-500";
+      case "urgent":
+        return "text-red-700";
+      case "medium":
+        return "text-amber-500";
+      case "low":
+        return "text-emerald-500";
+      default:
+        return "text-gray-500";
     }
   };
 
   // Priority text
   const getPriorityText = (priority) => {
     switch (priority) {
-      case 'high': return 'بالا';
-      case 'urgent': return 'فوری';
-      case 'medium': return 'متوسط';
-      case 'low': return 'پایین';
-      default: return priority;
+      case "high":
+        return "بالا";
+      case "urgent":
+        return "فوری";
+      case "medium":
+        return "متوسط";
+      case "low":
+        return "پایین";
+      default:
+        return priority;
     }
   };
 
@@ -103,6 +113,116 @@ const TicketList = () => {
   const handleViewTicket = (ticketId) => {
     navigate(`/tickets/${ticketId}`);
   };
+
+  // Create ticket handler
+  const handleCreateTicket = () => {
+    navigate("/tickets/new");
+  };
+
+  // Pagination handlers
+  const goToNextPage = () => {
+    if (pagination.currentPage < pagination.totalPages) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: prev.currentPage + 1,
+      }));
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (pagination.currentPage > 1) {
+      setPagination((prev) => ({
+        ...prev,
+        currentPage: prev.currentPage - 1,
+      }));
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    setPagination((prev) => ({
+      ...prev,
+      currentPage: pageNumber,
+    }));
+  };
+
+  // Component for displaying people with tooltip
+ // TicketList.js - بخش PeopleDisplay
+const PeopleDisplay = ({ ticket }) => {
+  const allPeople = [
+    { 
+      user: ticket.reporter, 
+      role: 'ارسال کننده',
+      meta: null
+    },
+    ticket.targetUser && { 
+      user: ticket.targetUser, 
+      role: 'گیرنده',
+      meta: null
+    },
+    ticket.assignedTo && { 
+      user: ticket.assignedTo, 
+      role: 'مسئول',
+      meta: null
+    },
+    ...ticket.participants.map(p => ({
+      user: p.user,
+      role: p.role === 'participant' ? 'مشارکت کننده' : p.role,
+      meta: `دعوت شده توسط: ${p.invitedBy?.firstName || 'سیستم'}`
+    }))
+  ].filter(Boolean);
+
+  return (
+    <div className="flex items-center">
+      {allPeople.slice(0, 3).map((person, index) => (
+        <Tooltip 
+          key={index} 
+          title={
+            <div>
+              <div>{person.role}: {person.user.firstName}</div>
+              {person.meta && <div className="text-xs text-gray-400">{person.meta}</div>}
+            </div>
+          } 
+          arrow
+        >{console.log("in line 185 : " , person )}
+          <img 
+            className={`w-6 h-6 rounded-full border-2 border-white ${index > 0 ? '-mr-2' : ''}`}
+            src={BASE_URL+"/"+person.user.profileImageUrl} 
+            alt={person.user.firstName}
+          />
+        </Tooltip>
+      ))}
+      
+      {allPeople.length > 3 && (
+        <Tooltip 
+          title={
+            <div className="space-y-2">
+              {allPeople.map((person, index) => (
+                <div key={index}>
+                  <div className="font-medium">{person.role}: {person.user.name}</div>
+                  {person.meta && (
+                    <div className="text-xs text-gray-400">{person.meta}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          }
+          arrow
+        >
+          <span className="bg-gray-100 text-xs text-gray-800 rounded-full h-6 w-6 flex items-center justify-center -mr-2 border-2 border-white">
+            +{allPeople.length - 3}
+          </span>
+        </Tooltip>
+      )}
+    </div>
+  );
+};
+
+
+
+  if (loading)
+    return <div className="text-center py-8">در حال بارگذاری...</div>;
+  if (error)
+    return <div className="text-red-500 text-center py-8">{error}</div>;
 
   return (
     <div dir="rtl" className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -113,20 +233,12 @@ const TicketList = () => {
             <h1 className="text-2xl font-bold text-gray-800">مدیریت تیکت‌ها</h1>
             <p className="text-gray-500 mt-1">لیست تمام تیکت‌های سیستم</p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <SearchIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="جستجوی تیکت..."
-                className="block w-full pr-3 pl-10 py-2 border border-gray-300 rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            
-            <button className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md">
+            <button
+              onClick={handleCreateTicket}
+              className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-md"
+            >
               <AddIcon className="ml-2" />
               تیکت جدید
             </button>
@@ -138,9 +250,13 @@ const TicketList = () => {
           {/* Table header */}
           <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-800">لیست تیکت‌ها</h2>
-              <div className="flex items-center space-x-3 space-x-reverse">
-                <span className="text-sm text-gray-500">4 تیکت</span>
+              <h2 className="text-lg font-semibold text-gray-800">
+                لیست تیکت‌ها
+              </h2>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-500">
+                  {tickets.length} تیکت
+                </span>
                 <div className="bg-blue-50 text-blue-600 px-2 py-1 rounded-md text-sm">
                   فعال
                 </div>
@@ -153,76 +269,96 @@ const TicketList = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     شماره تیکت
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     عنوان
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     وضعیت
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     اولویت
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    افراد
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    افراد مرتبط
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     تاریخ
                   </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     عملیات
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {tickets.map((ticket) => (
-                  <tr key={ticket._id} className="hover:bg-gray-50 transition duration-150">
+                  <tr
+                    key={ticket._id}
+                    className="hover:bg-gray-50 transition duration-150"
+                  >
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-blue-600">{ticket.ticketNumber}</div>
+                      <div className="text-sm font-medium text-blue-600">
+                        {ticket.ticketId}
+                      </div>
                     </td>
                     <td className="px-6 py-4 max-w-xs">
-                      <div className="text-sm font-semibold text-gray-900 truncate">{ticket.title}</div>
+                      <div className="text-sm font-semibold text-gray-900 truncate">
+                        {ticket.title}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(ticket.status)}`}>
+                      <span
+                        className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(ticket.status)}`}
+                      >
                         {getStatusText(ticket.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <FiberManualRecordIcon className={`mr-2 ${getPriorityDot(ticket.priority)}`} style={{ fontSize: 10 }} />
+                        <FiberManualRecordIcon
+                          className={`ml-2 ${getPriorityDot(ticket.priority)}`}
+                          style={{ fontSize: 10 }}
+                        />
                         <span className="text-sm text-gray-700">
                           {getPriorityText(ticket.priority)}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex -space-x-2">
-                        <img 
-                          className="w-8 h-8 rounded-full border-2 border-white" 
-                          src={ticket.reporter.avatar} 
-                          alt={ticket.reporter.name} 
-                          title={ticket.reporter.name}
-                        />
-                        {ticket.assignedTo && (
-                          <img 
-                            className="w-8 h-8 rounded-full border-2 border-white" 
-                            src={ticket.assignedTo.avatar} 
-                            alt={ticket.assignedTo.name} 
-                            title={ticket.assignedTo.name}
-                          />
-                        )}
-                      </div>
+                    
+                      <PeopleDisplay ticket={ticket} />
+
+
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-500">
-                        <div>آخرین بروزرسانی</div>
                         <div className="font-medium">{ticket.updatedAt}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
                       <button
                         onClick={() => handleViewTicket(ticket._id)}
                         className="text-blue-600 hover:text-blue-900 font-medium px-3 py-1 rounded-md hover:bg-blue-50 transition"
@@ -240,33 +376,56 @@ const TicketList = () => {
           <div className="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between">
             <div className="mb-4 sm:mb-0">
               <p className="text-sm text-gray-700">
-                نمایش <span className="font-medium">1</span> تا <span className="font-medium">4</span> از{' '}
-                <span className="font-medium">4</span> تیکت
+                نمایش <span className="font-medium">
+                  {(pagination.currentPage - 1) * pagination.limit + 1}
+                </span> تا{' '}
+                <span className="font-medium">
+                  {Math.min(pagination.currentPage * pagination.limit, pagination.totalTickets)}
+                </span> از{' '}
+                <span className="font-medium">{pagination.totalTickets}</span> تیکت
               </p>
             </div>
             
-            <nav className="flex items-center space-x-3 space-x-reverse">
-              <button className="p-1 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50">
+            <nav className="flex items-center gap-3">
+              <button 
+                onClick={goToPrevPage}
+                disabled={pagination.currentPage === 1}
+                className={`p-1 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 ${
+                  pagination.currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
                 <ChevronRightIcon className="h-5 w-5" />
               </button>
               
-              <button className="px-3 py-1 rounded-md border border-blue-500 bg-blue-50 text-blue-600 font-medium">
-                1
-              </button>
+              {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => goToPage(page)}
+                  className={`px-3 py-1 rounded-md border ${
+                    pagination.currentPage === page 
+                      ? 'border-blue-500 bg-blue-50 text-blue-600' 
+                      : 'border-transparent text-gray-500 hover:bg-gray-100'
+                  } font-medium`}
+                >
+                  {page}
+                </button>
+              ))}
               
-              <button className="px-3 py-1 rounded-md border border-transparent text-gray-500 hover:bg-gray-100">
-                2
-              </button>
-              
-              <button className="px-3 py-1 rounded-md border border-transparent text-gray-500 hover:bg-gray-100">
-                3
-              </button>
-              
-              <button className="p-1 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50">
+              <button 
+                onClick={goToNextPage}
+                disabled={pagination.currentPage === pagination.totalPages}
+                className={`p-1 rounded-md border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 ${
+                  pagination.currentPage === pagination.totalPages ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
                 <ChevronLeftIcon className="h-5 w-5" />
               </button>
             </nav>
           </div>
+
+
+
+
         </div>
       </div>
     </div>
