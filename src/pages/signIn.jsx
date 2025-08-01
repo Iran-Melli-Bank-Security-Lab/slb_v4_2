@@ -5,28 +5,35 @@ import { useSession } from "../SessionContext";
 import { loginAPI } from "../api/auth/loginAPI";
 
 const fakeAsyncGetSession = async (formData) => {
-  console.log("formData : ", formData.get("email"));
+  console.log("formData line 8 in signIn: ", formData.get("email") );
 
   const username = formData.get("email");
   const password = formData.get("password");
 
   const data = await loginAPI(username, password);
-  console.log("data : ", data);
+  console.log("data in line 14 : ", data);
 
-  return {
-    user: {
-      id:data.user.id , 
-      name:data.user.username , 
-      email: data.user.username,
-      firstName:data.user.firstName , 
-      lastName : data.user.lastName , 
-      roles : data.user.roles , 
-      image:data.user.profileImageUrl , 
-      score:data.user.score , 
-      devOps: data.user.devOps , 
-      userProject:data.user.userProject
-    },
-  };
+const plainUser = (typeof data.user.toJSON === "function" ? data.user.toJSON() : data.user);
+
+// const plainUser = data.user._doc;
+
+  const result = {
+  user: {
+    id: plainUser.id , 
+    name: plainUser.username , 
+    email: plainUser.username ,
+    firstName: plainUser.firstName, 
+    lastName: plainUser.lastName, 
+    roles: plainUser.roles, 
+    image: plainUser.image, 
+    score: plainUser.score, 
+    devOps: plainUser.devOps, 
+    userProject: plainUser.userProject,
+  }
+};
+
+
+return result ; 
 };
 
 export default function SignIn() {
@@ -42,7 +49,8 @@ export default function SignIn() {
         // Demo session
         try {
           const session = await fakeAsyncGetSession(formData);
-          console.log("Session : ", session);
+          console.log("Session in line 45 : ", session);
+
           if (session) {
             setSession(session);
             navigate(callbackUrl || "/", { replace: true });
