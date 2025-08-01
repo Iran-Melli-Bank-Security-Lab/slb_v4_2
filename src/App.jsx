@@ -43,16 +43,7 @@ const BASE_NAVIGATION = [
     kind: 'header',
     title: 'Tiket System',
   },
-   {
-    segment: 'tickets',
-    title: 'Tikets',
-    icon: <ManageAccountsIcon />,
-  },
-  {
-    segment: 'tickets/view',
-    title: 'Tickets Viwe',
-    icon: <ManageAccountsIcon />,
-  },
+
    {
     segment: 'tickets/list',
     title: 'Ticket List',
