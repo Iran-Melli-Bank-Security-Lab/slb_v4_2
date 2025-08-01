@@ -106,7 +106,7 @@ const router = createBrowserRouter([
             
           } ,
           {
-            path:"tickets/view",
+            path:"tickets/view/:ticketId",
             Component:TicketView
             
           } , 
