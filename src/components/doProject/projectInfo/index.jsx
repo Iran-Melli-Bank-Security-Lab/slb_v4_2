@@ -190,9 +190,9 @@ const DevOpsInfoDisplay = ({}) => {
   }, [projectId, userId]);
 
   const [expandedSections, setExpandedSections] = useState({
-    platform: true,
-    endpoints: true,
-    technology: true,
+    platform: false ,
+    endpoints: false ,
+    technology: false ,
   });
 
   const toggleSection = (section) => {
