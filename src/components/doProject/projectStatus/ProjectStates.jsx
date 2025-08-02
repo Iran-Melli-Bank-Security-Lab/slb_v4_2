@@ -165,36 +165,80 @@ const ProjcetStates = ({ statusComponents }) => {
 
     fetchProjectData();
   }, [id, userId, projectManager]);
- const handleStatusChange = async (newStatus) => {
-    try {
-      // Optimistic UI update
-      const previousStatus = currentStatus;
-      setCurrentStatus(newStatus);
-      
-      // Update local state
-      setProjectData(prev => ({
-        ...prev,
-        status: newStatus,
-        stateChanges: [
-          ...(prev.stateChanges || []),
-          {
-            from: prev.status,
-            to: newStatus,
-            timestamp: new Date().toISOString()
-          }
-        ]
-      }));
 
-      // Call API to update status in database
-      await updateProjectStatus(projectData._id , newStatus);
-      
-    } catch (err) {
-      // Revert if API call fails
-      setCurrentStatus(previousStatus);
-      setError('Failed to update project status');
-      console.error('Error updating project status:', err);
+const handleStatusChange = async (newStatus) => {
+  try {
+    const previousStatus = currentStatus;
+    
+    // Validate the status transition
+    const isValidTransition = (from, to) => {
+      const validTransitions = {
+        'Open': ['In-Progress', 'Pending'],
+        'Pending': ['In-Progress', 'Open'],
+        'In-Progress': ['Pending', 'Finish'],
+        'Finish': ['Open', 'Pending', 'In-Progress'] // Allow reopening completed projects
+      };
+      return validTransitions[from].includes(to);
+    };
+
+    if (!isValidTransition(previousStatus, newStatus)) {
+      throw new Error(`Invalid status transition from ${previousStatus} to ${newStatus}`);
     }
-  };
+
+    // Calculate time worked if transitioning from In-Progress
+    let timeWorked = 0;
+    if (previousStatus === 'In-Progress') {
+      const lastInProgressEntry = projectData.stateChanges
+        ?.slice()
+        .reverse()
+        .find(change => change.state === 'In-Progress');
+      
+      if (lastInProgressEntry) {
+        const startTime = new Date(lastInProgressEntry.timestamp).getTime();
+        timeWorked = Math.floor((Date.now() - startTime) / 1000); // in seconds
+      }
+    }
+
+    // Optimistic UI update
+    setCurrentStatus(newStatus);
+    setProjectData(prev => ({
+      ...prev,
+      status: newStatus,
+      totalWorkTime: (prev.totalWorkTime || 0) + timeWorked,
+      stateChanges: [
+        ...(prev.stateChanges || []),
+        {
+          state: newStatus,
+          timestamp: new Date().toISOString()
+        }
+      ],
+      // Reset finishDate if reopening a completed project
+      finishDate: newStatus !== 'Finish' ? undefined : prev.finishDate
+    }));
+
+    // API call with timeWorked included
+    const response = await updateProjectStatus(projectData._id, {
+      newStatus,
+      timeWorked
+    });
+
+    // Update with server response (in case backend made adjustments)
+    setProjectData(prev => ({
+      ...prev,
+      status: response.status,
+      totalWorkTime: response.totalWorkTime,
+      stateChanges: response.stateChanges,
+      finishDate: response.finishDate
+    }));
+
+  } catch (err) {
+    // Revert on error
+    setCurrentStatus(previousStatus);
+    setError(err.message || 'Failed to update project status');
+    console.error('Status change error:', err);
+  }
+};
+
 
   if (loading) {
     return (
@@ -419,18 +463,13 @@ const ProjcetStates = ({ statusComponents }) => {
                             mb: { xs: 3, md: 0 },
                             mr: { md: 3 }
                           }}>
-                            <TimerDisplay
-                              initialTime={totalWorkTime}
-                              isTracking={isTracking}
-                              lastStatusChange={lastStatusChange}
-                              sx={{ 
-                                fontSize: '2.5rem',
-                                fontWeight: '700',
-                                fontFamily: 'monospace',
-                                color: theme.palette.text.primary,
-                                letterSpacing: '1px'
-                              }}
-                            />
+                           <TimerDisplay 
+  totalWorkTime={projectData.totalWorkTime} // Total seconds from backend
+  isTracking={currentStatus === "In-Progress"} // True when in-progress
+  lastStatusChange={ 
+    projectData.stateChanges?.filter(c => c.state === "In-Progress").slice(-1)[0]?.timestamp 
+  }
+/>
                             <Typography variant="caption" color="text.secondary">
                               TOTAL TIME INVESTED
                             </Typography>
