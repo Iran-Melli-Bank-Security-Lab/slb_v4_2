@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { getUsers } from "../api/users/getUsers";
 import { useParams } from "react-router";
 import { getTicket } from "../api/ticket/getTicket";
@@ -227,7 +227,7 @@ useEffect(() => {
   return (
     <div
       dir="rtl"
-      className="max-w-5xl mx-auto p-4 md:p-6 bg-white rounded-xl shadow-lg space-y-6"
+className="max-w-[900px] mx-50 p-4 md:p-6 bg-white rounded-xl shadow-lg space-y-6"
     >
       {/* Ticket Header */}
       <div className="border-b pb-4 border-gray-200">
@@ -573,7 +573,7 @@ useEffect(() => {
                 className={`flex ${isCurrentUser ? "justify-start" : "justify-end"}`} // تغییر این خط
               >
                 <div
-                  className={`flex max-w-xl ${isCurrentUser ? "flex-row" : "flex-row-reverse"}`}
+                  className={`flex max-w-2xl ${isCurrentUser ? "flex-row" : "flex-row-reverse"}`}
                 >
                   {/* تصویر کاربر */}
                   <img
@@ -634,7 +634,7 @@ useEffect(() => {
           {isUserParticipant && (
             <form
               onSubmit={handleCommentSubmit}
-              className="bg-gray-50 p-4 rounded-xl space-y-3"
+              className="bg-gray-50 p-4 rounded-xl space-y-3 max-w-4xl mx-auto"
             >
               <div className="flex items-start">
                 <img
@@ -648,8 +648,7 @@ useEffect(() => {
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="نظر خود را بنویسید..."
                     rows="3"
-                    className="w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
-                  ></textarea>
+className="min-w-full w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"                  ></textarea>
                 </div>
               </div>
 

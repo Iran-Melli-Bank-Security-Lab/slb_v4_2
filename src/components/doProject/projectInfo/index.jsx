@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Box, Card, Typography, Grid, Divider, Chip, Avatar,
-  IconButton, Collapse, Tooltip, Paper, Badge
+  Box, Typography, Grid, Avatar, IconButton, Collapse, Tooltip, Paper, Chip
 } from "@mui/material";
 import {
   Settings as SettingsIcon,
@@ -11,19 +10,21 @@ import {
   VpnKey as KeyIcon,
   Public as PublicIcon,
   Computer as ComputerIcon,
-  PhoneIphone as MobileIcon,
   Web as WebIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   DeveloperBoard as FrameworkIcon,
   Cloud as CloudIcon,
   Lock as LockIcon,
-  CheckCircle as CheckIcon,
-  Warning as WarningIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
   Info as InfoIcon,
   ContentCopy as CopyIcon
 } from "@mui/icons-material";
 import { styled, alpha } from "@mui/material/styles";
+import { getDevOpsInfo } from "../../../api/devops/getDevOpsInfo";
+import { useParams } from "react-router";
+import { useUserId } from "../../../hooks/useUserId";
 
 // Luxury color palette
 const colors = {
@@ -103,6 +104,28 @@ const CopyButton = ({ value, tooltip = "Copy to clipboard" }) => {
   );
 };
 
+const PasswordField = ({ value }) => {
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <Box sx={{ display: "flex", alignItems: "center" }}>
+      <Typography variant="body1" fontWeight={500}>
+        {showPassword ? value : "••••••••"}
+      </Typography>
+      <Tooltip title={showPassword ? "Hide password" : "Show password"}>
+        <IconButton 
+          size="small" 
+          onClick={() => setShowPassword(!showPassword)}
+          sx={{ ml: 1 }}
+        >
+          {showPassword ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+        </IconButton>
+      </Tooltip>
+      <CopyButton value={value} tooltip="Copy password" />
+    </Box>
+  );
+};
+
 const DetailRow = ({ icon, label, value, children, copyable = false }) => (
   <Box sx={{ display: "flex", mb: 2, alignItems: "flex-start" }}>
     <Box sx={{ 
@@ -123,7 +146,7 @@ const DetailRow = ({ icon, label, value, children, copyable = false }) => (
       <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 0.5 }}>
         {label}
       </Typography>
-      {value && (
+      {value && !children && (
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Typography variant="body1" fontWeight={500}>
             {value}
@@ -136,12 +159,40 @@ const DetailRow = ({ icon, label, value, children, copyable = false }) => (
   </Box>
 );
 
-const DevOpsInfoDisplay = ({ devOpsInfo }) => {
+const hasValue = (value) => {
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object' && value !== null) return Object.keys(value).length > 0;
+  return value !== null && value !== undefined && value !== '';
+};
+
+const hasTechnologyStack = (stack) => {
+  return stack && (
+    stack.frontendLanguage ||
+    stack.backendLanguage ||
+    (stack.databases && stack.databases.length > 0) ||
+    stack.webServer ||
+    (stack.frameworks && stack.frameworks.length > 0)
+  );
+};
+
+const DevOpsInfoDisplay = ({}) => {
+  const [devOpsInfo, setDevOpsInfo] = useState(null);
+  const {id: projectId} = useParams();
+  const userId = useUserId();
+
+  useEffect(() => {
+    const fetchDevOpsInfo = async() => {
+      const result = await getDevOpsInfo(projectId, userId);
+      setDevOpsInfo(result);
+    }
+
+    fetchDevOpsInfo();
+  }, [projectId, userId]);
+
   const [expandedSections, setExpandedSections] = useState({
-    platform: false,
-    endpoints: false,
-    technology: false, 
-    
+    platform: true,
+    endpoints: true,
+    technology: true,
   });
 
   const toggleSection = (section) => {
@@ -152,10 +203,14 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
   };
 
   const renderPlatformInfo = () => {
-    if (!devOpsInfo.platformData) return null;
+    if (!devOpsInfo?.platformData?.web) return null;
     
-    const platform = devOpsInfo.platform;
-    const data = devOpsInfo.platformData[platform];
+    const data = devOpsInfo.platformData.web;
+    const hasAccessInfo = hasValue(data.accessInfo);
+    const hasVmInfo = hasValue(data.vmInfo);
+    const hasDockerInfo = hasValue(data.dockerInfo);
+
+    if (!hasAccessInfo && !hasVmInfo && !hasDockerInfo) return null;
 
     return (
       <SectionCard>
@@ -165,15 +220,14 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
             color: colors.primary,
             mr: 2
           }}>
-            {platform === 'web' ? <WebIcon /> :
-             platform === 'mobile' ? <MobileIcon /> : <ComputerIcon />}
+            <WebIcon />
           </Avatar>
           <Box sx={{ flex: 1 }}>
             <Typography variant="h6" fontWeight={700}>
-              {platform.charAt(0).toUpperCase() + platform.slice(1)} Platform
+              Web Platform Configuration
             </Typography>
             <Typography variant="body2" color="textSecondary">
-              Configuration and deployment details
+              Environment and access details
             </Typography>
           </Box>
           <IconButton size="small">
@@ -183,135 +237,213 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
         
         <Collapse in={expandedSections.platform}>
           <Box sx={{ p: 3 }}>
-            {platform === 'web' && (
+            <DetailRow 
+              icon={<SettingsIcon />}
+              label="Environment Type"
+              value={data.environmentType}
+            />
+            
+            {hasAccessInfo && (
               <>
-                <DetailRow 
-                  icon={<SettingsIcon />}
-                  label="Environment Type"
-                  value={data.environmentType}
-                />
-                
-                {data.vmInfo && (
-                  <>
-                    <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
-                      Virtual Machine Details
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <DetailRow 
-                          icon={<ComputerIcon />}
-                          label="VM Name"
-                          value={data.vmInfo.vmName}
-                          copyable
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <DetailRow 
-                          icon={<StorageIcon />}
-                          label="OS Type"
-                          value={data.vmInfo.osType}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <DetailRow 
-                          icon={<SettingsIcon />}
-                          label="CPU Cores"
-                          value={data.vmInfo.cpuCores}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <DetailRow 
-                          icon={<StorageIcon />}
-                          label="Memory"
-                          value={data.vmInfo.memory}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <DetailRow 
-                          icon={<StorageIcon />}
-                          label="Storage"
-                          value={data.vmInfo.storage}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <DetailRow 
-                          icon={<PublicIcon />}
-                          label="IP Address"
-                          value={data.vmInfo.ipAddress}
-                          copyable
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <DetailRow 
-                          icon={<DnsIcon />}
-                          label="Hostname"
-                          value={data.vmInfo.hostname}
-                          copyable
-                        />
-                      </Grid>
+                <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
+                  Access Information
+                </Typography>
+                <Grid container spacing={2}>
+                  {data.accessInfo.address && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<PublicIcon />}
+                        label="Address"
+                        value={data.accessInfo.address}
+                        copyable
+                      />
                     </Grid>
-                  </>
-                )}
-                
-                {/* {data.dockerInfo && (
-                  <>
-                    <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
-                      Docker Configuration
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <DetailRow 
-                          icon={<CloudIcon />}
-                          label="Image Name"
-                          value={data.dockerInfo.imageName}
-                          copyable
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <DetailRow 
-                          icon={<SettingsIcon />}
-                          label="Container Name"
-                          value={data.dockerInfo.containerName}
-                          copyable
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <DetailRow 
-                          icon={<StorageIcon />}
-                          label="Port Mapping"
-                          value={data.dockerInfo.portMapping}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <DetailRow 
-                          icon={<StorageIcon />}
-                          label="Volume Mapping"
-                          value={data.dockerInfo.volumeMapping}
-                        />
-                      </Grid>
+                  )}
+                  {data.accessInfo.port && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<SettingsIcon />}
+                        label="Port"
+                        value={data.accessInfo.port}
+                      />
                     </Grid>
-                  </>
-                )} */}
+                  )}
+                  {data.accessInfo.username && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<KeyIcon />}
+                        label="Username"
+                        value={data.accessInfo.username}
+                        copyable
+                      />
+                    </Grid>
+                  )}
+                  {data.accessInfo.password && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<LockIcon />}
+                        label="Password"
+                        children={<PasswordField value={data.accessInfo.password} />}
+                      />
+                    </Grid>
+                  )}
+                  {data.accessInfo.notes && (
+                    <Grid item xs={12}>
+                      <DetailRow 
+                        icon={<InfoIcon />}
+                        label="Notes"
+                        value={data.accessInfo.notes}
+                      />
+                    </Grid>
+                  )}
+                </Grid>
               </>
             )}
             
-            {platform === 'mobile' && (
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <DetailRow 
-                    icon={<MobileIcon />}
-                    label="Platform"
-                    value={data.platform}
-                  />
+            {hasVmInfo && (
+              <>
+                <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
+                  Virtual Machine Details
+                </Typography>
+                <Grid container spacing={2}>
+                  {data.vmInfo.vmName && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<ComputerIcon />}
+                        label="VM Name"
+                        value={data.vmInfo.vmName}
+                        copyable
+                      />
+                    </Grid>
+                  )}
+                  {data.vmInfo.osType && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<StorageIcon />}
+                        label="OS Type"
+                        value={data.vmInfo.osType}
+                      />
+                    </Grid>
+                  )}
+                  {data.vmInfo.hypervisor && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<SettingsIcon />}
+                        label="Hypervisor"
+                        value={data.vmInfo.hypervisor}
+                      />
+                    </Grid>
+                  )}
+                  {data.vmInfo.sshKey && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<KeyIcon />}
+                        label="SSH Key"
+                        children={<PasswordField value={data.vmInfo.sshKey} />}
+                      />
+                    </Grid>
+                  )}
+                  {data.vmInfo.snapshot && (
+                    <Grid item xs={12}>
+                      <DetailRow 
+                        icon={<StorageIcon />}
+                        label="Snapshot"
+                        value={data.vmInfo.snapshot}
+                      />
+                    </Grid>
+                  )}
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                  <DetailRow 
-                    icon={<StorageIcon />}
-                    label="App File"
-                    value={data.appFile || 'Not specified'}
-                  />
+              </>
+            )}
+            
+            {hasDockerInfo && (
+              <>
+                <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
+                  Docker Configuration
+                </Typography>
+                <Grid container spacing={2}>
+                  {data.dockerInfo.imageName && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<CloudIcon />}
+                        label="Image Name"
+                        value={data.dockerInfo.imageName}
+                        copyable
+                      />
+                    </Grid>
+                  )}
+                  {data.dockerInfo.containerName && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<SettingsIcon />}
+                        label="Container Name"
+                        value={data.dockerInfo.containerName}
+                        copyable
+                      />
+                    </Grid>
+                  )}
+                  {data.dockerInfo.ports?.length > 0 && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<StorageIcon />}
+                        label="Ports"
+                        value={data.dockerInfo.ports.join(', ')}
+                      />
+                    </Grid>
+                  )}
+                  {data.dockerInfo.volumes?.length > 0 && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<StorageIcon />}
+                        label="Volumes"
+                        value={data.dockerInfo.volumes.join(', ')}
+                      />
+                    </Grid>
+                  )}
+                  {data.dockerInfo.envVariables?.length > 0 && (
+                    <Grid item xs={12}>
+                      <DetailRow 
+                        icon={<CodeIcon />}
+                        label="Environment Variables"
+                        value={
+                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                            {data.dockerInfo.envVariables.map((env, i) => (
+                              <Chip 
+                                key={i}
+                                label={env}
+                                size="small"
+                                sx={{
+                                  bgcolor: alpha(colors.secondary, 0.1),
+                                  color: colors.secondary
+                                }}
+                              />
+                            ))}
+                          </Box>
+                        }
+                      />
+                    </Grid>
+                  )}
+                  {data.dockerInfo.network && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<PublicIcon />}
+                        label="Network"
+                        value={data.dockerInfo.network}
+                      />
+                    </Grid>
+                  )}
+                  {data.dockerInfo.dockerHost && (
+                    <Grid item xs={12} sm={6}>
+                      <DetailRow 
+                        icon={<ComputerIcon />}
+                        label="Docker Host"
+                        value={data.dockerInfo.dockerHost}
+                        copyable
+                      />
+                    </Grid>
+                  )}
                 </Grid>
-              </Grid>
+              </>
             )}
           </Box>
         </Collapse>
@@ -320,7 +452,7 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
   };
 
   const renderEndpoints = () => {
-    if (!devOpsInfo.endpoints?.length) return null;
+    if (!devOpsInfo?.endpoints?.length) return null;
 
     return (
       <SectionCard sx={{ mt: 3 }}>
@@ -347,75 +479,121 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
         
         <Collapse in={expandedSections.endpoints}>
           <Box sx={{ p: 3 }}>
-            {devOpsInfo.endpoints.map((endpoint, index) => (
-              <Box key={index} sx={{ 
-                mb: 3,
-                p: 2,
-                borderRadius: "12px",
-                bgcolor: alpha(colors.primary, 0.03),
-                borderLeft: `3px solid ${colors.primary}`
-              }}>
-                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                  {endpoint.isDns ? (
-                    <DnsIcon sx={{ color: colors.success, mr: 1.5 }} />
-                  ) : (
-                    <PublicIcon sx={{ color: colors.primary, mr: 1.5 }} />
+            {devOpsInfo.endpoints.map((endpoint, index) => {
+              const hasTechStack = hasTechnologyStack(endpoint.technologyStack);
+              const fullUrl = endpoint.url.startsWith('http') ? endpoint.url : `https://${endpoint.url}`;
+              
+              return (
+                <Box key={index} sx={{ 
+                  mb: 3,
+                  p: 2,
+                  borderRadius: "12px",
+                  bgcolor: alpha(colors.primary, 0.03),
+                  borderLeft: `3px solid ${colors.primary}`
+                }}>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    {endpoint.isDns ? (
+                      <DnsIcon sx={{ color: colors.success, mr: 1.5 }} />
+                    ) : (
+                      <PublicIcon sx={{ color: colors.primary, mr: 1.5 }} />
+                    )}
+                    <ClickableText 
+                      fontWeight={600}
+                      onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
+                    >
+                      {endpoint.url}
+                    </ClickableText>
+                    {endpoint.ip && (
+                      <>
+                        <InfoBadge 
+                          label={endpoint.ip} 
+                          size="small" 
+                          sx={{ ml: 1.5, cursor: "pointer" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(endpoint.ip);
+                          }}
+                        />
+                        <CopyButton value={endpoint.ip} tooltip="Copy IP" />
+                      </>
+                    )}
+                  </Box>
+                  
+                  {hasTechStack && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1 }}>
+                        Technology Stack
+                      </Typography>
+                      <Grid container spacing={1} sx={{ mb: 2 }}>
+                        {endpoint.technologyStack.frontendLanguage && (
+                          <Grid item xs={12} sm={6} md={3}>
+                            <DetailRow 
+                              icon={<CodeIcon />}
+                              label="Frontend"
+                              value={endpoint.technologyStack.frontendLanguage}
+                            />
+                          </Grid>
+                        )}
+                        {endpoint.technologyStack.backendLanguage && (
+                          <Grid item xs={12} sm={6} md={3}>
+                            <DetailRow 
+                              icon={<CodeIcon />}
+                              label="Backend"
+                              value={endpoint.technologyStack.backendLanguage}
+                            />
+                          </Grid>
+                        )}
+                        {endpoint.technologyStack.databases?.length > 0 && (
+                          <Grid item xs={12} sm={6} md={3}>
+                            <DetailRow 
+                              icon={<StorageIcon />}
+                              label="Databases"
+                              value={endpoint.technologyStack.databases.join(', ')}
+                            />
+                          </Grid>
+                        )}
+                        {endpoint.technologyStack.webServer && (
+                          <Grid item xs={12} sm={6} md={3}>
+                            <DetailRow 
+                              icon={<ComputerIcon />}
+                              label="Web Server"
+                              value={endpoint.technologyStack.webServer}
+                            />
+                          </Grid>
+                        )}
+                      </Grid>
+                    </Box>
                   )}
-                  <ClickableText 
-                    fontWeight={600}
-                    onClick={() => window.open(endpoint.url, '_blank')}
-                  >
-                    {endpoint.url}
-                  </ClickableText>
-                  {endpoint.ip && (
-                    <>
-                      <InfoBadge 
-                        label={endpoint.ip} 
-                        size="small" 
-                        sx={{ ml: 1.5, cursor: "pointer" }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigator.clipboard.writeText(endpoint.ip);
-                        }}
-                      />
-                      <CopyButton value={endpoint.ip} tooltip="Copy IP" />
-                    </>
+                  
+                  {endpoint.credentials?.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1 }}>
+                        Access Credentials
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {endpoint.credentials.map((cred, i) => (
+                          <Grid item xs={12} sm={6} key={i}>
+                            <Paper sx={{ p: 2, borderRadius: "12px" }}>
+                              <DetailRow 
+                                icon={<KeyIcon />}
+                                label="Username"
+                                value={cred.username}
+                                copyable
+                              />
+                              <DetailRow 
+                                icon={<LockIcon />}
+                                label="Password"
+                                children={<PasswordField value={cred.password} />}
+                              />
+                            </Paper>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </Box>
                   )}
                 </Box>
-                
-                {endpoint.credentials?.length > 0 && (
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1 }}>
-                      Access Credentials
-                    </Typography>
-                    <Grid container spacing={2}>
-                      {endpoint.credentials.map((cred, i) => (
-                        <Grid item xs={12} sm={6} key={i}>
-                          <Paper sx={{ p: 2, borderRadius: "12px" }}>
-                            <DetailRow 
-                              icon={<KeyIcon />}
-                              label="Username"
-                              value={cred.username}
-                              copyable
-                            />
-                            <DetailRow 
-                              icon={<LockIcon />}
-                              label="Password"
-                              value="••••••••"
-                              copyable={!!cred.password}
-                            >
-                              {cred.password && (
-                                <Box sx={{ display: "none" }}>{cred.password}</Box>
-                              )}
-                            </DetailRow>
-                          </Paper>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </Box>
-                )}
-              </Box>
-            ))}
+              );
+            })}
           </Box>
         </Collapse>
       </SectionCard>
@@ -423,10 +601,9 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
   };
 
   const renderTechnologyStack = () => {
-    if (!devOpsInfo.technologyStack) return null;
+    if (!devOpsInfo?.technologyStack?.web) return null;
 
-    const { technologyStack } = devOpsInfo;
-    const platform = devOpsInfo.platform;
+    const { web } = devOpsInfo.technologyStack;
 
     return (
       <SectionCard sx={{ mt: 3 }}>
@@ -453,61 +630,83 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
         
         <Collapse in={expandedSections.technology}>
           <Box sx={{ p: 3 }}>
-            {platform === 'web' && technologyStack.web && (
-              <Grid container spacing={3}>
+            <Grid container spacing={3}>
+              {web.frontendLanguage && (
                 <Grid item xs={12} sm={6} md={4}>
                   <DetailRow 
                     icon={<CodeIcon />}
                     label="Frontend Language"
-                    value={technologyStack.web.frontendLanguage}
+                    value={web.frontendLanguage}
                   />
                 </Grid>
+              )}
+              {web.backendLanguage && (
                 <Grid item xs={12} sm={6} md={4}>
                   <DetailRow 
                     icon={<CodeIcon />}
                     label="Backend Language"
-                    value={technologyStack.web.backendLanguage}
+                    value={web.backendLanguage}
                   />
                 </Grid>
+              )}
+              {web.databases?.length > 0 && (
                 <Grid item xs={12} sm={6} md={4}>
                   <DetailRow 
                     icon={<StorageIcon />}
                     label="Databases"
-                    value={technologyStack.web.databases?.join(', ')}
+                    value={web.databases.join(', ')}
                   />
                 </Grid>
-                {technologyStack.web.frameworks?.length > 0 && (
-                  <Grid item xs={12}>
-                    <DetailRow 
-                      icon={<FrameworkIcon />}
-                      label="Frameworks"
-                      value={
-                        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                          {technologyStack.web.frameworks.map((fw, i) => (
-                            <Chip 
-                              key={i}
-                              label={fw}
-                              size="small"
-                              sx={{
-                                bgcolor: alpha(colors.secondary, 0.1),
-                                color: colors.secondary
-                              }}
-                            />
-                          ))}
-                        </Box>
-                      }
-                    />
-                  </Grid>
-                )}
-              </Grid>
-            )}
+              )}
+              {web.frameworks?.length > 0 && (
+                <Grid item xs={12}>
+                  <DetailRow 
+                    icon={<FrameworkIcon />}
+                    label="Frameworks"
+                    value={
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                        {web.frameworks.map((fw, i) => (
+                          <Chip 
+                            key={i}
+                            label={fw}
+                            size="small"
+                            sx={{
+                              bgcolor: alpha(colors.secondary, 0.1),
+                              color: colors.secondary
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    }
+                  />
+                </Grid>
+              )}
+              {web.webServer && (
+                <Grid item xs={12} sm={6}>
+                  <DetailRow 
+                    icon={<ComputerIcon />}
+                    label="Web Server"
+                    value={web.webServer}
+                  />
+                </Grid>
+              )}
+            </Grid>
           </Box>
         </Collapse>
       </SectionCard>
     );
   };
 
- 
+  if (!devOpsInfo) {
+    return (
+      <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
+        <Typography variant="h4" fontWeight={800} sx={{ mb: 4 }}>
+          DevOps Configuration
+        </Typography>
+        <Typography>Loading DevOps information...</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
@@ -517,8 +716,7 @@ const DevOpsInfoDisplay = ({ devOpsInfo }) => {
       
       {renderPlatformInfo()}
       {renderEndpoints()}
-      {/* {renderTechnologyStack()} */}
-      
+      {renderTechnologyStack()}
     </Box>
   );
 };
