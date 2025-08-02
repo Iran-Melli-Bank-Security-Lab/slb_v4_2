@@ -9,13 +9,12 @@ import { calculatePageNumber } from '../utils/calculatePageNumber';
 import Pf10 from './components/Pf10';
 import Pf1a from './components/Pf1a';
 import { getAllBugsForReport } from '../api/bugs/getAllBugsForReport';
+import { setPage } from '../api/bugs/setPage';
 
 const MainReport = () => {
 
   const location = useLocation();
-  const project = location.state?.project;
-  const axiosPrivate = useAxiosPrivate();
-  const serverIp = process.env.REACT_APP_SERVER_IP;
+  const project = location.state?.project
   const [reports, setReports] = useState([]);
   const [counter, setCounter] = useState(1);
 
@@ -79,7 +78,7 @@ const MainReport = () => {
     };
 
     getfoundedBugs();
-  }, [axiosPrivate, serverIp, location.state?.project._id]);
+  }, [ location.state?.project._id]);
 
 
 
@@ -266,7 +265,8 @@ useEffect(()=>{
 
 
     try {
-    await axiosPrivate.post(`${serverIp}project/page`, dataToSend);
+    // await axiosPrivate.post(`${serverIp}project/page`, dataToSend);
+    await setPage(dataToSend)
     }catch(error){
       console.log(error)
     }
