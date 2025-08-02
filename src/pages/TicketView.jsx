@@ -6,7 +6,12 @@ import { useUserId } from "../hooks/useUserId";
 import { useSession } from "../SessionContext";
 import { postComment } from "../api/ticket/postComment";
 import { getComments } from "../api/ticket/getComments";
+import { useSocket } from '../context/SocketContext';
+
+
+
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
 const TicketView = () => {
   const { ticketId } = useParams();
   console.log("ticketId from useParam  : ", ticketId);
@@ -30,12 +35,11 @@ const TicketView = () => {
   const [showInviteForm, setShowInviteForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const socket = useSocket();
 
   // Helper function to get user info by ID
   const getUserById = (userId) => {
-    console.log(
-      "re render *******************$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"
-    );
+  
 
     const user = allUsers?.find((user) => user._id === userId);
     if (!user)
@@ -54,6 +58,27 @@ const TicketView = () => {
     };
   };
 
+const getNotificationRecipients = () => {
+  const recipients = new Set();
+  
+  // اضافه کردن گزارش‌دهنده (reporter)
+  if (ticket.reporter) recipients.add(ticket.reporter);
+  
+  // اضافه کردن کاربر هدف (targetUser)
+  if (ticket.targetUser) recipients.add(ticket.targetUser);
+  
+  // اضافه کردن کاربران اختصاص داده شده (assignedTo)
+  if (ticket.assignedTo) recipients.add(ticket.assignedTo);
+  
+  // اضافه کردن مشارکت‌کنندگان
+  ticket.participants?.forEach(p => recipients.add(p.user));
+  
+  // حذف کاربر فعلی از لیست (چون خودش کامنت را ارسال کرده)
+  recipients.delete(currentUser._id);
+  
+  return Array.from(recipients);
+};
+
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
@@ -69,30 +94,23 @@ const TicketView = () => {
     try {
       const newComment = await postComment(formData);
       console.log("new Comment : ", newComment);
+
+
+
+    socket.emit('newComment', {
+      comment: newComment,
+      ticket: ticket._id,
+      ticketId : ticket.ticketId , 
+      recipients: getNotificationRecipients()
+    });
+
       setComments((prev) => [...prev, newComment]);
-      //   setCommentText("");
-      //   setCommentFiles([]);
+         setCommentText("");
+         setCommentFiles([]);
     } catch (error) {
       console.error("خطا در ارسال کامنت:", error);
     }
 
-    // Create new comment
-    const newComment = {
-      _id: `c${comments.length + 1}`,
-      ticket: ticket._id,
-      user: currentUser._id,
-      text: commentText,
-      attachments: commentFiles.map((file) => ({
-        filename: file.name,
-        url: "#",
-        type: file.type.split("/")[0] || "document",
-      })),
-      createdAt: new Date().toLocaleString("fa-IR"),
-    };
-
-    // setComments([...comments, newComment]);
-    setCommentText("");
-    setCommentFiles([]);
   };
 
   const handleToggleStatus = (action) => {
@@ -183,10 +201,28 @@ const TicketView = () => {
     fetchComments();
   }, [ticketId]);
 
-  //   const sortedComments = useMemo(() => {
-  //   return [...comments].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-  // }, [comments]);
-  const sortedComments = comments;
+useEffect(() => {
+  if (!socket) return;
+
+  // Join ticket room when component mounts
+
+  const handleNewComment = (newComment) => {
+    setComments(prev => {
+      // Check if comment already exists to prevent duplicates
+      if (!prev.some(c => c._id === newComment._id)) {
+        return [...prev, newComment];
+      }
+      return prev;
+    });
+  };
+
+  socket.on('newComment', handleNewComment);
+
+  return () => {
+    // Clean up listener and leave room when component unmounts
+    socket.off('newComment', handleNewComment);
+  };
+}, [socket]);
 
   return (
     <div
