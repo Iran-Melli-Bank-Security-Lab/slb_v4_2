@@ -33,13 +33,12 @@ import Pfe from "./components/Pfe"
 import Pff from "./components/Pff"
 import Pf3_1 from './components/Pf3_1';
 import PF from './components/PF/PF';
+import { getPage } from '../api/bugs/getPage';
 
 
 
 function MainForm({ report, originalReport, project, count, pageNumbers }) {
 
-  const axiosPrivate = useAxiosPrivate()
-  const serverIp = process.env.REACT_APP_SERVER_IP;
 
   const [page, setPage] = useState(null)
 
@@ -47,9 +46,10 @@ function MainForm({ report, originalReport, project, count, pageNumbers }) {
   useEffect(() => {
     const getPagesNumber = async () => {
 
-      const { data } = await axiosPrivate.get(`${serverIp}project/page/`, {
-        params: { project: project._id }
-      })
+      // const { data } = await axiosPrivate.get(`${serverIp}project/page/`, {
+      //   params: { project: project._id }
+      // })
+      const {data } = await getPage(project._id )
       setPage(data)
 
     }
