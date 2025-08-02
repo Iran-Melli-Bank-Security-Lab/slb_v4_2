@@ -5,10 +5,10 @@ import bg5 from "../images/bg5.png"
 import HeaderPage from "../components/common/Header";
 import PocTable from "../components/POC/PocTable";
 import PdfStructure from "../components/common/PdfStructure";
-import useAxiosPrivate from '../../hooks/useAxiosPrivate';
+// import useAxiosPrivate from '../../hooks/useAxiosPrivate';
 
 const Poc = ({ report, page, rowColor, textColor }) => {
-  const axiosPrivate = useAxiosPrivate()
+  // const axiosPrivate = useAxiosPrivate()
   const serverIp = process.env.REACT_APP_SERVER_IP;
   const [pocUrl, setPocUrl] = useState("")
 
@@ -16,10 +16,11 @@ const Poc = ({ report, page, rowColor, textColor }) => {
 
     const getAddressOfProject = async () => {
 
-      const { data } = await axiosPrivate.get(`${serverIp}project/pocurl/${report?.project?._id}`)
+      // const { data } = await axiosPrivate.get(`${serverIp}project/pocurl/${report?.project?._id}`)
 
       console.log("Path : ", data)
-      setPocUrl(data?.address)
+      // setPocUrl(data?.address)
+      setPocUrl("http://pocinpages.ir")
     }
 
     getAddressOfProject()
