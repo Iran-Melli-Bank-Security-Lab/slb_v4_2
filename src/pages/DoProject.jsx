@@ -113,18 +113,9 @@ const DoProject = () => {
 
   const userId = useUserId()
   const { id, projectManager } = useParams();
-  const [projectStatus, setProjectStatus] = useState("open");
-  const [workTime, setWorkTime] = useState(0);
-  const [isTracking, setIsTracking] = useState(false);
-  const [lastStatusChange, setLastStatusChange] = useState(null);
-  const [timeEntries, setTimeEntries] = useState([]);
-  const [expanded, setExpanded] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [openHistoryModal, setOpenHistoryModal] = useState(false);
 
-  const [userProject, setUserProject] = useState({})
 
-  console.log("re-render **************** : ", id)
 
   async function getProject() {
 
@@ -134,72 +125,6 @@ const DoProject = () => {
     setUserProject(result)
   }
 
-  useEffect(() => {
-    getProject()
-  }, [])
-
-
-
-  useEffect(() => {
-    setLoading(true);
-    const savedData = localStorage.getItem(`projectTimeTracking-${id}`);
-    if (savedData) {
-      const { status, time, entries } = JSON.parse(savedData);
-      console.log("status in line 150 : ", status, time, entries)
-      setProjectStatus(status);
-      setWorkTime(time);
-      setTimeEntries(entries);
-      if (status === "in-progress") {
-        setIsTracking(true);
-        setLastStatusChange(new Date());
-      }
-    }
-    setLoading(false);
-  }, [id]);
-
-  useEffect(() => {
-    const dataToSave = {
-      status: projectStatus,
-      time: workTime,
-      entries: timeEntries,
-    };
-    localStorage.setItem(
-      `projectTimeTracking-${id}`,
-      JSON.stringify(dataToSave)
-    );
-  }, [id, projectStatus, workTime, timeEntries]);
-
-  const handleStatusChange = (newStatus) => {
-    const now = new Date();
-
-    if (projectStatus === "in-progress" && lastStatusChange) {
-      const duration = Math.floor((now - lastStatusChange) / 1000);
-      const newEntry = {
-        start: lastStatusChange.toISOString(),
-        end: now.toISOString(),
-        duration,
-        status: "work",
-      };
-      setTimeEntries((prev) => [...prev, newEntry]);
-      setWorkTime((prev) => prev + duration);
-    }
-
-    setProjectStatus(newStatus);
-
-    if (newStatus === "in-progress") {
-      setIsTracking(true);
-      setLastStatusChange(now);
-    } else {
-      setIsTracking(false);
-    }
-  };
-
-  const toggleExpand = () => {
-    setExpanded(!expanded);
-  };
-
-
-
 
   const statusComponents = {
     Open: <OpenStatusContent />,
@@ -207,11 +132,6 @@ const DoProject = () => {
     "In-Progress": <InProgressContent progress={0} />,
     Finish: <FinishStatusContent />,
   };
-
-  const totalWorkTime = timeEntries.reduce((sum, entry) => sum + entry.duration, 0) +
-    (isTracking && lastStatusChange
-      ? Math.floor((new Date() - lastStatusChange) / 1000)
-      : 0);
 
   if (loading) {
     return (
@@ -232,19 +152,7 @@ const DoProject = () => {
 
 
 <ProjcetStates statusComponents={statusComponents}/>
-      {/* <ProjectStatus
-        projectStatus={projectStatus}
-        toggleExpand={toggleExpand}
-        expanded={expanded}
-        handleStatusChange={handleStatusChange}
-        totalWorkTime={totalWorkTime}
-        isTracking={isTracking}
-        lastStatusChange={lastStatusChange}
-        timeEntries={timeEntries}
-        openHistoryModal={openHistoryModal}
-        setOpenHistoryModal={setOpenHistoryModal}
-        statusComponents={statusComponents}
-      /> */}
+     
 
       {/* <ProjectStatus/> */}
 
