@@ -79,6 +79,7 @@ const getNotificationRecipients = () => {
   return Array.from(recipients);
 };
 
+
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
@@ -194,7 +195,7 @@ const getNotificationRecipients = () => {
       const result = await getComments(ticketId);
 
       console.log("result of comments : ", result);
-      setComments(result);
+      setComments(result.comments);
     };
     fetchUsers();
     fetchTicket();
