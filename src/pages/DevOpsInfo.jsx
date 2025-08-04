@@ -115,7 +115,7 @@ const DevOpsInfoForm = () => {
   });
 
   // Memoized fetch function
-  const fetchData = useCallback(async () => {
+  const fetchData1 = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -142,9 +142,15 @@ const DevOpsInfoForm = () => {
     }
   }, [projectId, userId]);
 
+
+
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData1();
+  }, [fetchData1]);
+
+  
+
+
 
   const handlePlatformChange = (e) => {
     setFormData(prev => ({

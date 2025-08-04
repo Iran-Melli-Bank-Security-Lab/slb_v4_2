@@ -68,14 +68,14 @@ const InfoBadge = styled(Chip)(({ type }) => ({
   fontSize: "0.65rem",
   padding: "4px 8px",
   backgroundColor: type === 'success' ? `${colors.success}20` :
-                type === 'warning' ? `${colors.warning}20` :
-                type === 'error' ? `${colors.error}20` : `${colors.primary}20`,
+    type === 'warning' ? `${colors.warning}20` :
+      type === 'error' ? `${colors.error}20` : `${colors.primary}20`,
   color: type === 'success' ? colors.success :
-       type === 'warning' ? colors.warning :
-       type === 'error' ? colors.error : colors.primary,
+    type === 'warning' ? colors.warning :
+      type === 'error' ? colors.error : colors.primary,
   border: `1px solid ${type === 'success' ? colors.success :
-          type === 'warning' ? colors.warning :
-          type === 'error' ? colors.error : colors.primary}`
+    type === 'warning' ? colors.warning :
+      type === 'error' ? colors.error : colors.primary}`
 }));
 
 const ClickableText = styled(Typography)(({ theme }) => ({
@@ -113,8 +113,8 @@ const PasswordField = ({ value }) => {
         {showPassword ? value : "••••••••"}
       </Typography>
       <Tooltip title={showPassword ? "Hide password" : "Show password"}>
-        <IconButton 
-          size="small" 
+        <IconButton
+          size="small"
           onClick={() => setShowPassword(!showPassword)}
           sx={{ ml: 1 }}
         >
@@ -128,7 +128,7 @@ const PasswordField = ({ value }) => {
 
 const DetailRow = ({ icon, label, value, children, copyable = false }) => (
   <Box sx={{ display: "flex", mb: 2, alignItems: "flex-start" }}>
-    <Box sx={{ 
+    <Box sx={{
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
@@ -175,13 +175,13 @@ const hasTechnologyStack = (stack) => {
   );
 };
 
-const DevOpsInfoDisplay = ({}) => {
+const DevOpsInfoDisplay = ({ }) => {
   const [devOpsInfo, setDevOpsInfo] = useState(null);
-  const {id: projectId} = useParams();
+  const { id: projectId } = useParams();
   const userId = useUserId();
 
   useEffect(() => {
-    const fetchDevOpsInfo = async() => {
+    const fetchDevOpsInfo = async () => {
       const result = await getDevOpsInfo(projectId, userId);
       setDevOpsInfo(result);
     }
@@ -190,9 +190,9 @@ const DevOpsInfoDisplay = ({}) => {
   }, [projectId, userId]);
 
   const [expandedSections, setExpandedSections] = useState({
-    platform: false ,
-    endpoints: false ,
-    technology: false ,
+    platform: false,
+    endpoints: false,
+    technology: false,
   });
 
   const toggleSection = (section) => {
@@ -204,7 +204,7 @@ const DevOpsInfoDisplay = ({}) => {
 
   const renderPlatformInfo = () => {
     if (!devOpsInfo?.platformData?.web) return null;
-    
+
     const data = devOpsInfo.platformData.web;
     const hasAccessInfo = hasValue(data.accessInfo);
     const hasVmInfo = hasValue(data.vmInfo);
@@ -215,7 +215,7 @@ const DevOpsInfoDisplay = ({}) => {
     return (
       <SectionCard>
         <SectionHeader onClick={() => toggleSection('platform')}>
-          <Avatar sx={{ 
+          <Avatar sx={{
             bgcolor: alpha(colors.primary, 0.1),
             color: colors.primary,
             mr: 2
@@ -234,15 +234,15 @@ const DevOpsInfoDisplay = ({}) => {
             {expandedSections.platform ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </IconButton>
         </SectionHeader>
-        
+
         <Collapse in={expandedSections.platform}>
           <Box sx={{ p: 3 }}>
-            <DetailRow 
+            <DetailRow
               icon={<SettingsIcon />}
               label="Environment Type"
               value={data.environmentType}
             />
-            
+
             {hasAccessInfo && (
               <>
                 <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
@@ -251,7 +251,7 @@ const DevOpsInfoDisplay = ({}) => {
                 <Grid container spacing={2}>
                   {data.accessInfo.address && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<PublicIcon />}
                         label="Address"
                         value={data.accessInfo.address}
@@ -261,7 +261,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.accessInfo.port && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<SettingsIcon />}
                         label="Port"
                         value={data.accessInfo.port}
@@ -270,7 +270,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.accessInfo.username && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<KeyIcon />}
                         label="Username"
                         value={data.accessInfo.username}
@@ -280,7 +280,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.accessInfo.password && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<LockIcon />}
                         label="Password"
                         children={<PasswordField value={data.accessInfo.password} />}
@@ -289,7 +289,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.accessInfo.notes && (
                     <Grid item xs={12}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<InfoIcon />}
                         label="Notes"
                         value={data.accessInfo.notes}
@@ -299,7 +299,7 @@ const DevOpsInfoDisplay = ({}) => {
                 </Grid>
               </>
             )}
-            
+
             {hasVmInfo && (
               <>
                 <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
@@ -308,7 +308,7 @@ const DevOpsInfoDisplay = ({}) => {
                 <Grid container spacing={2}>
                   {data.vmInfo.vmName && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<ComputerIcon />}
                         label="VM Name"
                         value={data.vmInfo.vmName}
@@ -318,7 +318,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.vmInfo.osType && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<StorageIcon />}
                         label="OS Type"
                         value={data.vmInfo.osType}
@@ -327,7 +327,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.vmInfo.hypervisor && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<SettingsIcon />}
                         label="Hypervisor"
                         value={data.vmInfo.hypervisor}
@@ -336,7 +336,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.vmInfo.sshKey && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<KeyIcon />}
                         label="SSH Key"
                         children={<PasswordField value={data.vmInfo.sshKey} />}
@@ -345,7 +345,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.vmInfo.snapshot && (
                     <Grid item xs={12}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<StorageIcon />}
                         label="Snapshot"
                         value={data.vmInfo.snapshot}
@@ -355,7 +355,7 @@ const DevOpsInfoDisplay = ({}) => {
                 </Grid>
               </>
             )}
-            
+
             {hasDockerInfo && (
               <>
                 <Typography variant="subtitle2" sx={{ mb: 2, mt: 3, color: colors.secondary }}>
@@ -364,7 +364,7 @@ const DevOpsInfoDisplay = ({}) => {
                 <Grid container spacing={2}>
                   {data.dockerInfo.imageName && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<CloudIcon />}
                         label="Image Name"
                         value={data.dockerInfo.imageName}
@@ -374,7 +374,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.dockerInfo.containerName && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<SettingsIcon />}
                         label="Container Name"
                         value={data.dockerInfo.containerName}
@@ -384,7 +384,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.dockerInfo.ports?.length > 0 && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<StorageIcon />}
                         label="Ports"
                         value={data.dockerInfo.ports.join(', ')}
@@ -393,7 +393,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.dockerInfo.volumes?.length > 0 && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<StorageIcon />}
                         label="Volumes"
                         value={data.dockerInfo.volumes.join(', ')}
@@ -402,13 +402,13 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.dockerInfo.envVariables?.length > 0 && (
                     <Grid item xs={12}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<CodeIcon />}
                         label="Environment Variables"
                         value={
                           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                             {data.dockerInfo.envVariables.map((env, i) => (
-                              <Chip 
+                              <Chip
                                 key={i}
                                 label={env}
                                 size="small"
@@ -425,7 +425,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.dockerInfo.network && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<PublicIcon />}
                         label="Network"
                         value={data.dockerInfo.network}
@@ -434,7 +434,7 @@ const DevOpsInfoDisplay = ({}) => {
                   )}
                   {data.dockerInfo.dockerHost && (
                     <Grid item xs={12} sm={6}>
-                      <DetailRow 
+                      <DetailRow
                         icon={<ComputerIcon />}
                         label="Docker Host"
                         value={data.dockerInfo.dockerHost}
@@ -457,7 +457,7 @@ const DevOpsInfoDisplay = ({}) => {
     return (
       <SectionCard sx={{ mt: 3 }}>
         <SectionHeader onClick={() => toggleSection('endpoints')}>
-          <Avatar sx={{ 
+          <Avatar sx={{
             bgcolor: alpha(colors.accent, 0.1),
             color: colors.accent,
             mr: 2
@@ -476,15 +476,15 @@ const DevOpsInfoDisplay = ({}) => {
             {expandedSections.endpoints ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </IconButton>
         </SectionHeader>
-        
+
         <Collapse in={expandedSections.endpoints}>
           <Box sx={{ p: 3 }}>
             {devOpsInfo.endpoints.map((endpoint, index) => {
               const hasTechStack = hasTechnologyStack(endpoint.technologyStack);
               const fullUrl = endpoint.url.startsWith('http') ? endpoint.url : `https://${endpoint.url}`;
-              
+
               return (
-                <Box key={index} sx={{ 
+                <Box key={index} sx={{
                   mb: 3,
                   p: 2,
                   borderRadius: "12px",
@@ -497,7 +497,7 @@ const DevOpsInfoDisplay = ({}) => {
                     ) : (
                       <PublicIcon sx={{ color: colors.primary, mr: 1.5 }} />
                     )}
-                    <ClickableText 
+                    <ClickableText
                       fontWeight={600}
                       onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
                     >
@@ -505,9 +505,9 @@ const DevOpsInfoDisplay = ({}) => {
                     </ClickableText>
                     {endpoint.ip && (
                       <>
-                        <InfoBadge 
-                          label={endpoint.ip} 
-                          size="small" 
+                        <InfoBadge
+                          label={endpoint.ip}
+                          size="small"
                           sx={{ ml: 1.5, cursor: "pointer" }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -518,7 +518,7 @@ const DevOpsInfoDisplay = ({}) => {
                       </>
                     )}
                   </Box>
-                  
+
                   {hasTechStack && (
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1 }}>
@@ -527,7 +527,7 @@ const DevOpsInfoDisplay = ({}) => {
                       <Grid container spacing={1} sx={{ mb: 2 }}>
                         {endpoint.technologyStack.frontendLanguage && (
                           <Grid item xs={12} sm={6} md={3}>
-                            <DetailRow 
+                            <DetailRow
                               icon={<CodeIcon />}
                               label="Frontend"
                               value={endpoint.technologyStack.frontendLanguage}
@@ -536,7 +536,7 @@ const DevOpsInfoDisplay = ({}) => {
                         )}
                         {endpoint.technologyStack.backendLanguage && (
                           <Grid item xs={12} sm={6} md={3}>
-                            <DetailRow 
+                            <DetailRow
                               icon={<CodeIcon />}
                               label="Backend"
                               value={endpoint.technologyStack.backendLanguage}
@@ -545,7 +545,7 @@ const DevOpsInfoDisplay = ({}) => {
                         )}
                         {endpoint.technologyStack.databases?.length > 0 && (
                           <Grid item xs={12} sm={6} md={3}>
-                            <DetailRow 
+                            <DetailRow
                               icon={<StorageIcon />}
                               label="Databases"
                               value={endpoint.technologyStack.databases.join(', ')}
@@ -554,7 +554,7 @@ const DevOpsInfoDisplay = ({}) => {
                         )}
                         {endpoint.technologyStack.webServer && (
                           <Grid item xs={12} sm={6} md={3}>
-                            <DetailRow 
+                            <DetailRow
                               icon={<ComputerIcon />}
                               label="Web Server"
                               value={endpoint.technologyStack.webServer}
@@ -564,7 +564,7 @@ const DevOpsInfoDisplay = ({}) => {
                       </Grid>
                     </Box>
                   )}
-                  
+
                   {endpoint.credentials?.length > 0 && (
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="subtitle2" color="textSecondary" sx={{ mb: 1 }}>
@@ -574,17 +574,36 @@ const DevOpsInfoDisplay = ({}) => {
                         {endpoint.credentials.map((cred, i) => (
                           <Grid item xs={12} sm={6} key={i}>
                             <Paper sx={{ p: 2, borderRadius: "12px" }}>
-                              <DetailRow 
+                               {cred.description && (
+                                <DetailRow
+                                  icon={<InfoIcon />}
+                                  label="Description"
+                                  children={
+                                    <Typography variant="body1" sx={{
+                                      bgcolor: alpha(colors.primary, 0.05),
+                                      p: 1,
+                                      borderRadius: "8px",
+                                      border: `1px solid ${alpha(colors.primary, 0.1)}`,
+                                      fontStyle: "italic"
+                                    }}>
+                                      {cred.description}
+                                    </Typography>
+                                  }
+                                />
+                              )}
+                              <DetailRow
                                 icon={<KeyIcon />}
                                 label="Username"
                                 value={cred.username}
                                 copyable
                               />
-                              <DetailRow 
+                              <DetailRow
                                 icon={<LockIcon />}
                                 label="Password"
                                 children={<PasswordField value={cred.password} />}
                               />
+                             
+
                             </Paper>
                           </Grid>
                         ))}
@@ -608,7 +627,7 @@ const DevOpsInfoDisplay = ({}) => {
     return (
       <SectionCard sx={{ mt: 3 }}>
         <SectionHeader onClick={() => toggleSection('technology')}>
-          <Avatar sx={{ 
+          <Avatar sx={{
             bgcolor: alpha(colors.secondary, 0.1),
             color: colors.secondary,
             mr: 2
@@ -627,13 +646,13 @@ const DevOpsInfoDisplay = ({}) => {
             {expandedSections.technology ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </IconButton>
         </SectionHeader>
-        
+
         <Collapse in={expandedSections.technology}>
           <Box sx={{ p: 3 }}>
             <Grid container spacing={3}>
               {web.frontendLanguage && (
                 <Grid item xs={12} sm={6} md={4}>
-                  <DetailRow 
+                  <DetailRow
                     icon={<CodeIcon />}
                     label="Frontend Language"
                     value={web.frontendLanguage}
@@ -642,7 +661,7 @@ const DevOpsInfoDisplay = ({}) => {
               )}
               {web.backendLanguage && (
                 <Grid item xs={12} sm={6} md={4}>
-                  <DetailRow 
+                  <DetailRow
                     icon={<CodeIcon />}
                     label="Backend Language"
                     value={web.backendLanguage}
@@ -651,7 +670,7 @@ const DevOpsInfoDisplay = ({}) => {
               )}
               {web.databases?.length > 0 && (
                 <Grid item xs={12} sm={6} md={4}>
-                  <DetailRow 
+                  <DetailRow
                     icon={<StorageIcon />}
                     label="Databases"
                     value={web.databases.join(', ')}
@@ -660,13 +679,13 @@ const DevOpsInfoDisplay = ({}) => {
               )}
               {web.frameworks?.length > 0 && (
                 <Grid item xs={12}>
-                  <DetailRow 
+                  <DetailRow
                     icon={<FrameworkIcon />}
                     label="Frameworks"
                     value={
                       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                         {web.frameworks.map((fw, i) => (
-                          <Chip 
+                          <Chip
                             key={i}
                             label={fw}
                             size="small"
@@ -683,7 +702,7 @@ const DevOpsInfoDisplay = ({}) => {
               )}
               {web.webServer && (
                 <Grid item xs={12} sm={6}>
-                  <DetailRow 
+                  <DetailRow
                     icon={<ComputerIcon />}
                     label="Web Server"
                     value={web.webServer}
@@ -713,7 +732,7 @@ const DevOpsInfoDisplay = ({}) => {
       <Typography variant="h4" fontWeight={800} sx={{ mb: 4 }}>
         DevOps Configuration
       </Typography>
-      
+
       {renderPlatformInfo()}
       {renderEndpoints()}
       {renderTechnologyStack()}
