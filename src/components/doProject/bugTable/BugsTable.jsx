@@ -423,7 +423,8 @@ const handleRadioChange = async (item, value) => {
   setSelectedItems(newSelectedItems);
 
   try {
-    await updateBugStatus(projectId, userId, id, value);
+    console.log("progress here in line 426 : " , progress)
+    await updateBugStatus(projectId, userId, id, value , progress);
     // If status is 'failed', navigate to bugReportForm with data
    
    // If "failed", open new tab with query params
