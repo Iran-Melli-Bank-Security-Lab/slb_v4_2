@@ -370,10 +370,12 @@ const TicketList = () => {
                           {ticket.ticketId}
                         </div>
                       </td>
-                      <td className="px-6 py-4 max-w-xs">
-                        <div className="text-sm font-semibold text-gray-900 truncate">
-                          {ticket.title}
-                        </div>
+                        <td className="px-6 py-4 max-w-[200px]">
+                        <Tooltip title={ticket.title} arrow>
+                          <div className="text-sm font-semibold text-gray-900 line-clamp-2">
+                            {ticket.title}
+                          </div>
+                        </Tooltip>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
