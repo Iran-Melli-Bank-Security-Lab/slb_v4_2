@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { getProjects } from '../api/projects/getProject';
 import { useSession } from '../SessionContext';
 import { useNavigate } from 'react-router';
+import PersianDateWithTooltip from '../components/dateTime/PersainDate';
 
 export default function UserProjectsTable() {
   const { user } = useSession().session;
@@ -107,24 +108,25 @@ const columns = useMemo(() => [
       </Button>
     ),
   },
-  {
-    id: 'expireAt',
-    label: 'Expire At',
-    sortable: true,
-    render: (row) =>
-      row?.project?.expireDay ? format(new Date(row?.project?.expireDay), 'yyyy-MM-dd') : '—',
-  },
-  {
+   {
     id: 'version',
     label: 'Version',
     sortable: true,
   },
   {
+    id: 'expireAt',
+    label: 'Expire At',
+    sortable: true,
+    render: (row) =>
+      row?.project?.expireDay ? <PersianDateWithTooltip tooltipFormat = 'jD jMMMM jYYYY' date={row?.project?.expireDay} /> : '—',
+  },
+ 
+  {
     id: 'createdAt',
     label: 'Date',
     sortable: true,
     render: (row) =>
-      row.created_at ? format(new Date(row.created_at), 'yyyy-MM-dd') : '—',
+      row.created_at ? <PersianDateWithTooltip date={row.created_at}  /> : '—',
   },
 ], []);
     
