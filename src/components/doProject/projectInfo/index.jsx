@@ -89,10 +89,33 @@ const ClickableText = styled(Typography)(({ theme }) => ({
 const CopyButton = ({ value, tooltip = "Copy to clipboard" }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        // Fallback for non-secure contexts
+        const textarea = document.createElement("textarea");
+        textarea.value = value;
+        textarea.style.position = "fixed"; // Prevent scrolling
+        textarea.style.opacity = "0"; // Hide element
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+
+        // Still use deprecated method as fallback
+        const success = document.execCommand("copy");
+        if (!success) throw new Error("Fallback copy failed");
+
+        document.body.removeChild(textarea);
+      }
+
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Copy failed", err);
+      alert("Copying to clipboard is not supported in this environment.");
+    }
   };
 
   return (
@@ -103,6 +126,8 @@ const CopyButton = ({ value, tooltip = "Copy to clipboard" }) => {
     </Tooltip>
   );
 };
+
+
 
 const PasswordField = ({ value }) => {
   const [showPassword, setShowPassword] = useState(false);
