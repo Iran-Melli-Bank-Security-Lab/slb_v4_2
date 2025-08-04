@@ -110,7 +110,8 @@ const DevOpsInfoForm = () => {
   });
   const [newCredential, setNewCredential] = useState({
     username: '',
-    password: ''
+    password: '',
+    description: '' // اضافه کردن فیلد description
   });
 
   // Memoized fetch function
@@ -259,14 +260,14 @@ const DevOpsInfoForm = () => {
   const addEndpoint = useCallback(() => {
     if (newEndpoint.url) {
       setFormData(prev => ({
-  ...prev,
-  endpoints: [...prev.endpoints, { ...newEndpoint, ip: newEndpoint.ip }]
-}));
+        ...prev,
+        endpoints: [...prev.endpoints, { ...newEndpoint, ip: newEndpoint.ip }]
+      }));
 
       setNewEndpoint({
         url: '',
-        credentials: [], 
-        ip:''
+        credentials: [],
+        ip: ''
       });
       setValidationErrors(prev => ({
         ...prev,
@@ -290,7 +291,11 @@ const DevOpsInfoForm = () => {
           ...updatedEndpoints[endpointIndex],
           credentials: [
             ...updatedEndpoints[endpointIndex].credentials,
-            { ...newCredential } // Create a new object to avoid reference issues
+            {
+              username: newCredential.username,
+              password: newCredential.password,
+              description: newCredential.description // اضافه کردن description
+            }
           ]
         };
         return {
@@ -301,10 +306,12 @@ const DevOpsInfoForm = () => {
       // Reset the new credential fields
       setNewCredential({
         username: '',
-        password: ''
+        password: '',
+        description: ''
       });
     }
   }, [newCredential]);
+
 
   const removeCredential = useCallback((endpointIndex, credentialIndex) => {
     setFormData(prev => {
@@ -827,7 +834,7 @@ const DevOpsInfoForm = () => {
 
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                           <Box display="flex" alignItems="center" width="100%">
-                            <Typography sx={{ flexGrow: 1 ,marginLeft:'20px'}}>{endpoint.url}</Typography>
+                            <Typography sx={{ flexGrow: 1, marginLeft: '20px' }}>{endpoint.url}</Typography>
                             <Typography sx={{ flexGrow: 1 }}>{endpoint.ip}</Typography>
 
                           </Box>
@@ -859,7 +866,12 @@ const DevOpsInfoForm = () => {
                                   <ListItem key={credentialIndex}>
                                     <ListItemText
                                       primary={credential.username}
-                                      secondary={`Password: ${'•'.repeat(credential.password.length)}`}
+                                      secondary={
+                                        <>
+                                          <div>{`Password: ${'•'.repeat(credential.password.length)}`}</div>
+                                          {credential.description && <div dir='rtl' >{`توضیحات: ${credential.description}`}</div>}
+                                        </>
+                                      }
                                     />
                                     <ListItemSecondaryAction>
                                       <IconButton
@@ -882,7 +894,7 @@ const DevOpsInfoForm = () => {
                               Add New Credential
                             </Typography>
                             <form onSubmit={(e) => {
-                              e.preventDefault(); // Prevent default form submission
+                              e.preventDefault();
                               addCredential(endpointIndex);
                             }}>
                               <Grid container spacing={2}>
@@ -903,9 +915,26 @@ const DevOpsInfoForm = () => {
                                     onChange={(e) => setNewCredential({ ...newCredential, password: e.target.value })}
                                   />
                                 </Grid>
+                               
+<Divider sx={{ my: 2 }} />
+                                
+                                <Box sx={{mb:2}}>
+                                <Grid item xs={12}>
+                                  <TextField
+                                    fullWidth
+                                    label="Description"
+                                    multiline
+                                    rows={2}
+                                    value={newCredential.description}
+                                    onChange={(e) => setNewCredential({ ...newCredential, description: e.target.value })}
+                                    placeholder="Optional description for this credential"
+                                    sx={{ direction: "rtl" }}
+                                  />
+                                </Grid>
+                                </Box>
                                 <Grid item xs={12}>
                                   <Button
-                                    type="submit" // Change to type="submit"
+                                    type="submit"
                                     variant="outlined"
                                     color="primary"
                                     startIcon={<AddIcon />}
