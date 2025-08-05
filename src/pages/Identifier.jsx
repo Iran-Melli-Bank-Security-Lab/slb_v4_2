@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { 
   Stepper, Step, StepLabel, Button, 
   TextField, FormControl, InputLabel, 
-  Select, MenuItem, Typography, Box, Paper, Dialog, 
-  DialogActions, DialogContent, DialogContentText, DialogTitle,
+  Select, MenuItem, Typography, Box, Paper, 
   CircularProgress
 } from '@mui/material';
 import { useParams } from 'react-router';
 import { styled } from '@mui/system';
 import { postIdentifier } from '../api/projects/postIdentifier';
+import { toast } from 'react-toastify';
 
 const steps = ['Project Details', 'Organizational Unit', 'Beneficiary', 'Datacenter'];
 
@@ -40,6 +40,12 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
       borderWidth: '2px',
     },
   },
+  '& .MuiInputLabel-root': {
+    color: '#64748B',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: theme.palette.primary.main,
+  },
 }));
 
 const StyledSelect = styled(Select)(({ theme }) => ({
@@ -55,6 +61,12 @@ const StyledSelect = styled(Select)(({ theme }) => ({
     borderColor: theme.palette.primary.main,
     borderWidth: '2px',
   },
+  '& .MuiInputLabel-root': {
+    color: '#64748B',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: theme.palette.primary.main,
+  },
 }));
 
 const ProgressButton = styled(Button)(({ theme }) => ({
@@ -64,18 +76,29 @@ const ProgressButton = styled(Button)(({ theme }) => ({
   textTransform: 'none',
   fontSize: '16px',
   boxShadow: 'none',
+  transition: 'all 0.3s ease',
   '&:hover': {
     boxShadow: 'none',
+    transform: 'translateY(-2px)',
   },
+}));
+
+const StepIcon = styled('div')(({ theme, active }) => ({
+  width: 24,
+  height: 24,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '50%',
+  backgroundColor: active ? theme.palette.primary.main : '#E2E8F0',
+  color: active ? 'white' : '#64748B',
+  fontWeight: 'bold',
 }));
 
 function Identifier() {
   const { projectId } = useParams();
 
   const [activeStep, setActiveStep] = useState(0);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [dialogMessage, setDialogMessage] = useState('');
-  const [isSuccess, setIsSuccess] = useState(true);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     developer: '',
@@ -108,7 +131,7 @@ function Identifier() {
     };
 
     // fetchProjectData();
-  }, [ projectId]);
+  }, [projectId]);
 
   const validateStep = (step) => {
     const newErrors = {};
@@ -122,43 +145,31 @@ function Identifier() {
     if (step === 1) {
       if (!formData.organizationalUnitName.trim()) newErrors.organizationalUnitName = 'Organizational Unit Name is required';
       if (!formData.projectManagerName.trim()) newErrors.projectManagerName = 'Project Manager Name is required';
-      if (!/^[0-9]{10}$/.test(formData.unitPhoneNumber)) newErrors.unitPhoneNumber = 'Valid 10-digit phone number is required';
     }
     
     if (step === 2) {
       if (!formData.beneficiaryOffice.trim()) newErrors.beneficiaryOffice = 'Beneficiary Office is required';
       if (!formData.followerName.trim()) newErrors.followerName = 'Follower Name is required';
-      if (!/^[0-9]{10}$/.test(formData.beneficiaryPhoneNumber)) newErrors.beneficiaryPhoneNumber = 'Valid 10-digit phone number is required';
     }
     
     if (step === 3) {
       if (!formData.datacenterName.trim()) newErrors.datacenterName = 'Datacenter Name is required';
       if (!formData.responsibleName.trim()) newErrors.responsibleName = 'Responsible Name is required';
-      if (!/^[0-9]{10}$/.test(formData.datacenterPhoneNumber)) newErrors.datacenterPhoneNumber = 'Valid 10-digit phone number is required';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-//   const handleNext = () => {
-//     if (validateStep(activeStep)) {
-//       setActiveStep((prev) => prev + 1);
-//     }
-//   };
-
-
   const handleNext = () => {
     if (validateStep(activeStep)) {
-      setLoading(true); // Set loading to true before navigation
-      // Simulate async operation (remove this in production)
+      setLoading(true);
       setTimeout(() => {
         setActiveStep((prev) => prev + 1);
-        setLoading(false); // Set loading to false after navigation
+        setLoading(false);
       }, 100);
     }
   };
-
 
   const handleBack = () => {
     setActiveStep((prev) => prev - 1);
@@ -167,35 +178,43 @@ function Identifier() {
   const handleSubmit = async () => {
     if (validateStep(activeStep)) {
       try {
-        await postIdentifier(projectId , formData)
-        setIsSuccess(true);
-        setDialogMessage('Project data submitted successfully!');
-        setOpenDialog(true);
+        await postIdentifier(projectId, formData);
+        toast.success('Project data submitted successfully!', {
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          style: {
+            borderRadius: '12px',
+            background: '#F8FAFC',
+            color: '#1E293B',
+            borderLeft: '6px solid #10B981',
+          },
+        });
       } catch (error) {
-        setIsSuccess(false);
-        setDialogMessage('There was an error submitting the data. Please try again.');
-        setOpenDialog(true);
+        toast.error('There was an error submitting the data. Please try again.', {
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          style: {
+            borderRadius: '12px',
+            background: '#F8FAFC',
+            color: '#1E293B',
+            borderLeft: '6px solid #EF4444',
+          },
+        });
       }
     }
-
-  
-
-
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    if (isSuccess) {
-      // Reset form or navigate away on success if needed
     }
   };
 
@@ -272,9 +291,7 @@ function Identifier() {
               value={formData.unitPhoneNumber}
               onChange={handleChange}
               fullWidth
-              error={!!errors.unitPhoneNumber}
-              helperText={errors.unitPhoneNumber || "10 digits without spaces or dashes"}
-              placeholder="1234567890"
+              placeholder="9137033909"
             />
           </Box>
         );
@@ -305,9 +322,7 @@ function Identifier() {
               value={formData.beneficiaryPhoneNumber}
               onChange={handleChange}
               fullWidth
-              error={!!errors.beneficiaryPhoneNumber}
-              helperText={errors.beneficiaryPhoneNumber || "10 digits without spaces or dashes"}
-              placeholder="1234567890"
+              placeholder="9137033909"
             />
           </Box>
         );
@@ -338,9 +353,7 @@ function Identifier() {
               value={formData.datacenterPhoneNumber}
               onChange={handleChange}
               fullWidth
-              error={!!errors.datacenterPhoneNumber}
-              helperText={errors.datacenterPhoneNumber || "10 digits without spaces or dashes"}
-              placeholder="1234567890"
+              placeholder="9137033909"
             />
           </Box>
         );
@@ -350,35 +363,40 @@ function Identifier() {
   };
 
   return (
-    <Box className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-100 p-4">
+    <Box className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-50 p-4">
       <FormContainer>
         <Box className="text-center mb-8">
-          <Typography variant="h4" className="font-bold text-gray-800 mb-2">
+          <Typography variant="h4" className="font-bold text-gray-800 mb-2" sx={{ fontWeight: 700 }}>
             Project Identifier Form
           </Typography>
-          <Typography variant="subtitle1" className="text-gray-600">
-            {steps[activeStep]}
+          <Typography variant="subtitle1" className="text-gray-600" sx={{ color: '#64748B' }}>
+            Complete all steps to register your project
           </Typography>
         </Box>
 
         <Stepper activeStep={activeStep} alternativeLabel className="mb-8">
-          {steps.map((label) => (
+          {steps.map((label, index) => (
             <Step key={label}>
-              <StepLabel className="text-gray-600">{label}</StepLabel>
+              <StepLabel 
+                StepIconComponent={(props) => (
+                  <StepIcon active={props.active || props.completed}>
+                    {index + 1}
+                  </StepIcon>
+                )}
+                sx={{
+                  '& .MuiStepLabel-label': {
+                    color: activeStep === index ? '#1E293B' : '#64748B',
+                    fontWeight: activeStep === index ? 600 : 400,
+                  }
+                }}
+              >
+                {label}
+              </StepLabel>
             </Step>
           ))}
         </Stepper>
 
-        {/* {loading ? (
-          <Box className="flex justify-center items-center h-64">
-            <CircularProgress size={60} />
-          </Box>
-        ) : (
-          <Box className="mb-8">
-            {renderStepContent(activeStep)}
-          </Box>
-        )} */}
-        {false  ? (
+        {false ? (
           <Box className="flex justify-center items-center h-64">
             <CircularProgress size={60} />
           </Box>
@@ -393,7 +411,14 @@ function Identifier() {
             disabled={activeStep === 0}
             onClick={handleBack}
             variant="outlined"
-            className="text-gray-700 border-gray-300 hover:border-gray-400"
+            sx={{
+              color: '#64748B',
+              borderColor: '#E2E8F0',
+              '&:hover': {
+                borderColor: '#CBD5E1',
+                backgroundColor: '#F8FAFC',
+              },
+            }}
           >
             Back
           </ProgressButton>
@@ -402,7 +427,12 @@ function Identifier() {
             <ProgressButton
               onClick={handleSubmit}
               variant="contained"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              sx={{
+                backgroundColor: '#3B82F6',
+                '&:hover': {
+                  backgroundColor: '#2563EB',
+                },
+              }}
               disabled={loading}
             >
               {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
@@ -411,43 +441,20 @@ function Identifier() {
             <ProgressButton
               onClick={handleNext}
               variant="contained"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              sx={{
+                backgroundColor: '#3B82F6',
+                '&:hover': {
+                  backgroundColor: '#2563EB',
+                },
+              }}
             >
               Next
             </ProgressButton>
           )}
         </Box>
       </FormContainer>
-
-      <Dialog
-        open={openDialog}
-        onClose={handleCloseDialog}
-        PaperProps={{
-          style: {
-            borderRadius: '16px',
-            padding: '20px',
-          },
-        }}
-      >
-        <DialogTitle className={isSuccess ? "text-green-600" : "text-red-600"}>
-          {isSuccess ? "Success!" : "Error"}
-        </DialogTitle>
-        <DialogContent>
-          <DialogContentText className="text-gray-700">
-            {dialogMessage}
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button 
-            onClick={handleCloseDialog} 
-            className={`${isSuccess ? 'text-green-600' : 'text-red-600'} hover:bg-opacity-20`}
-          >
-            OK
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Box>
   );
 }
 
-export default Identifier ;
+export default Identifier;
