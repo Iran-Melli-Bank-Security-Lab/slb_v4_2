@@ -8,6 +8,7 @@ import FingerprintIcon from "@mui/icons-material/Fingerprint";
 import PeopleIcon from "@mui/icons-material/People";
 import ArticleIcon from "@mui/icons-material/Article";
 import { useNavigate } from "react-router";
+import PersianDateWithTooltip from "../components/dateTime/PersainDate";
 
 const DataTable = lazy(() => import("../components/projects/DataTable"));
 const AssignPentester = lazy(
@@ -41,7 +42,6 @@ const ManagerProjects = () => {
     console.log("project row in line 39 : " , project)
     navigate('/userreports', { state: { project } });
 
-    console.log(`Generating report for project ${projectId}`);
   };
 
   const handleViewIdentifier = (projectId) => {
@@ -75,21 +75,21 @@ const ManagerProjects = () => {
         </Button>
       ),
     },
-    {
-      id: "identifier",
-      label: "Identifier",
-      sortable: false,
-      render: (row) => (
-        <Tooltip title="View project identifier">
-          <IconButton
-            onClick={() => handleViewIdentifier(row.id)}
-            color="primary"
-          >
-            <FingerprintIcon />
-          </IconButton>
-        </Tooltip>
-      ),
-    },
+    // {
+    //   id: "identifier",
+    //   label: "Identifier",
+    //   sortable: false,
+    //   render: (row) => (
+    //     <Tooltip title="View project identifier">
+    //       <IconButton
+    //         onClick={() => handleViewIdentifier(row.id)}
+    //         color="primary"
+    //       >
+    //         <FingerprintIcon />
+    //       </IconButton>
+    //     </Tooltip>
+    //   ),
+    // },
     {
       id: "generateReport",
       label: "Generate Report",
@@ -122,7 +122,13 @@ const ManagerProjects = () => {
       ),
     },
     { id: "version", label: "Version", sortable: true },
-    { id: "created_date", label: "Date", sortable: true },
+    { id: "created_date", label: "Date", sortable: true , 
+       render: (row) =>
+      row?.created_date ? 
+      <PersianDateWithTooltip tooltipFormat = 'jD jMMMM jYYYY' date={row?.created_date} /> : console.log(row.created_date),
+      
+
+    },
   ]);
 
   return (
