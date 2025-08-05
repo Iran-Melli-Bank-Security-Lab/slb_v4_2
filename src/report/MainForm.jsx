@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-// import useAxiosPrivate from '../hooks/useAxiosPrivate';
-
 import Pf1 from "./components/Pf1"
 import Pf2 from "./components/Pf2"
 import Pf3 from "./components/Pf3"
@@ -46,11 +44,9 @@ function MainForm({ report, originalReport, project, count, pageNumbers }) {
   useEffect(() => {
     const getPagesNumber = async () => {
 
-      // const { data } = await axiosPrivate.get(`${serverIp}project/page/`, {
-      //   params: { project: project._id }
-      // })
-      const {data } = await getPage(project._id )
-      setPage(data)
+      const result  = await getPage(project._id )
+      console.log("data in line 52 : " , result  )
+      setPage(result)
 
     }
     getPagesNumber()
