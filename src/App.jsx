@@ -25,11 +25,11 @@ const BASE_NAVIGATION = [
     title: 'Projects',
     icon: <AssignmentIcon />,
   },
-  {
-    segment: 'reports',
-    title: 'Reports',
-    icon: <BugReportIcon />,
-  },
+  // {
+  //   segment: 'reports',
+  //   title: 'Reports',
+  //   icon: <BugReportIcon />,
+  // },
   {
     kind: 'header',
     title: 'Project Manager',
