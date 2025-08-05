@@ -11,8 +11,7 @@ const DashboardPage = lazy(() => import('./pages/index'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Managing = lazy(() => import('./pages/Managing'));
 const SignInPage = lazy(() => import('./pages/signIn'));
-// const MainReport = lazy(()=>import("./report/MainReport.jsx"))
-// import MainReport from './report/MainReport';
+const MainReport = lazy(()=>import("./report/MainReport.jsx"))
 import { Provider } from 'react-redux';
 import store from "./store"
 import { SocketProvider } from './context/SocketContext';
@@ -116,11 +115,7 @@ const router = createBrowserRouter([
             Component:TicketList
             
           } , 
-          //   {
-          //   path:"userreports",
-          //   Component:MainReport
-            
-          // }, 
+         
           {
             path:"projects/identifier/:projectId", 
             Component:Identifier
@@ -132,7 +127,11 @@ const router = createBrowserRouter([
         path: '/sign-in',
         Component: SignInPage,
       },
-
+   {
+            path:"userreports",
+            Component:MainReport
+            
+          } 
     ],
   },
 ]);
