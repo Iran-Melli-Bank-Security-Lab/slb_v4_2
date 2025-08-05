@@ -30,6 +30,7 @@ import UserReportDetails from './pages/UserReportDetails';
 import Tickets from './pages/Tickets';
 import TicketView from './pages/TicketView';
 import TicketList from './pages/TicketList';
+import Identifier from './pages/Identifier';
 
 const router = createBrowserRouter([
   {
@@ -119,7 +120,11 @@ const router = createBrowserRouter([
           //   path:"userreports",
           //   Component:MainReport
             
-          // }
+          // }, 
+          {
+            path:"projects/identifier/:projectId", 
+            Component:Identifier
+          }
 
         ],
       },
