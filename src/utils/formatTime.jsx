@@ -1,5 +1,5 @@
-// utils/formatTime.js
 export const formatTime = (totalSeconds) => {
+  totalSeconds = Math.max(0, Math.floor(totalSeconds)); // Ensure non-negative integer
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
