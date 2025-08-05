@@ -61,8 +61,6 @@ const DoProject = () => {
 <ProjcetStates statusComponents={statusComponents}/>
      
 
-      {/* <ProjectStatus/> */}
-
     
     </Container>
   );
