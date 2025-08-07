@@ -5,11 +5,11 @@ import {
 
 import BugsTable from "./bugTable/BugsTable";
 
-const InProgressContent = ({ progress }) => {
+const InProgressContent = () => {
   return (
     <Box>
      
-      <BugsTable projectManager="savadkuhi" />
+      <BugsTable  />
       
     </Box>
   );
