@@ -10,7 +10,7 @@ function Pfb1({ page , pageNumber }) {
 
     const [transform , setTransform ] = useState({})
 
-    console.log("before transform : " , page )
+    console.log("transform after line 13: " , transform  )
     
     useEffect(()=>{
        
