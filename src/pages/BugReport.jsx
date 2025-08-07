@@ -67,7 +67,7 @@ const SeverityBadge = ({ severity }) => {
 };
 
 const BugReportForm = () => {
-  const { label, id, projectId, projectManager } = useParams();
+  const { label ,id, projectId, projectManager } = useParams();
   const userId = useUserId();
   const [reports, setReports] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
