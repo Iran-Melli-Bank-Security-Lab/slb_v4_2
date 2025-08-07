@@ -35,6 +35,7 @@ import {
   Slider,
 } from "@mui/material";
 import { verifyReport } from "../api/bugs/verifyReport";
+import PersianDateWithTooltip from "../components/dateTime/PersainDate";
 
 const StatusBadge = ({ status }) => {
   const statusClasses = {
@@ -112,7 +113,7 @@ const ReportDetailsManager = () => {
   const handleActionSelect = (action) => {
     setSelectedAction(action);
     handleMenuClose();
-    
+
     if (action === "Need More Information") {
       setIsDialogOpen(true);
     } else {
@@ -128,18 +129,18 @@ const ReportDetailsManager = () => {
     if (score > 0) {
       message += ` and score: ${score}`;
     }
-    console.log("action in line 130 : " , action)
-    
-    await verifyReport(reportId , action )
+    console.log("action in line 130 : ", action);
+
+    await verifyReport(reportId, action);
     toast.success(message);
     // API call would go here to update the report status
     console.log({
       action,
       feedback: feedbackText,
       score,
-      reportId
+      reportId,
     });
-    
+
     // Reset states
     setSelectedAction(null);
     setFeedbackText("");
@@ -153,10 +154,13 @@ const ReportDetailsManager = () => {
 
   const actionItems = [
     { name: "New", icon: <BugReportIcon fontSize="small" /> },
-    { name: "Verified", icon: <CheckCircleIcon fontSize="small" /> },
+    { name: "Verify", icon: <CheckCircleIcon fontSize="small" /> },
     { name: "Duplicate", icon: <DuplicateIcon fontSize="small" /> },
     { name: "Not Applicable", icon: <NotApplicableIcon fontSize="small" /> },
-    { name: "Need More Information", icon: <NeedMoreInfoIcon fontSize="small" /> },
+    {
+      name: "Need More Information",
+      icon: <NeedMoreInfoIcon fontSize="small" />,
+    },
   ];
 
   useEffect(() => {
@@ -175,7 +179,6 @@ const ReportDetailsManager = () => {
     getReport();
   }, [reportId]);
 
-
   // Function to check if file is an image
   const isImageFile = (filename) => {
     return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filename);
@@ -188,10 +191,8 @@ const ReportDetailsManager = () => {
 
   // Function to handle file preview click
   const handleFilePreview = (fileUrl) => {
-    window.open(fileUrl, '_blank');
+    window.open(fileUrl, "_blank");
   };
-
-
 
   const renderRtlText = (text) => {
     if (!text) return null;
@@ -240,7 +241,7 @@ const ReportDetailsManager = () => {
         <div className="p-6">
           <div className="flex justify-between items-start mb-4">
             <h2 className="text-xl font-semibold text-gray-800">
-              {report.label}
+              {report.labelfa}
             </h2>
             <div className="flex space-x-2">
               <StatusBadge status={report.state} />
@@ -253,12 +254,10 @@ const ReportDetailsManager = () => {
               <span className="font-medium">CVSS:</span> {report.CVSS}
             </div>
             <div>
-              <span className="font-medium">CVE:</span>{" "}
-              {report.CVE || "N/A"}
+              <span className="font-medium">CVE:</span> {report.CVE || "N/A"}
             </div>
             <div>
-              <span className="font-medium">WSTG:</span>{" "}
-              {report.wstg || "N/A"}
+              <span className="font-medium">WSTG:</span> {report.wstg || "N/A"}
             </div>
           </div>
 
@@ -303,81 +302,97 @@ const ReportDetailsManager = () => {
               </div>
             )}
 
+            {report.pocs?.length > 0 && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">
+                  Proof of Concepts
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {report.pocs.map((poc, index) => {
+                    const backendURL =
+                      import.meta.env.VITE_API_URL || "http://localhost:4000";
+                    const fileUrl = backendURL + "/" + poc.path; // Handle both URL and File object
+                    const isImage = isImageFile(poc.originalname);
+                    const isVideo = isVideoFile(poc.originalname);
 
-  {report.pocs?.length > 0 && (
-    <div>
-      <h3 className="text-lg font-medium text-gray-800 mb-2">
-        Proof of Concepts
-      </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {report.pocs.map((poc, index) => {
-          const backendURL = import.meta.env.VITE_API_URL || "http://localhost:4000" ; 
-          const fileUrl = backendURL +"/" +poc.path  // Handle both URL and File object
-          const isImage = isImageFile(poc.originalname);
-          const isVideo = isVideoFile(poc.originalname);
+                    return (
+                      <div
+                        key={index}
+                        className="relative group cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
+                        onClick={() => handleFilePreview(fileUrl)}
+                      >
+                        {isImage ? (
+                          <div className="h-48 bg-gray-100 flex items-center justify-center">
+                            <img
+                              src={fileUrl}
+                              alt={poc.originalname}
+                              className="max-h-full max-w-full object-contain"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src =
+                                  "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EEE'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='12' fill='%23000' text-anchor='middle' dominant-baseline='middle'%3EImage%3C/text%3E%3C/svg%3E";
+                              }}
+                            />
+                          </div>
+                        ) : isVideo ? (
+                          <div className="h-48 bg-gray-100 flex items-center justify-center">
+                            <video
+                              className="h-full w-full object-contain"
+                              controls
+                            >
+                              <source
+                                src={fileUrl}
+                                type={`video/${poc.originalname.split(".").pop()}`}
+                              />
+                              Your browser does not support the video tag.
+                            </video>
+                          </div>
+                        ) : (
+                          <div className="h-48 bg-gray-100 flex flex-col items-center justify-center p-4">
+                            <CloudUploadIcon className="text-gray-400 text-4xl mb-2" />
+                            <span className="text-sm text-gray-600 text-center truncate w-full">
+                              {poc.originalname}
+                            </span>
+                          </div>
+                        )}
 
-          return (
-            <div 
-              key={index}
-              className="relative group cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
-              onClick={() => handleFilePreview(fileUrl)}
-            >
-              {isImage ? (
-                <div className="h-48 bg-gray-100 flex items-center justify-center">
-                  <img
-                    src={fileUrl}
-                    alt={poc.originalname}
-                    className="max-h-full max-w-full object-contain"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EEE'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='12' fill='%23000' text-anchor='middle' dominant-baseline='middle'%3EImage%3C/text%3E%3C/svg%3E";
-                    }}
-                  />
-                </div>
-              ) : isVideo ? (
-                <div className="h-48 bg-gray-100 flex items-center justify-center">
-                  <video className="h-full w-full object-contain" controls>
-                    <source src={fileUrl} type={`video/${poc.originalname.split('.').pop()}`} />
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-              ) : (
-                <div className="h-48 bg-gray-100 flex flex-col items-center justify-center p-4">
-                  <CloudUploadIcon className="text-gray-400 text-4xl mb-2" />
-                  <span className="text-sm text-gray-600 text-center truncate w-full">
-                    {poc.originalname}
-                  </span>
-                </div>
-              )}
-              
-              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
-                <div className="bg-white bg-opacity-90 rounded-full p-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-200">
-                  <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
+                          <div className="bg-white bg-opacity-90 rounded-full p-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-200">
+                            <svg
+                              className="w-6 h-6 text-gray-700"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-white">
+                          <div className="flex items-center">
+                            <span className="text-sm font-medium text-gray-800 truncate">
+                              {poc.originalname}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-1">
+                            {poc.size
+                              ? `${(poc.size / 1024).toFixed(1)} KB`
+                              : "Size not available"}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-              
-              <div className="p-3 bg-white">
-                <div className="flex items-center">
-                  <span className="text-sm font-medium text-gray-800 truncate">
-                    {poc.originalname}
-                  </span>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {poc.size ? `${(poc.size / 1024).toFixed(1)} KB` : 'Size not available'}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  )}
-
-
-
-            
+            )}
 
             {report.path && (
               <div className="text-sm text-gray-600">
@@ -421,9 +436,7 @@ const ReportDetailsManager = () => {
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  <span className="font-medium">
-                    Web Server Settings:
-                  </span>{" "}
+                  <span className="font-medium">Web Server Settings:</span>{" "}
                   {report.securingByOptions.webServerSettings ? (
                     <span className="text-green-600">Yes</span>
                   ) : (
@@ -442,9 +455,7 @@ const ReportDetailsManager = () => {
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
                   <span className="font-medium">WAF Possibility:</span>{" "}
-                  <span className="text-blue-600">
-                    {report.securingByWAF}
-                  </span>
+                  <span className="text-blue-600">{report.securingByWAF}</span>
                 </div>
               </div>
             </div>
@@ -471,14 +482,9 @@ const ReportDetailsManager = () => {
                     />
                   </svg>
                   <div>
-                    <span className="font-medium text-gray-700">
-                      Created:{" "}
-                    </span>
+                    <span className="font-medium text-gray-700">Created: </span>
                     <span>
-                      {format(
-                        new Date(report.created_at),
-                        "MMM dd, yyyy HH:mm"
-                      )}
+                      <PersianDateWithTooltip date={report.created_at} />
                     </span>
                   </div>
                 </div>
@@ -500,18 +506,14 @@ const ReportDetailsManager = () => {
                     />
                   </svg>
                   <div>
-                    <span className="font-medium text-gray-700">
-                      Updated:{" "}
-                    </span>
+                    <span className="font-medium text-gray-700">Updated: </span>
                     <span>
-                      {format(
-                        new Date(report.updated_at),
-                        "MMM dd, yyyy HH:mm"
-                      )}
+                      <PersianDateWithTooltip date={report.updated_at} />
                     </span>
                   </div>
                 </div>
               )}
+              {console.log("report line 516 : " , report )}
             </div>
 
             <div>
@@ -532,8 +534,8 @@ const ReportDetailsManager = () => {
                 onClose={handleMenuClose}
               >
                 {actionItems.map((item) => (
-                  <MenuItem 
-                    key={item.name} 
+                  <MenuItem
+                    key={item.name}
                     onClick={() => handleActionSelect(item.name)}
                   >
                     <ListItemIcon>{item.icon}</ListItemIcon>
@@ -547,14 +549,20 @@ const ReportDetailsManager = () => {
       </div>
 
       {/* Feedback Dialog */}
-      <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Provide Additional Information</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2, mb: 4 }}>
             <Typography variant="body1" gutterBottom>
-              You're requesting more information for report: <strong>{report.label}</strong>
+              You're requesting more information for report:{" "}
+              <strong>{report.label}</strong>
             </Typography>
-            
+
             <TextField
               autoFocus
               margin="dense"
@@ -570,15 +578,13 @@ const ReportDetailsManager = () => {
               onChange={(e) => setFeedbackText(e.target.value)}
               sx={{ mt: 3 }}
             />
-            
-         
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsDialogOpen(false)} color="secondary">
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={() => {
               if (!feedbackText.trim()) {
                 toast.warning("Please provide feedback before submitting");
