@@ -410,7 +410,7 @@ const BugTable = () => {
   };
 
 const handleRadioChange = async (item, value) => {
-  const { id, label , wstg  } = item;
+  const { id, label , wstg , labelfa  } = item;
 
 
   
@@ -430,7 +430,8 @@ const handleRadioChange = async (item, value) => {
    // If "failed", open new tab with query params
     if (value === 'failed') {
       const encodedLabel = encodeURIComponent(label);
-      const url = `/bugReportForm/${id}/${wstg}/${encodedLabel}/${projectId}/${projectManager}`;
+      const encodedLabelfa = encodeURIComponent(labelfa);
+      const url = `/bugReportForm/${id}/${wstg}/${encodedLabel}/${encodedLabelfa}/${projectId}/${projectManager}`;
       window.open(url, '_blank');
     }
 
@@ -575,7 +576,9 @@ const handleSelectAll = async () => {
           key={`edit-${item.id}`}
           onClick={() => {
             const encodedLabel = encodeURIComponent(item.label);
-            const url = `/bugReportForm/${item.id}/${item.wstg}/${encodedLabel}/${projectId}/${projectManager}`;
+                  const encodedLabelfa = encodeURIComponent(item.labelfa);
+
+            const url = `/bugReportForm/${item.id}/${item.wstg}/${encodedLabel}/${encodedLabelfa}/${projectId}/${projectManager}`;
             window.open(url, '_blank');
           }}
         >
