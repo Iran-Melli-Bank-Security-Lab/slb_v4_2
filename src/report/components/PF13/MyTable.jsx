@@ -2,9 +2,9 @@ import React from 'react';
 import getColor from '../../utils/getColor';
 import { getMaxCvssValue } from '../../utils/getMaxCvssValue';
 
-const MyTable = ({ data, className = "cy291" }) => {
+const MyTable =  ({ data, className = "cy291" }) => {
 
-  console.log("line7: " ,data  )
+  console.log("line7: " , data  )
   let borderTopColor
   const maxCvss = parseFloat(getMaxCvssValue(data))
 
@@ -17,10 +17,8 @@ const MyTable = ({ data, className = "cy291" }) => {
     borderTopColor = getColor(maxCvss)
 
   } else if (maxCvss >= 0.1 && maxCvss <= 3.9) {
-    console.log("line 11 max : ", maxCvss)
 
     borderTopColor = getColor(maxCvss)
-    console.log("line 11 max : ", borderTopColor)
 
   } else if (maxCvss === 0.0) {
     borderTopColor = getColor(maxCvss)
@@ -52,9 +50,8 @@ const MyTable = ({ data, className = "cy291" }) => {
           </tr>
         </thead>
         <tbody >
-          {data.map((row, index) => (
+          {data?.map((row, index) => (
             <tr key={index} style={{ backgroundColor: `${row.state === "FAILE" ? getColor(parseFloat(row.cvss)) : (index % 2 === 0 ? '#D7D7D7' : '#FFF')} ` }}>
-
               <td style={{ height: '35pt', width: '36pt', textAlign: 'center', verticalAlign: 'middle' }}>
                 <p style={{ color: `${parseFloat(row.cvss) >= 0.1 && parseFloat(row.cvss) <= 3.9 ? "#000000" : "#ffffff"}`, fontWeight: "bold" }} className="s15">{row.page}</p>
               </td>
