@@ -12,6 +12,7 @@ const colors = [{ "severity": "C", "color": "#C00000" },
 
 const SummaryManagement = ({ pages }) => {
 
+  console.log("in summery management line 15 : " , pages)
 
   return (
     <table style={{ borderCollapse: 'collapse', marginLeft: '21.824pt' , backgroundColor:"#111111" }} cellSpacing="0">
@@ -94,7 +95,7 @@ const SummaryManagement = ({ pages }) => {
         </tr>
 
         {pages?.bugs?.map((page, key) => {
-
+console.log("page in SummerayManagement line 98  : ", page , key )
           if (parseFloat(page?.cvss) >= 9.0 && parseFloat(page?.cvss) <= 10.0) {
 
             return <TableRow key={key} bgcolor="#C00000" severity="C" bugName={page.labelfa} cvssScore={page.cvss} page={page.page} />
