@@ -76,7 +76,7 @@ const router = createBrowserRouter([
             
           }, 
           {
-            path:"bugReportForm/:id/:wstg/:label/:projectId/:projectManager",
+            path:"bugReportForm/:id/:wstg/:label/:labelfa/:projectId/:projectManager",
             Component:BugReport
             
           },
