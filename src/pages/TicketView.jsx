@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { getUsers } from "../api/users/getUsers";
 import { useParams } from "react-router";
 import { getTicket } from "../api/ticket/getTicket";
@@ -6,28 +6,20 @@ import { useUserId } from "../hooks/useUserId";
 import { useSession } from "../SessionContext";
 import { postComment } from "../api/ticket/postComment";
 import { getComments } from "../api/ticket/getComments";
-import { useSocket } from '../context/SocketContext';
-
-
+import { useSocket } from "../context/SocketContext";
+import PersianDateWithTooltip from "../components/dateTime/PersainDate";
+import { FaCheck, FaCheckDouble } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 const TicketView = () => {
   const { ticketId } = useParams();
-  console.log("ticketId from useParam  : ", ticketId);
   const [allUsers, setAllUsers] = useState([]);
   const [ticket, setTicket] = useState([]);
   // const [currentUser , setCurrentUser ] = useState({})
   const [comments, setComments] = useState([]);
   const userId = useUserId();
   const { user } = useSession().session;
-  console.log("session in line 16 : ", user);
-  // Sample data
-  const currentUser = {
-    _id: userId,
-    name: user.firstName + " " + user.lastName,
-    avatar: BASE_URL + "/" + user.image,
-  };
 
   const [commentText, setCommentText] = useState("");
   const [commentFiles, setCommentFiles] = useState([]);
@@ -37,48 +29,59 @@ const TicketView = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const socket = useSocket();
 
-  // Helper function to get user info by ID
-  const getUserById = (userId) => {
-  
+  const currentUser = useMemo(
+    () => ({
+      _id: userId,
+      name: user.firstName + " " + user.lastName,
+      avatar: BASE_URL + "/" + user.image,
+    }),
+    [userId, user]
+  );
 
-    const user = allUsers?.find((user) => user._id === userId);
-    if (!user)
-      return {
-        _id: userId,
-        name: "کاربر ناشناس",
-        avatar: "https://i.pravatar.cc/150?img=0",
-        role: "نقش نامشخص",
-      };
-    console.log("in line 72 : ", user);
-    return {
-      ...user,
-      avatar: user.profileImageUrl
-        ? `${BASE_URL}/${user.profileImageUrl}`
-        : "https://i.pravatar.cc/150?img=0",
-    };
+ const userMap = useMemo(() => {
+  const map = new Map();
+  allUsers?.forEach(user => map.set(user._id, user));
+  return map;
+}, [allUsers]);
+
+const getUserById = useCallback((userId) => {
+  const user = userMap.get(userId);
+  if (!user) return {
+    _id: userId,
+    name: "کاربر ناشناس",
+    avatar: "https://i.pravatar.cc/150?img=0",
+    role: "نقش نامشخص",
   };
 
-const getNotificationRecipients = () => {
-  const recipients = new Set();
-  
-  // اضافه کردن گزارش‌دهنده (reporter)
-  if (ticket.reporter) recipients.add(ticket.reporter);
-  
-  // اضافه کردن کاربر هدف (targetUser)
-  if (ticket.targetUser) recipients.add(ticket.targetUser);
-  
-  // اضافه کردن کاربران اختصاص داده شده (assignedTo)
-  if (ticket.assignedTo) recipients.add(ticket.assignedTo);
-  
-  // اضافه کردن مشارکت‌کنندگان
-  ticket.participants?.forEach(p => recipients.add(p.user));
-  
-  // حذف کاربر فعلی از لیست (چون خودش کامنت را ارسال کرده)
-  recipients.delete(currentUser._id);
-  
-  return Array.from(recipients);
-};
+  return {
+    ...user,
+    avatar: user.profileImageUrl
+      ? `${BASE_URL}/${user.profileImageUrl}`
+      : "https://i.pravatar.cc/150?img=0",
+  };
+}, [userMap]);
 
+
+  const getNotificationRecipients = () => {
+    const recipients = new Set();
+
+    // اضافه کردن گزارش‌دهنده (reporter)
+    if (ticket.reporter) recipients.add(ticket.reporter);
+
+    // اضافه کردن کاربر هدف (targetUser)
+    if (ticket.targetUser) recipients.add(ticket.targetUser);
+
+    // اضافه کردن کاربران اختصاص داده شده (assignedTo)
+    if (ticket.assignedTo) recipients.add(ticket.assignedTo);
+
+    // اضافه کردن مشارکت‌کنندگان
+    ticket.participants?.forEach((p) => recipients.add(p.user));
+
+    // حذف کاربر فعلی از لیست (چون خودش کامنت را ارسال کرده)
+    recipients.delete(currentUser._id);
+
+    return Array.from(recipients);
+  };
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
@@ -94,24 +97,20 @@ const getNotificationRecipients = () => {
 
     try {
       const newComment = await postComment(formData);
-      console.log("new Comment : ", newComment);
 
-
-
-    socket.emit('newComment', {
-      comment: newComment,
-      ticket: ticket._id,
-      ticketId : ticket.ticketId , 
-      recipients: getNotificationRecipients()
-    });
+      socket.emit("newComment", {
+        comment: newComment,
+        ticket: ticket._id,
+        ticketId: ticket.ticketId,
+        recipients: getNotificationRecipients(),
+      });
 
       setComments((prev) => [...prev, newComment]);
-         setCommentText("");
-         setCommentFiles([]);
+      setCommentText("");
+      setCommentFiles([]);
     } catch (error) {
       console.error("خطا در ارسال کامنت:", error);
     }
-
   };
 
   const handleToggleStatus = (action) => {
@@ -150,6 +149,7 @@ const getNotificationRecipients = () => {
   };
 
   const toggleUserSelection = (user) => {
+    console.log("re-render ######################################## ")
     setSelectedUsers((prev) => {
       const isSelected = prev?.some((u) => u._id === user._id);
       if (isSelected) {
@@ -160,41 +160,72 @@ const getNotificationRecipients = () => {
     });
   };
 
-  const filteredUsers = allUsers?.filter(
-    (user) =>
-      user._id !== currentUser._id &&
-      user._id !== ticket?.reporter &&
-      user._id !== ticket?.targetUser &&
-      user._id !== ticket?.assignedTo &&
-      !ticket?.participants?.some((p) => String(p.user) === String(user._id)) &&
-      (user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.role?.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  // const filteredUsers = allUsers?.filter(
+  //   (user) =>
+  //     user._id !== currentUser._id &&
+  //     user._id !== ticket?.reporter &&
+  //     user._id !== ticket?.targetUser &&
+  //     user._id !== ticket?.assignedTo &&
+  //     !ticket?.participants?.some((p) => String(p.user) === String(user._id)) &&
+  //     (user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //       user.role?.toLowerCase().includes(searchTerm.toLowerCase()))
+  // );
 
   // Get reporter info
-  const reporterInfo = getUserById(ticket?.reporter);
+  // const reporterInfo = getUserById(ticket?.reporter);
+
+  const filteredUsers = useMemo(
+    () =>
+      allUsers?.filter(
+        (user) =>
+          user._id !== currentUser._id &&
+          user._id !== ticket?.reporter &&
+          user._id !== ticket?.targetUser &&
+          user._id !== ticket?.assignedTo &&
+          !ticket?.participants?.some(
+            (p) => String(p.user) === String(user._id)
+          ) &&
+          (user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.role?.toLowerCase().includes(searchTerm.toLowerCase()))
+      ),
+    [ticket, allUsers, searchTerm, currentUser._id]
+  );
+
+  const reporterInfo = useMemo(
+    () => getUserById(ticket?.reporter),
+    [ticket?.reporter, allUsers]
+  );
+
   // Get target user info
-  const targetUserInfo = getUserById(ticket?.targetUser);
+  // const targetUserInfo = getUserById(ticket?.targetUser);
+  const targetUserInfo = useMemo(
+    () => getUserById(ticket?.targetUser),
+    [ticket?.targetUser, allUsers]
+  );
+
   // Get assigned user info
-  const assignedToInfo = ticket?.assignedTo
-    ? getUserById(ticket?.assignedTo)
-    : null;
+  // const assignedToInfo = ticket?.assignedTo
+  //   ? getUserById(ticket?.assignedTo)
+  //   : null;
+
+  const assignedToInfo = useMemo(
+    () => (ticket?.assignedTo ? getUserById(ticket?.assignedTo) : null),
+    [ticket?.assignedTo, allUsers]
+  );
 
   useEffect(() => {
     const fetchUsers = async () => {
       const result = await getUsers();
-      console.log("users in line 11 : ", result?.users);
+
       setAllUsers(result?.users);
     };
     const fetchTicket = async () => {
       const result = await getTicket(ticketId);
-      console.log("result in lin 21  : ", result);
       setTicket(result);
     };
     const fetchComments = async () => {
       const result = await getComments(ticketId);
 
-      console.log("result of comments : ", result);
       setComments(result.comments);
     };
     fetchUsers();
@@ -202,33 +233,41 @@ const getNotificationRecipients = () => {
     fetchComments();
   }, [ticketId]);
 
-useEffect(() => {
-  if (!socket) return;
+  useEffect(() => {
+    if (!socket) return;
 
-  // Join ticket room when component mounts
+    // Join ticket room when component mounts
 
-  const handleNewComment = (newComment) => {
-    setComments(prev => {
-      // Check if comment already exists to prevent duplicates
-      if (!prev.some(c => c._id === newComment._id)) {
-        return [...prev, newComment];
-      }
-      return prev;
-    });
-  };
+    const handleNewComment = (newComment) => {
+      setComments((prev) => {
+        // Check if comment already exists to prevent duplicates
+        if (!prev.some((c) => c._id === newComment._id)) {
+          return [...prev, newComment];
+        }
+        return prev;
+      });
+    };
 
-  socket.on('newComment', handleNewComment);
+    socket.on("newComment", handleNewComment);
 
-  return () => {
-    // Clean up listener and leave room when component unmounts
-    socket.off('newComment', handleNewComment);
-  };
-}, [socket]);
+    return () => {
+      // Clean up listener and leave room when component unmounts
+      socket.off("newComment", handleNewComment);
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    socket.emit("ticket:join", { ticketId });
+
+    return () => {
+      socket.emit("ticket:leave", { ticketId });
+    };
+  }, [ticketId]);
 
   return (
     <div
       dir="rtl"
-className="max-w-[900px] mx-50 p-4 md:p-6 bg-white rounded-xl shadow-lg space-y-6"
+      className="max-w-[900px] mx-50 p-4 md:p-6 bg-white rounded-xl shadow-lg space-y-6"
     >
       {/* Ticket Header */}
       <div className="border-b pb-4 border-gray-200">
@@ -238,9 +277,15 @@ className="max-w-[900px] mx-50 p-4 md:p-6 bg-white rounded-xl shadow-lg space-y-
               {ticket?.title}
             </h2>
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>ایجاد شده در: {ticket.createdAt}</span>
-              <span>•</span>
-              <span>آخرین بروزرسانی: {ticket.updatedAt}</span>
+              <span>
+                ایجاد شده در:{" "}
+                <PersianDateWithTooltip
+                  date={ticket.createdAt}
+                  shortFormat="jD jMMMM jYYYY ساعت HH:mm"
+                />
+              </span>
+              {/* <span>•</span>
+              <span>آخرین بروزرسانی:<PersianDateWithTooltip date={ticket.updatedAt} /> </span> */}
             </div>
           </div>
           <div
@@ -339,7 +384,6 @@ className="max-w-[900px] mx-50 p-4 md:p-6 bg-white rounded-xl shadow-lg space-y-
                           className={`flex items-center p-2 rounded-lg cursor-pointer ${selectedUsers?.some((u) => u._id === user._id) ? "bg-blue-50" : "hover:bg-gray-100"}`}
                           onClick={() => toggleUserSelection(user)}
                         >
-                          {console.log("user in line 305: ", user)}
                           <img
                             src={BASE_URL + "/" + user.profileImageUrl}
                             alt={user.firstName}
@@ -567,6 +611,7 @@ className="max-w-[900px] mx-50 p-4 md:p-6 bg-white rounded-xl shadow-lg space-y-
           {comments?.map((comment) => {
             const commentUser = getUserById(comment.user);
             const isCurrentUser = comment.user === currentUser._id;
+            const isRead = comment.readBy && comment.readBy.length > 0; // فرض می‌کنیم یک فیلد readBy در کامنت وجود دارد
 
             return (
               <div
@@ -585,17 +630,19 @@ className="max-w-[900px] mx-50 p-4 md:p-6 bg-white rounded-xl shadow-lg space-y-
 
                   {/* محتوای کامنت */}
                   <div
-                    className={`p-4 rounded-2xl ${
+                    className={`pr-3 pb-2 p-4 rounded-2xl ${
                       isCurrentUser
                         ? "bg-blue-50 rounded-tl-none ml-3"
                         : "bg-gray-100 rounded-tr-none mr-3"
                     }`}
                   >
                     {/* اطلاعات کاربر و تاریخ */}
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-semibold">{commentUser.name}</h4>
+                    <div className="flex flex-col mb-2">
+                      <h5 className="font-semibold">
+                        {commentUser.firstName} {commentUser.lastName}{" "}
+                      </h5>
                       <span className="text-xs text-gray-500">
-                        {comment.createdAt}
+                        <PersianDateWithTooltip date={comment.createdAt} />
                       </span>
                     </div>
 
@@ -625,6 +672,23 @@ className="max-w-[900px] mx-50 p-4 md:p-6 bg-white rounded-xl shadow-lg space-y-
                         ))}
                       </div>
                     )}
+
+                    {/* تیک‌های وضعیت */}
+                    {isCurrentUser && (
+                      <div className="pb-0 text-xs flex items-center">
+                        {isRead ? (
+                          <FaCheckDouble
+                            className="text-blue-500 ml-1"
+                            size={12}
+                          />
+                        ) : (
+                          <FaCheck
+                            className=" mt-3 mb-0 pb-0  text-gray-400 ml-1"
+                            size={12}
+                          />
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -649,7 +713,8 @@ className="max-w-[900px] mx-50 p-4 md:p-6 bg-white rounded-xl shadow-lg space-y-
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="نظر خود را بنویسید..."
                     rows="3"
-className="min-w-full w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"                  ></textarea>
+                    className="min-w-full w-full border border-gray-300 p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-right"
+                  ></textarea>
                 </div>
               </div>
 
