@@ -38,7 +38,7 @@ const DoProject = () => {
   const statusComponents = {
     Open: <OpenStatusContent />,
     Pending: <PendingStatusContent />,
-    "In-Progress": <InProgressContent progress={0} />,
+    "In-Progress": <InProgressContent  />,
     Finish: <FinishStatusContent />,
   };
 
