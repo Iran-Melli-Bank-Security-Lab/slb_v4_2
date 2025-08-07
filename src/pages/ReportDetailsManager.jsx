@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import { fetchReportById } from "../api/bugs/fetchReport";
 import { useUserId } from "../hooks/useUserId";
+import { verifyReport } from "../api/bugs/verifyReport";
+import PersianDateWithTooltip from "../components/dateTime/PersainDate";
 
+// Icons
 import {
   BugReport as BugReportIcon,
   CheckCircle as CheckCircleIcon,
@@ -15,9 +18,13 @@ import {
   ContentCopy as DuplicateIcon,
   NotInterested as NotApplicableIcon,
   HelpOutline as NeedMoreInfoIcon,
+  Close as CloseIcon,
+  Star as StarIcon,
+  StarBorder as StarBorderIcon,
+  ChatBubbleOutline as CommentIcon,
 } from "@mui/icons-material";
-import { format } from "date-fns";
-import { toast } from "react-toastify";
+
+// MUI Components
 import {
   Menu,
   MenuItem,
@@ -33,61 +40,87 @@ import {
   Box,
   Typography,
   Slider,
+  Chip,
+  Avatar,
+  Divider,
+  Tooltip,
+  CircularProgress,
+  Badge,
 } from "@mui/material";
-import { verifyReport } from "../api/bugs/verifyReport";
-import PersianDateWithTooltip from "../components/dateTime/PersainDate";
+
+import { styled } from "@mui/material/styles";
+import { toast } from "react-toastify";
+
+// Styled Components
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    right: -3,
+    top: 13,
+    border: `2px solid ${theme.palette.background.paper}`,
+    padding: '0 4px',
+  },
+}));
+
+const SeverityIndicator = styled('div')(({ severity, theme }) => {
+  const colorMap = {
+    Critical: theme.palette.error.main,
+    High: theme.palette.warning.dark,
+    Medium: theme.palette.warning.main,
+    Low: theme.palette.success.main,
+  };
+  return {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    backgroundColor: colorMap[severity] || theme.palette.grey[500],
+    marginRight: theme.spacing(1),
+    display: 'inline-block',
+  };
+});
 
 const StatusBadge = ({ status }) => {
-  const statusClasses = {
-    New: "bg-blue-100 text-blue-800 border-blue-300",
-    Pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
-    Verified: "bg-green-100 text-green-800 border-green-300",
-    Duplicate: "bg-purple-100 text-purple-800 border-purple-300",
-    "Not Applicable": "bg-gray-100 text-gray-800 border-gray-300",
-    "Need More Information": "bg-orange-100 text-orange-800 border-orange-300",
-  };
-
-  const statusIcons = {
-    New: <BugReportIcon className="w-4 h-4 mr-1" />,
-    Pending: <PendingIcon className="w-4 h-4 mr-1" />,
-    Verified: <CheckCircleIcon className="w-4 h-4 mr-1" />,
-    Duplicate: <DuplicateIcon className="w-4 h-4 mr-1" />,
-    "Not Applicable": <NotApplicableIcon className="w-4 h-4 mr-1" />,
-    "Need More Information": <NeedMoreInfoIcon className="w-4 h-4 mr-1" />,
+  const statusColors = {
+    New: { bg: '#e3f2fd', text: '#1565c0', icon: <BugReportIcon fontSize="small" /> },
+    Pending: { bg: '#fff8e1', text: '#ff8f00', icon: <PendingIcon fontSize="small" /> },
+    Verified: { bg: '#e8f5e9', text: '#2e7d32', icon: <CheckCircleIcon fontSize="small" /> },
+    Duplicate: { bg: '#f3e5f5', text: '#7b1fa2', icon: <DuplicateIcon fontSize="small" /> },
+    "Not Applicable": { bg: '#efebe9', text: '#4e342e', icon: <NotApplicableIcon fontSize="small" /> },
+    "Need More Information": { bg: '#fff3e0', text: '#e65100', icon: <NeedMoreInfoIcon fontSize="small" /> },
   };
 
   return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${statusClasses[status]}`}
-    >
-      {statusIcons[status]}
-      {status}
-    </span>
+    <Chip
+      icon={statusColors[status]?.icon}
+      label={status}
+      sx={{
+        backgroundColor: statusColors[status]?.bg,
+        color: statusColors[status]?.text,
+        fontWeight: 600,
+        px: 1,
+      }}
+    />
   );
 };
 
 const SeverityBadge = ({ severity }) => {
-  const severityClasses = {
-    Low: "bg-green-100 text-green-800",
-    Medium: "bg-yellow-100 text-yellow-800",
-    High: "bg-orange-100 text-orange-800",
-    Critical: "bg-red-100 text-red-800",
-  };
-
-  const severityIcons = {
-    Low: <InfoIcon className="w-4 h-4 mr-1" />,
-    Medium: <WarningIcon className="w-4 h-4 mr-1" />,
-    High: <WarningIcon className="w-4 h-4 mr-1" />,
-    Critical: <ErrorIcon className="w-4 h-4 mr-1" />,
+  const severityColors = {
+    Critical: { bg: '#ffebee', text: '#c62828', icon: <ErrorIcon fontSize="small" /> },
+    High: { bg: '#fff3e0', text: '#e65100', icon: <WarningIcon fontSize="small" /> },
+    Medium: { bg: '#fff8e1', text: '#ff8f00', icon: <WarningIcon fontSize="small" /> },
+    Low: { bg: '#e8f5e9', text: '#2e7d32', icon: <InfoIcon fontSize="small" /> },
   };
 
   return (
-    <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${severityClasses[severity]}`}
-    >
-      {severityIcons[severity]}
-      {severity}
-    </span>
+    <Chip
+      icon={severityColors[severity]?.icon}
+      label={severity}
+      sx={{
+        backgroundColor: severityColors[severity]?.bg,
+        color: severityColors[severity]?.text,
+        fontWeight: 600,
+        px: 1,
+      }}
+    />
   );
 };
 
@@ -99,22 +132,23 @@ const ReportDetailsManager = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedAction, setSelectedAction] = useState(null);
   const [feedbackText, setFeedbackText] = useState("");
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState(50); // Default to 50
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState(null);
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  // Menu handlers
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   const handleActionSelect = (action) => {
     setSelectedAction(action);
     handleMenuClose();
 
     if (action === "Need More Information") {
+      setDialogType('needInfo');
+      setIsDialogOpen(true);
+    } else if (action === "Verify") {
+      setDialogType('verify');
       setIsDialogOpen(true);
     } else {
       handleAction(action);
@@ -122,45 +156,54 @@ const ReportDetailsManager = () => {
   };
 
   const handleAction = async (action) => {
-    let message = `Report status changed to "${action}"`;
-    if (action === "Need More Information") {
-      message += ` with feedback: ${feedbackText}`;
-    }
-    if (score > 0) {
-      message += ` and score: ${score}`;
-    }
-    console.log("action in line 130 : ", action);
+    try {
+      setIsLoading(true);
+      const payload = {
+        state: action,
+        id:reportId,
+      };
 
-    await verifyReport(reportId, action);
-    toast.success(message);
-    // API call would go here to update the report status
-    console.log({
-      action,
-      feedback: feedbackText,
-      score,
-      reportId,
-    });
+      if (action === "Need More Information") {
 
-    // Reset states
-    setSelectedAction(null);
-    setFeedbackText("");
-    setScore(0);
-    setIsDialogOpen(false);
+ if (!feedbackText.trim()) {
+          toast.warning('Please provide feedback before submitting');
+          return;
+        }
+        payload.feedback = feedbackText;
+
+
+      } else if (action === "Verify") {
+        payload.score = score;
+        payload.comments = feedbackText;
+      }
+
+      await verifyReport(payload);
+      toast.success(`Report marked as "${action}" successfully`);
+
+      // Refresh report data
+      const updatedReport = await fetchReportById(reportId);
+      setReport(updatedReport);
+    } catch (error) {
+      console.error("Error updating report:", error);
+      toast.error(`Failed to update report: ${error.message}`);
+    } finally {
+      setSelectedAction(null);
+      setFeedbackText("");
+      setScore(0);
+      setIsDialogOpen(false);
+      setDialogType(null);
+      setIsLoading(false);
+    }
   };
 
-  const handleScoreChange = (event, newValue) => {
-    setScore(newValue);
-  };
+  const handleScoreChange = (event, newValue) => setScore(newValue);
 
   const actionItems = [
     { name: "New", icon: <BugReportIcon fontSize="small" /> },
     { name: "Verify", icon: <CheckCircleIcon fontSize="small" /> },
     { name: "Duplicate", icon: <DuplicateIcon fontSize="small" /> },
     { name: "Not Applicable", icon: <NotApplicableIcon fontSize="small" /> },
-    {
-      name: "Need More Information",
-      icon: <NeedMoreInfoIcon fontSize="small" />,
-    },
+    { name: "Need More Information", icon: <NeedMoreInfoIcon fontSize="small" /> },
   ];
 
   useEffect(() => {
@@ -171,7 +214,7 @@ const ReportDetailsManager = () => {
         setReport(result);
       } catch (error) {
         console.error("Error fetching report:", error);
-        toast.error("Failed to load report");
+        toast.error("Failed to load report details");
       } finally {
         setIsLoading(false);
       }
@@ -179,427 +222,692 @@ const ReportDetailsManager = () => {
     getReport();
   }, [reportId]);
 
-  // Function to check if file is an image
-  const isImageFile = (filename) => {
-    return /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filename);
-  };
-
-  // Function to check if file is a video
-  const isVideoFile = (filename) => {
-    return /\.(mp4|webm|ogg|mov|avi)$/i.test(filename);
-  };
-
-  // Function to handle file preview click
-  const handleFilePreview = (fileUrl) => {
-    window.open(fileUrl, "_blank");
-  };
+  // File type checkers
+  const isImageFile = (filename) => /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(filename);
+  const isVideoFile = (filename) => /\.(mp4|webm|ogg|mov|avi)$/i.test(filename);
+  const handleFilePreview = (fileUrl) => window.open(fileUrl, "_blank");
 
   const renderRtlText = (text) => {
     if (!text) return null;
-
     return (
-      <div
-        dir="rtl"
-        className="text-right whitespace-pre-line bg-gray-50 p-3 rounded-lg border border-gray-200"
-      >
+      <Box dir="rtl" sx={{ 
+        textAlign: 'right', 
+        whiteSpace: 'pre-line', 
+        bgcolor: 'background.paper', 
+        p: 2, 
+        borderRadius: 1,
+        border: '1px solid',
+        borderColor: 'divider'
+      }}>
         {text.split("\n").map((line, i) => (
           <React.Fragment key={i}>
             {line}
             <br />
           </React.Fragment>
         ))}
-      </div>
+      </Box>
     );
   };
 
-  if (isLoading) {
+  if (isLoading && !report) {
     return (
-      <div className="flex justify-center my-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+      <Box sx={{ display: 'flex', justifyContent: 'center', my: 8 }}>
+        <CircularProgress size={60} thickness={4} />
+      </Box>
     );
   }
 
   if (!report) {
     return (
-      <div className="flex flex-col items-center justify-center h-64">
-        <p className="mt-4 text-gray-600">Report not found.</p>
-      </div>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '50vh',
+        textAlign: 'center'
+      }}>
+        <ErrorIcon color="error" sx={{ fontSize: 60, mb: 2 }} />
+        <Typography variant="h6" color="textSecondary">
+          Report not found or unable to load
+        </Typography>
+        <Button variant="outlined" sx={{ mt: 2 }} onClick={() => window.location.reload()}>
+          Refresh Page
+        </Button>
+      </Box>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-6 px-4 relative">
-      <div className="flex items-center mb-6">
-        <BugReportIcon className="text-red-500 mr-2" />
-        <h1 className="text-2xl font-bold text-gray-800">
-          Bug Report: {report.label}
-        </h1>
-      </div>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', py: 4, px: { xs: 2, sm: 4 } }}>
+      {/* Header Section */}
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        mb: 4,
+        p: 3,
+        bgcolor: 'background.paper',
+        borderRadius: 2,
+        boxShadow: 1
+      }}>
+        <BugReportIcon color="error" sx={{ fontSize: 40, mr: 2 }} />
+        <Box sx={{ flexGrow: 1 }}>
+          <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+            {report.label}
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            {report.labelfa}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <StatusBadge status={report.state} />
+          <SeverityBadge severity={report.severity} />
+        </Box>
+      </Box>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              {report.labelfa}
-            </h2>
-            <div className="flex space-x-2">
-              <StatusBadge status={report.state} />
-              <SeverityBadge severity={report.severity} />
-            </div>
-          </div>
+      {/* Main Content */}
+      <Box sx={{ 
+        display: 'grid', 
+        gridTemplateColumns: { md: '3fr 1fr' }, 
+        gap: 4 
+      }}>
+        {/* Left Column - Report Details */}
+        <Box sx={{ 
+          bgcolor: 'background.paper', 
+          borderRadius: 2, 
+          boxShadow: 1,
+          p: 4 
+        }}>
+          {/* Basic Info */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Description
+            </Typography>
+            <Typography variant="body1" paragraph>
+              {report.description}
+            </Typography>
+          </Box>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 text-sm text-gray-600">
-            <div>
-              <span className="font-medium">CVSS:</span> {report.CVSS}
-            </div>
-            <div>
-              <span className="font-medium">CVE:</span> {report.CVE || "N/A"}
-            </div>
-            <div>
-              <span className="font-medium">WSTG:</span> {report.wstg || "N/A"}
-            </div>
-          </div>
+          {/* Metadata Grid */}
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { sm: 'repeat(3, 1fr)' }, 
+            gap: 2,
+            mb: 4,
+            '& > div': {
+              p: 2,
+              bgcolor: 'action.hover',
+              borderRadius: 1
+            }
+          }}>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">CVSS</Typography>
+              <Typography variant="body1">{report.CVSS}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">CVE</Typography>
+              <Typography variant="body1">{report.CVE || "N/A"}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">WSTG</Typography>
+              <Typography variant="body1">{report.wstg || "N/A"}</Typography>
+            </Box>
+          </Box>
 
-          <div className="mb-4">
-            <p className="text-gray-700">{report.description}</p>
-          </div>
+          {/* Impact Section */}
+          {report.impact && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Impact
+              </Typography>
+              {renderRtlText(report.impact)}
+            </Box>
+          )}
 
-          <div className="space-y-4">
-            {report.impact && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  Impact
-                </h3>
-                {renderRtlText(report.impact)}
-              </div>
-            )}
+          {/* Solutions Section */}
+          {report.solutions && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Solution
+              </Typography>
+              {renderRtlText(report.solutions)}
+            </Box>
+          )}
 
-            {report.solutions && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  Solutions
-                </h3>
-                {renderRtlText(report.solutions)}
-              </div>
-            )}
+          {/* Tools Section */}
+          {report.tools?.length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Tools Used
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {report.tools.map((tool, index) => (
+                  <Chip key={index} label={tool} variant="outlined" />
+                ))}
+              </Box>
+            </Box>
+          )}
 
-            {report.tools?.length > 0 && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  Tools Used
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {report.tools.map((tool, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm"
+          {/* PoCs Section */}
+          {report.pocs?.length > 0 && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Proof of Concepts
+              </Typography>
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, 
+                gap: 3 
+              }}>
+                {report.pocs.map((poc, index) => {
+                  const backendURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+                  const fileUrl = backendURL + "/" + poc.path;
+                  const isImage = isImageFile(poc.originalname);
+                  const isVideo = isVideoFile(poc.originalname);
+
+                  return (
+                    <Box 
+                      key={index} 
+                      sx={{ 
+                        border: '1px solid', 
+                        borderColor: 'divider', 
+                        borderRadius: 2, 
+                        overflow: 'hidden',
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: 3,
+                          cursor: 'pointer'
+                        }
+                      }}
+                      onClick={() => handleFilePreview(fileUrl)}
                     >
-                      {tool}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+                      {isImage ? (
+                        <Box sx={{ 
+                          height: 180, 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          bgcolor: 'background.default'
+                        }}>
+                          <img
+                            src={fileUrl}
+                            alt={poc.originalname}
+                            style={{ 
+                              maxHeight: '100%', 
+                              maxWidth: '100%', 
+                              objectFit: 'contain' 
+                            }}
+                          />
+                        </Box>
+                      ) : isVideo ? (
+                        <Box sx={{ 
+                          height: 180, 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          bgcolor: 'background.default'
+                        }}>
+                          <video style={{ maxHeight: '100%', maxWidth: '100%' }} controls>
+                            <source src={fileUrl} type={`video/${poc.originalname.split(".").pop()}`} />
+                            Your browser does not support the video tag.
+                          </video>
+                        </Box>
+                      ) : (
+                        <Box sx={{ 
+                          height: 180, 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          bgcolor: 'background.default',
+                          p: 2
+                        }}>
+                          <CloudUploadIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
+                          <Typography variant="body2" sx={{ 
+                            textAlign: 'center', 
+                            wordBreak: 'break-word',
+                            color: 'text.secondary'
+                          }}>
+                            {poc.originalname}
+                          </Typography>
+                        </Box>
+                      )}
+                      <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                        <Typography variant="subtitle2" noWrap>
+                          {poc.originalname}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {poc.size ? `${(poc.size / 1024).toFixed(1)} KB` : "Size not available"}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Box>
+            </Box>
+          )}
 
-            {report.pocs?.length > 0 && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  Proof of Concepts
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {report.pocs.map((poc, index) => {
-                    const backendURL =
-                      import.meta.env.VITE_API_URL || "http://localhost:4000";
-                    const fileUrl = backendURL + "/" + poc.path; // Handle both URL and File object
-                    const isImage = isImageFile(poc.originalname);
-                    const isVideo = isVideoFile(poc.originalname);
+          {/* Additional Sections */}
+          {report.path && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Affected Path
+              </Typography>
+              <Typography variant="body1" sx={{ 
+                fontFamily: 'monospace',
+                p: 2,
+                bgcolor: 'action.hover',
+                borderRadius: 1,
+                wordBreak: 'break-all'
+              }}>
+                {report.path}
+              </Typography>
+            </Box>
+          )}
 
-                    return (
-                      <div
-                        key={index}
-                        className="relative group cursor-pointer rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow"
-                        onClick={() => handleFilePreview(fileUrl)}
-                      >
-                        {isImage ? (
-                          <div className="h-48 bg-gray-100 flex items-center justify-center">
-                            <img
-                              src={fileUrl}
-                              alt={poc.originalname}
-                              className="max-h-full max-w-full object-contain"
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src =
-                                  "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23EEE'/%3E%3Ctext x='50%25' y='50%25' font-family='sans-serif' font-size='12' fill='%23000' text-anchor='middle' dominant-baseline='middle'%3EImage%3C/text%3E%3C/svg%3E";
-                              }}
-                            />
-                          </div>
-                        ) : isVideo ? (
-                          <div className="h-48 bg-gray-100 flex items-center justify-center">
-                            <video
-                              className="h-full w-full object-contain"
-                              controls
-                            >
-                              <source
-                                src={fileUrl}
-                                type={`video/${poc.originalname.split(".").pop()}`}
-                              />
-                              Your browser does not support the video tag.
-                            </video>
-                          </div>
-                        ) : (
-                          <div className="h-48 bg-gray-100 flex flex-col items-center justify-center p-4">
-                            <CloudUploadIcon className="text-gray-400 text-4xl mb-2" />
-                            <span className="text-sm text-gray-600 text-center truncate w-full">
-                              {poc.originalname}
-                            </span>
-                          </div>
-                        )}
+          {report.exploits && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Exploit Details
+              </Typography>
+              {renderRtlText(report.exploits)}
+            </Box>
+          )}
 
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 flex items-center justify-center">
-                          <div className="bg-white bg-opacity-90 rounded-full p-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-200">
-                            <svg
-                              className="w-6 h-6 text-gray-700"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-
-                        <div className="p-3 bg-white">
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-800 truncate">
-                              {poc.originalname}
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            {poc.size
-                              ? `${(poc.size / 1024).toFixed(1)} KB`
-                              : "Size not available"}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {report.path && (
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">Path:</span> {report.path}
-              </div>
-            )}
-
-            {report.exploits && (
-              <div>
-                <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  Exploit
-                </h3>
-                {renderRtlText(report.exploits)}
-              </div>
-            )}
-
-            {report.refrence && (
-              <div className="text-sm">
-                <span className="font-medium">Reference:</span>{" "}
-                <a
-                  href={report.refrence}
-                  target="_blank"
+          {report.refrence && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Reference
+              </Typography>
+              <Typography variant="body1">
+                <a 
+                  href={report.refrence} 
+                  target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
+                  style={{ 
+                    color: 'primary.main',
+                    textDecoration: 'none',
+                    '&:hover': { textDecoration: 'underline' }
+                  }}
                 >
                   {report.refrence}
                 </a>
-              </div>
-            )}
+              </Typography>
+            </Box>
+          )}
 
-            {report.cvssVector && (
-              <div className="text-sm text-gray-600">
-                <span className="font-medium">CVSS Vector:</span>{" "}
+          {report.cvssVector && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                CVSS Vector
+              </Typography>
+              <Typography variant="body1" sx={{ 
+                fontFamily: 'monospace',
+                p: 2,
+                bgcolor: 'action.hover',
+                borderRadius: 1,
+                wordBreak: 'break-all'
+              }}>
                 {report.cvssVector}
-              </div>
-            )}
+              </Typography>
+            </Box>
+          )}
 
-            <div className="mt-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-2">
-                Securing Options
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  <span className="font-medium">Web Server Settings:</span>{" "}
+          {/* Securing Options */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Securing Options
+            </Typography>
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { sm: 'repeat(3, 1fr)' }, 
+              gap: 2,
+              '& > div': {
+                p: 2,
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1
+              }
+            }}>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Web Server Settings
+                </Typography>
+                <Typography variant="body1">
                   {report.securingByOptions.webServerSettings ? (
-                    <span className="text-green-600">Yes</span>
+                    <Chip label="Available" color="success" size="small" />
                   ) : (
-                    <span className="text-red-600">No</span>
+                    <Chip label="Not Available" color="error" size="small" />
                   )}
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  <span className="font-medium">
-                    Program Code Modification:
-                  </span>{" "}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Code Modification
+                </Typography>
+                <Typography variant="body1">
                   {report.securingByOptions.modificationInProgramCode ? (
-                    <span className="text-green-600">Yes</span>
+                    <Chip label="Required" color="success" size="small" />
                   ) : (
-                    <span className="text-red-600">No</span>
+                    <Chip label="Not Required" color="error" size="small" />
                   )}
-                </div>
-                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  <span className="font-medium">WAF Possibility:</span>{" "}
-                  <span className="text-blue-600">{report.securingByWAF}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  WAF Possibility
+                </Typography>
+                <Typography variant="body1">
+                  <Chip 
+                    label={report.securingByWAF} 
+                    color={
+                      report.securingByWAF === 'Possible' ? 'success' : 
+                      report.securingByWAF === 'Not Possible' ? 'error' : 'warning'
+                    } 
+                    size="small" 
+                  />
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
 
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              {report.created_at && (
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg
-                    className="w-4 h-4 mr-2 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <div>
-                    <span className="font-medium text-gray-700">Created: </span>
-                    <span>
-                      <PersianDateWithTooltip date={report.created_at} />
-                    </span>
-                  </div>
-                </div>
-              )}
-              {report.updated_at && (
-                <div className="flex items-center text-sm text-gray-600">
-                  <svg
-                    className="w-4 h-4 mr-2 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                  <div>
-                    <span className="font-medium text-gray-700">Updated: </span>
-                    <span>
-                      <PersianDateWithTooltip date={report.updated_at} />
-                    </span>
-                  </div>
-                </div>
-              )}
-              {console.log("report line 516 : " , report )}
-            </div>
-
-            <div>
+        {/* Right Column - Metadata & Actions */}
+        <Box>
+          {/* Report Metadata Card */}
+          <Box sx={{ 
+            bgcolor: 'background.paper', 
+            borderRadius: 2, 
+            boxShadow: 1,
+            p: 3,
+            mb: 3
+          }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Report Details
+            </Typography>
+            
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Created
+              </Typography>
+              <Typography variant="body1">
+                <PersianDateWithTooltip date={report.created_at} />
+              </Typography>
+            </Box>
+            
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Last Updated
+              </Typography>
+              <Typography variant="body1">
+                <PersianDateWithTooltip date={report.updated_at} />
+              </Typography>
+            </Box>
+            
+            {report.score && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Verification Score
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <SeverityIndicator severity={report.severity} />
+                  <Typography variant="body1">
+                    {report.score}/100
+                  </Typography>
+                </Box>
+                <Slider
+                  value={report.score}
+                  size="small"
+                  sx={{ mt: 1 }}
+                  disabled
+                />
+              </Box>
+            )}
+            
+            <Divider sx={{ my: 2 }} />
+            
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center' 
+            }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Change Status
+              </Typography>
               <IconButton
-                aria-label="more"
-                aria-controls="report-actions-menu"
-                aria-haspopup="true"
+                aria-label="report-actions"
                 onClick={handleMenuOpen}
-                className="focus:outline-none"
+                sx={{ color: 'primary.main' }}
               >
                 <MoreVertIcon />
               </IconButton>
               <Menu
-                id="report-actions-menu"
                 anchorEl={anchorEl}
-                keepMounted
                 open={Boolean(anchorEl)}
                 onClose={handleMenuClose}
+                PaperProps={{
+                  sx: {
+                    width: 220,
+                    boxShadow: 3,
+                  }
+                }}
               >
                 {actionItems.map((item) => (
                   <MenuItem
                     key={item.name}
                     onClick={() => handleActionSelect(item.name)}
+                    sx={{
+                      '&:hover': {
+                        bgcolor: 'action.selected',
+                      }
+                    }}
                   >
-                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemIcon sx={{ color: 'text.secondary' }}>
+                      {item.icon}
+                    </ListItemIcon>
                     <ListItemText primary={item.name} />
                   </MenuItem>
                 ))}
               </Menu>
-            </div>
-          </div>
-        </div>
-      </div>
+            </Box>
+          </Box>
 
-      {/* Feedback Dialog */}
+          {/* Quick Stats Card */}
+          <Box sx={{ 
+            bgcolor: 'background.paper', 
+            borderRadius: 2, 
+            boxShadow: 1,
+            p: 3
+          }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Vulnerability Stats
+            </Typography>
+            
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Severity
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                <SeverityIndicator severity={report.severity} />
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  {report.severity}
+                </Typography>
+              </Box>
+            </Box>
+            
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                CVSS Score
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                {report.CVSS}
+              </Typography>
+            </Box>
+            
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Attack Vector
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                {report.cvssVector?.split('/')[1]?.split(':')[1] || 'N/A'}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Action Dialogs */}
       <Dialog
         open={isDialogOpen}
         onClose={() => setIsDialogOpen(false)}
-        maxWidth="md"
+        maxWidth="sm"
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+          }
+        }}
       >
-        <DialogTitle>Provide Additional Information</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 2, mb: 4 }}>
-            <Typography variant="body1" gutterBottom>
-              You're requesting more information for report:{" "}
-              <strong>{report.label}</strong>
-            </Typography>
-
-            <TextField
-              autoFocus
-              margin="dense"
-              id="feedback"
-              label="Detailed Feedback"
-              placeholder="Please specify what additional information is needed from the pentester..."
-              type="text"
-              fullWidth
-              variant="outlined"
-              multiline
-              rows={6}
-              value={feedbackText}
-              onChange={(e) => setFeedbackText(e.target.value)}
-              sx={{ mt: 3 }}
-            />
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          bgcolor: dialogType === 'verify' ? 'success.light' : 'warning.light',
+          color: 'text.primary',
+          borderBottom: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {dialogType === 'verify' ? (
+              <CheckCircleIcon color="success" sx={{ mr: 1 }} />
+            ) : (
+              <NeedMoreInfoIcon color="warning" sx={{ mr: 1 }} />
+            )}
+            {dialogType === 'verify' ? 'Verify Report' : 'Request More Information'}
           </Box>
+          <IconButton onClick={() => setIsDialogOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        
+        <DialogContent sx={{ py: 3 }}>
+          <Typography variant="body1" paragraph>
+            You are about to mark this report as <strong>{selectedAction}</strong>:
+          </Typography>
+          
+          <Box sx={{ 
+            p: 2, 
+            mb: 3, 
+            bgcolor: 'background.default', 
+            borderRadius: 1,
+            border: '1px solid',
+            borderColor: 'divider'
+          }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              {report.label}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {report.labelfa}
+            </Typography>
+          </Box>
+
+          {dialogType === 'verify' && (
+            <>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                Verification Score
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6" sx={{ mr: 2, minWidth: 40 }}>
+                  {score}
+                </Typography>
+                <Slider
+                  value={score}
+                  onChange={handleScoreChange}
+                  min={0}
+                  max={100}
+                  step={1}
+                  sx={{ flexGrow: 1 }}
+                />
+              </Box>
+              
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                mb: 3 
+              }}>
+                {[0, 25, 50, 75, 100].map((value) => (
+                  <Tooltip key={value} title={`Score ${value}`}>
+                    <IconButton
+                      onClick={() => setScore(value)}
+                      color={score === value ? 'primary' : 'default'}
+                    >
+                      {score >= value ? (
+                        <StarIcon color={score === value ? 'primary' : 'inherit'} />
+                      ) : (
+                        <StarBorderIcon />
+                      )}
+                    </IconButton>
+                  </Tooltip>
+                ))}
+              </Box>
+            </>
+          )}
+
+          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+            {dialogType === 'verify' ? 'Comments (Optional)' : 'Required Feedback'}
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            variant="outlined"
+            placeholder={
+              dialogType === 'verify' 
+                ? 'Add any notes about this verification...' 
+                : 'Explain what additional information you need...'
+            }
+            value={feedbackText}
+            onChange={(e) => setFeedbackText(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <CommentIcon color="action" sx={{ mr: 1, mt: 1, alignSelf: 'flex-start' }} />
+              ),
+            }}
+          />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsDialogOpen(false)} color="secondary">
+        
+        <DialogActions sx={{ 
+          px: 3, 
+          py: 2,
+          borderTop: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Button 
+            onClick={() => setIsDialogOpen(false)}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
             Cancel
           </Button>
           <Button
             onClick={() => {
-              if (!feedbackText.trim()) {
-                toast.warning("Please provide feedback before submitting");
+              if (dialogType === 'needInfo' && !feedbackText.trim()) {
+                toast.warning('Please provide feedback before submitting');
                 return;
               }
               handleAction(selectedAction);
             }}
             variant="contained"
-            color="primary"
+            color={dialogType === 'verify' ? 'success' : 'warning'}
+            sx={{ borderRadius: 2 }}
+            startIcon={dialogType === 'verify' ? <CheckCircleIcon /> : <NeedMoreInfoIcon />}
           >
-            Submit Request
+            {dialogType === 'verify' ? 'Confirm Verification' : 'Submit Request'}
           </Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Box>
   );
 };
 
