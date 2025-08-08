@@ -75,67 +75,54 @@ function MainForm({
     {/* <Pfb pageNumber={10} originalReport={originalReport} report={report} project={project} /> */}
 
     {/* <Pfb1 pageNumber={11} page={page} /> */}
-    <Pfb1 pageNumber={11} page={dataToSend} />
+    {/* <Pfb1 pageNumber={11} page={dataToSend} /> */}
     {console.log("line 79 in PFb1 : " , dataToSend )}
     {/* <Pfb2 pageNumber={12} page={page} project={project} /> */}
-    <Pfb2 pageNumber={12} page={dataToSend} project={project} />
+    {/* <Pfb2 pageNumber={12} page={dataToSend} project={project} /> */}
 
-    <Pfc pageNumber={13} />
+    {/* <Pfc pageNumber={13} /> */}
 
     <Pfd pageNumber={14} count={project.numberOfTest} />
     <Pfe pageNumber={15} count={project.numberOfTest} />
     <Pff pageNumber={16} count={project.numberOfTest} /> 
 
-      {/* <Pf10 page={page} pageNumber={17} /> */}
-      <Pf10 page={dataToSend} pageNumber={17} />
+      {/* <Pf10 page={dataToSend} pageNumber={17} />
       <PF reports={report["4.1"]} pageOffset={17} />
 
-      {/* <Pf11 page={page} pageNumber={pageNumbers} /> */}
       <Pf11 page={dataToSend} pageNumber={pageNumbers} />
       <PF reports={report["4.2"]} pageOffset={pageNumbers.pf11} />
 
-      {/* <Pf12 page={page} pageNumber={pageNumbers} /> */}
       <Pf12 page={dataToSend} pageNumber={pageNumbers} />
       <PF reports={report["4.3"]} pageOffset={pageNumbers.pf12} />
 
-      {/* <Pf13 page={page} pageNumber={pageNumbers} /> */}
       <Pf13 page={dataToSend} pageNumber={pageNumbers} />
       <PF reports={report["4.4"]} pageOffset={pageNumbers.pf13} />
 
-      {/* <Pf14 page={page} pageNumber={pageNumbers} /> */}
       <Pf14 page={dataToSend} pageNumber={pageNumbers} />
       <PF reports={report["4.5"]} pageOffset={pageNumbers.pf14} />
 
-      {/* <Pf15 page={page} pageNumber={pageNumbers} /> */}
       <Pf15 page={dataToSend} pageNumber={pageNumbers} />
       <PF reports={report["4.6"]} pageOffset={pageNumbers.pf15} />
 
-      {/* <Pf16 page={page} pageNumber={pageNumbers} /> */}
       <Pf16 page={dataToSend} pageNumber={pageNumbers} />
 
-      {/* <Pf17 page={page} pageNumber={pageNumbers} /> */}
       <Pf17 page={dataToSend} pageNumber={pageNumbers} />
       <PF reports={report["4.7"]} pageOffset={pageNumbers.pf17} />
 
-      {/* <Pf18 page={page} pageNumber={pageNumbers} /> */}
       <Pf18 page={dataToSend} pageNumber={pageNumbers} />
       <PF reports={report["4.8"]} pageOffset={pageNumbers.pf18} />
 
-      {/* <Pf19 page={page} pageNumber={pageNumbers} /> */}
       <Pf19 page={dataToSend} pageNumber={pageNumbers} />
       <PF reports={report["4.9"]} pageOffset={pageNumbers.pf19} />
 
-      {/* <Pf1a page={page} pageNumber={pageNumbers} /> */}
       <Pf1a page={dataToSend} pageNumber={pageNumbers} />
       <PF reports={report["4.10"]} pageOffset={pageNumbers.pf1a} />
 
-      {/* <Pf1b page={page} pageNumber={pageNumbers} /> */}
       <Pf1b page={dataToSend} pageNumber={pageNumbers} />
       <PF reports={report["4.11"]} pageOffset={pageNumbers.pf1b} />
 
-      {/* <Pf1c page={page} pageNumber={pageNumbers} /> */}
       <Pf1c page={dataToSend} pageNumber={pageNumbers} />
-      <PF reports={report["4.12"]} pageOffset={pageNumbers.pf1c} />
+      <PF reports={report["4.12"]} pageOffset={pageNumbers.pf1c} /> */}
 
       {/* <Pf1d/> */}
 
