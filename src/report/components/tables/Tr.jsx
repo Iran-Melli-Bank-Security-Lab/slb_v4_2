@@ -14,7 +14,7 @@ function Tr(props) {
 
             </td> */}
 
-            <EditableCell test4={props.test4} />
+            <EditableCell data={props.data} test4={props.test4} />
 
             {/* <td style={{ width: '64pt', paddingTop: '5px' }} bgcolor={props.bgcolor}>
 
