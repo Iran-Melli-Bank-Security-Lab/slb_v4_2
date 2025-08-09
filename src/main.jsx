@@ -30,6 +30,10 @@ import Tickets from './pages/Tickets';
 import TicketView from './pages/TicketView';
 import TicketList from './pages/TicketList';
 import Identifier from './pages/Identifier';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
 
 const router = createBrowserRouter([
   {
