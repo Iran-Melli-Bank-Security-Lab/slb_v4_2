@@ -23,11 +23,11 @@ import {
   LockOpen as LockOpenIcon,
   PendingActions as PendingActionsIcon,
   Build as BuildIcon,
-  CheckCircleOutline as CheckCircleOutlineIcon, 
-   AccessTime as TimeIcon,  
-   PlayArrow as StartIcon, 
-   Pause as PauseIcon,
-  Stop as StopIcon,  TaskAlt as TaskIcon
+  CheckCircleOutline as CheckCircleOutlineIcon,
+  AccessTime as TimeIcon,
+  PlayArrow as StartIcon,
+  Pause as PauseIcon,
+  Stop as StopIcon, TaskAlt as TaskIcon
 
 
 
@@ -36,7 +36,7 @@ import { styled, alpha, useTheme } from "@mui/material/styles";
 import { useParams } from "react-router";
 import { useUserId } from "../../../hooks/useUserId";
 import { fetchProjectByUserProjectManager } from "../../../api/projects/fetchProjectById";
-import { AnimatePresence, motion  } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import TimerDisplay from "../timework/TimerDisplay";
 import { updateProjectStatus } from "../../../api/projects/updateProjectStatus";
 
@@ -168,76 +168,29 @@ const ProjcetStates = ({ statusComponents }) => {
 
 const handleStatusChange = async (newStatus) => {
   try {
-    const previousStatus = currentStatus;
-    
-    // Validate the status transition
-    const isValidTransition = (from, to) => {
-      const validTransitions = {
-        'Open': ['In-Progress', 'Pending'],
-        'Pending': ['In-Progress', 'Open'],
-        'In-Progress': ['Pending', 'Finish'],
-        'Finish': ['Open', 'Pending', 'In-Progress'] // Allow reopening completed projects
-      };
-      return validTransitions[from].includes(to);
-    };
-
-    if (!isValidTransition(previousStatus, newStatus)) {
-      throw new Error(`Invalid status transition from ${previousStatus} to ${newStatus}`);
-    }
-
-    // Calculate time worked if transitioning from In-Progress
-    let timeWorked = 0;
-    if (previousStatus === 'In-Progress') {
-      const lastInProgressEntry = projectData.stateChanges
-        ?.slice()
-        .reverse()
-        .find(change => change.state === 'In-Progress');
-      
-      if (lastInProgressEntry) {
-        const startTime = new Date(lastInProgressEntry.timestamp).getTime();
-        timeWorked = Math.floor((Date.now() - startTime) / 1000); // in seconds
-      }
-    }
-
-    // Optimistic UI update
     setCurrentStatus(newStatus);
-    setProjectData(prev => ({
-      ...prev,
-      status: newStatus,
-      totalWorkTime: (prev.totalWorkTime || 0) + timeWorked,
-      stateChanges: [
-        ...(prev.stateChanges || []),
-        {
-          state: newStatus,
-          timestamp: new Date().toISOString()
-        }
-      ],
-      // Reset finishDate if reopening a completed project
-      finishDate: newStatus !== 'Finish' ? undefined : prev.finishDate
-    }));
 
-    // API call with timeWorked included
-    const response = await updateProjectStatus(projectData._id, {
-      newStatus,
-      timeWorked
+    const response = await updateProjectStatus({
+      projectId: projectData?.project,
+      userId,
+      newStatus
     });
 
-    // Update with server response (in case backend made adjustments)
+    // داده‌های برگشتی از بک‌اند منبع حقیقت هستند
     setProjectData(prev => ({
       ...prev,
       status: response.status,
       totalWorkTime: response.totalWorkTime,
       stateChanges: response.stateChanges,
-      finishDate: response.finishDate
+      startDate: response.startDate,
     }));
 
   } catch (err) {
-    // Revert on error
-    setCurrentStatus(previousStatus);
+    console.error("Status change error:", err);
     setError(err.message || 'Failed to update project status');
-    console.error('Status change error:', err);
   }
 };
+
 
 
   if (loading) {
@@ -329,250 +282,250 @@ const handleStatusChange = async (newStatus) => {
           <Box sx={{ p: 2 }}>
 
 
-            <CardContent sx={{ 
-                      background: 'radial-gradient(circle at top left, #f5f7fa 0%, #f0f4f8 100%)',
-                      padding: '2px'
-                    }}>
-                      {/* Status Selection */}
-                      <Box sx={{ 
-                        display: 'grid',
-                        gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' },
-                        gap: '16px',
-                        mb: '24px'
-                      }}>
-                        {statusConfig.map((statusItem) => (
-                          <Tooltip key={statusItem.key} title={statusItem.description} arrow>
-                            <div>
-                              <Box
-                                onClick={() => handleStatusChange(statusItem.key)}
-                                sx={{
-                                  background: statusItem.key === currentStatus ? statusItem.gradient : '#fff',
-                                  color: statusItem.key === status ? '#fff' : theme.palette.text.primary,
-                                  border: `1px solid ${statusItem.key === status ? 'transparent' : theme.palette.divider}`,
-                                  borderRadius: '12px',
-                                  padding: '16px',
-                                  cursor: 'pointer',
-                                  transition: 'all 0.3s ease',
-                                  boxShadow: statusItem.key === status ? `0 8px 16px ${statusItem.color}40` : '0 4px 12px rgba(0, 0, 0, 0.05)',
-                                  position: 'relative',
-                                  overflow: 'hidden',
-                                  '&:hover': {
-                                    transform: 'translateY(-4px)',
-                                    boxShadow: `0 8px 24px ${statusItem.color}40`
-                                  }
-                                }}
-                              >
-                                <Box display="flex" alignItems="center" mb={1}>
-                                  <Avatar
-                                    sx={{
-                                      backgroundColor: statusItem.key === status ? '#fff' : `${statusItem.color}20`,
-                                      color: statusItem.key === status ? statusItem.color : statusItem.color,
-                                      mr: 2,
-                                      width: 40,
-                                      height: 40
-                                    }}
-                                  >
-                                    {statusItem.icon}
-                                  </Avatar>
-                                  <Typography fontWeight="600">{statusItem.label}</Typography>
-                                </Box>
-                                <AnimatePresence>
-                                  {hoveredStatus === statusItem.key && (
-                                    <motion.div
-                                      initial={{ opacity: 0, y: 10 }}
-                                      animate={{ opacity: 1, y: 0 }}
-                                      exit={{ opacity: 0, y: 10 }}
-                                      transition={{ duration: 0.2 }}
-                                    >
-                                      <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                                        {statusItem.description}
-                                      </Typography>
-                                    </motion.div>
-                                  )}
-                                </AnimatePresence>
-                                {statusItem.key === status && (
-                                  <Box
-                                    sx={{
-                                      position: 'absolute',
-                                      top: 0,
-                                      right: 0,
-                                      width: 0,
-                                      height: 0,
-                                      borderTop: '24px solid #fff',
-                                      borderLeft: '24px solid transparent',
-                                      opacity: 0.2
-                                    }}
-                                  />
-                                )}
-                              </Box>
-                            </div>
-                          </Tooltip>
-                        ))}
-                      </Box>
-            
-                      {/* Time Tracking Section */}
-                      <Box sx={{ 
-                        mb: '24px', 
-                        p: '20px', 
-                        background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-                        borderRadius: '12px',
-                        border: '1px solid rgba(0, 0, 0, 0.05)',
-                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.03)',
-                        position: 'relative',
-                        overflow: 'hidden',
-                        '&::before': {
-                          content: '""',
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          width: '4px',
-                          height: '100%',
-                          background: statusConfig.find(s => s.key === status).gradient
-                        }
-                      }}>
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                          <Box display="flex" alignItems="center">
-                            <TimeIcon sx={{ 
-                              color: statusConfig.find(s => s.key === status).color,
-                              mr: 1.5,
-                              fontSize: '28px'
-                            }} />
-                            <Typography variant="h6" fontWeight="700">
-                              TIME TRACKER
-                            </Typography>
-                          </Box>
-                          <Box display="flex" alignItems="center">
-                            <Typography variant="body2" color="text.secondary" mr={1}>
-                              Current Status:
-                            </Typography>
-                            <Chip
-                              label={status.replace('-', ' ').toUpperCase()}
-                              size="small"
-                              sx={{
-                                fontWeight: '700',
-                                backgroundColor: statusConfig.find(s => s.key === status).color + '20',
-                                color: statusConfig.find(s => s.key === status).color
-                              }}
-                            />
-                          </Box>
-                        </Box>
-            
-                        <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems="center" justifyContent="space-between">
-                          <Box sx={{ 
-                            textAlign: 'center',
-                            mb: { xs: 3, md: 0 },
-                            mr: { md: 3 }
-                          }}>
-                           <TimerDisplay 
-  totalWorkTime={projectData.totalWorkTime} // Total seconds from backend
-  isTracking={currentStatus === "In-Progress"} // True when in-progress
-  lastStatusChange={ 
-    projectData.stateChanges?.filter(c => c.state === "In-Progress").slice(-1)[0]?.timestamp 
-  }
-/>
-                            <Typography variant="caption" color="text.secondary">
-                              TOTAL TIME INVESTED
-                            </Typography>
-                          </Box>
-            
-                          <Box display="flex" flexWrap="wrap" gap={2} justifyContent="center">
-                            {status === "In-Progress" ? (
-                              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                                <Button
-                                  variant="contained"
-                                  startIcon={<PauseIcon />}
-                                  sx={{
-                                    background: 'linear-gradient(135deg, #FF9800 0%, #FFB74D 100%)',
-                                    color: 'white',
-                                    fontWeight: '600',
-                                    borderRadius: '8px',
-                                    minWidth: '140px',
-                                    boxShadow: '0 4px 12px rgba(255, 152, 0, 0.2)'
-                                  }}
-                                  onClick={() => handleStatusChange("Pending")}
-                                >
-                                  PAUSE
-                                </Button>
-                              </motion.div>
-                            ) : (
-                              <motion.div 
-                                whileHover={{ scale: status !== "Finish" ? 1.03 : 1 }} 
-                                whileTap={{ scale: status !== "Finish" ? 0.97 : 1 }}
-                              >
-                                <GradientButton
-                                  startIcon={<StartIcon />}
-                                  disabled={status === "Finish"}
-                                  onClick={() => handleStatusChange("In-Progress")}
-                                >
-                                  START WORK
-                                </GradientButton>
-                              </motion.div>
-                            )}
-            
-                            <motion.div 
-                              whileHover={{ scale: status === "In-Progress" ? 1.03 : 1 }} 
-                              whileTap={{ scale: status === "In-Progress" ? 0.97 : 1 }}
-                            >
-                              <Button
-                                variant="contained"
-                                startIcon={<StopIcon />}
-                                sx={{
-                                  background: status === "In-Progress" 
-                                    ? 'linear-gradient(135deg, #F44336 0%, #E57373 100%)' 
-                                    : 'rgba(0, 0, 0, 0.05)',
-                                  color: status === "In-Progress" ? 'white' : theme.palette.text.disabled,
-                                  fontWeight: '600',
-                                  borderRadius: '8px',
-                                  minWidth: '140px',
-                                  boxShadow: status === "In-Progress" 
-                                    ? '0 4px 12px rgba(244, 67, 54, 0.2)' 
-                                    : 'none',
-                                  cursor: status === "In-Progress" ? 'pointer' : 'not-allowed'
-                                }}
-                                disabled={status !== "In-Progress"}
-                                onClick={() => handleStatusChange("Finish")}
-                              >
-                                COMPLETE
-                              </Button>
-                            </motion.div>
-                          </Box>
-                        </Box>
-                      </Box>
-            
-            
-                      <Divider sx={{ my: 3, borderColor: theme.palette.divider }} />
-            
-                      {/* Dynamic Content Section */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <Box sx={{ 
-                          p: '20px',
-                          background: '#fff',
+            <CardContent sx={{
+              background: 'radial-gradient(circle at top left, #f5f7fa 0%, #f0f4f8 100%)',
+              padding: '2px'
+            }}>
+              {/* Status Selection */}
+              <Box sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' },
+                gap: '16px',
+                mb: '24px'
+              }}>
+                {statusConfig.map((statusItem) => (
+                  <Tooltip key={statusItem.key} title={statusItem.description} arrow>
+                    <div>
+                      <Box
+                        onClick={() => handleStatusChange(statusItem.key)}
+                        sx={{
+                          background: statusItem.key === currentStatus ? statusItem.gradient : '#fff',
+                          color: statusItem.key === status ? '#fff' : theme.palette.text.primary,
+                          border: `1px solid ${statusItem.key === status ? 'transparent' : theme.palette.divider}`,
                           borderRadius: '12px',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
-                          border: '1px solid rgba(0, 0, 0, 0.05)'
-                        }}>
-                          <Box display="flex" alignItems="center" mb={2}>
-                            <TaskIcon sx={{ 
-                              color: statusConfig.find(s => s.key === status).color,
-                              mr: 1.5
-                            }} />
-                            <Typography variant="h6" fontWeight="700">
-                              {status.toUpperCase()} STATUS DETAILS
-                            </Typography>
-                          </Box>
-                          
-                          {statusComponents[status]}
-                       
-                       
-                       
+                          padding: '16px',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          boxShadow: statusItem.key === status ? `0 8px 16px ${statusItem.color}40` : '0 4px 12px rgba(0, 0, 0, 0.05)',
+                          position: 'relative',
+                          overflow: 'hidden',
+                          '&:hover': {
+                            transform: 'translateY(-4px)',
+                            boxShadow: `0 8px 24px ${statusItem.color}40`
+                          }
+                        }}
+                      >
+                        <Box display="flex" alignItems="center" mb={1}>
+                          <Avatar
+                            sx={{
+                              backgroundColor: statusItem.key === status ? '#fff' : `${statusItem.color}20`,
+                              color: statusItem.key === status ? statusItem.color : statusItem.color,
+                              mr: 2,
+                              width: 40,
+                              height: 40
+                            }}
+                          >
+                            {statusItem.icon}
+                          </Avatar>
+                          <Typography fontWeight="600">{statusItem.label}</Typography>
                         </Box>
+                        <AnimatePresence>
+                          {hoveredStatus === statusItem.key && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 10 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Typography variant="caption" sx={{ opacity: 0.8 }}>
+                                {statusItem.description}
+                              </Typography>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                        {statusItem.key === status && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              right: 0,
+                              width: 0,
+                              height: 0,
+                              borderTop: '24px solid #fff',
+                              borderLeft: '24px solid transparent',
+                              opacity: 0.2
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </div>
+                  </Tooltip>
+                ))}
+              </Box>
+
+              {/* Time Tracking Section */}
+              <Box sx={{
+                mb: '24px',
+                p: '20px',
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                borderRadius: '12px',
+                border: '1px solid rgba(0, 0, 0, 0.05)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.03)',
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '4px',
+                  height: '100%',
+                  background: statusConfig.find(s => s.key === status).gradient
+                }
+              }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                  <Box display="flex" alignItems="center">
+                    <TimeIcon sx={{
+                      color: statusConfig.find(s => s.key === status).color,
+                      mr: 1.5,
+                      fontSize: '28px'
+                    }} />
+                    <Typography variant="h6" fontWeight="700">
+                      TIME TRACKER
+                    </Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center">
+                    <Typography variant="body2" color="text.secondary" mr={1}>
+                      Current Status:
+                    </Typography>
+                    <Chip
+                      label={status.replace('-', ' ').toUpperCase()}
+                      size="small"
+                      sx={{
+                        fontWeight: '700',
+                        backgroundColor: statusConfig.find(s => s.key === status).color + '20',
+                        color: statusConfig.find(s => s.key === status).color
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems="center" justifyContent="space-between">
+                  <Box sx={{
+                    textAlign: 'center',
+                    mb: { xs: 3, md: 0 },
+                    mr: { md: 3 }
+                  }}>
+                    <TimerDisplay
+                      totalWorkTime={projectData.totalWorkTime} // Total seconds from backend
+                      isTracking={currentStatus === "In-Progress"} // True when in-progress
+                      lastStatusChange={
+                        projectData.stateChanges?.filter(c => c.state === "In-Progress").slice(-1)[0]?.timestamp
+                      }
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      TOTAL TIME INVESTED
+                    </Typography>
+                  </Box>
+
+                  <Box display="flex" flexWrap="wrap" gap={2} justifyContent="center">
+                    {status === "In-Progress" ? (
+                      <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                        <Button
+                          variant="contained"
+                          startIcon={<PauseIcon />}
+                          sx={{
+                            background: 'linear-gradient(135deg, #FF9800 0%, #FFB74D 100%)',
+                            color: 'white',
+                            fontWeight: '600',
+                            borderRadius: '8px',
+                            minWidth: '140px',
+                            boxShadow: '0 4px 12px rgba(255, 152, 0, 0.2)'
+                          }}
+                          onClick={() => handleStatusChange("Pending")}
+                        >
+                          PAUSE
+                        </Button>
                       </motion.div>
-                      
-                    </CardContent>
+                    ) : (
+                      <motion.div
+                        whileHover={{ scale: status !== "Finish" ? 1.03 : 1 }}
+                        whileTap={{ scale: status !== "Finish" ? 0.97 : 1 }}
+                      >
+                        <GradientButton
+                          startIcon={<StartIcon />}
+                          disabled={status === "Finish"}
+                          onClick={() => handleStatusChange("In-Progress")}
+                        >
+                          START WORK
+                        </GradientButton>
+                      </motion.div>
+                    )}
+
+                    <motion.div
+                      whileHover={{ scale: status === "In-Progress" ? 1.03 : 1 }}
+                      whileTap={{ scale: status === "In-Progress" ? 0.97 : 1 }}
+                    >
+                      <Button
+                        variant="contained"
+                        startIcon={<StopIcon />}
+                        sx={{
+                          background: status === "In-Progress"
+                            ? 'linear-gradient(135deg, #F44336 0%, #E57373 100%)'
+                            : 'rgba(0, 0, 0, 0.05)',
+                          color: status === "In-Progress" ? 'white' : theme.palette.text.disabled,
+                          fontWeight: '600',
+                          borderRadius: '8px',
+                          minWidth: '140px',
+                          boxShadow: status === "In-Progress"
+                            ? '0 4px 12px rgba(244, 67, 54, 0.2)'
+                            : 'none',
+                          cursor: status === "In-Progress" ? 'pointer' : 'not-allowed'
+                        }}
+                        disabled={status !== "In-Progress"}
+                        onClick={() => handleStatusChange("Finish")}
+                      >
+                        COMPLETE
+                      </Button>
+                    </motion.div>
+                  </Box>
+                </Box>
+              </Box>
+
+
+              <Divider sx={{ my: 3, borderColor: theme.palette.divider }} />
+
+              {/* Dynamic Content Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Box sx={{
+                  p: '20px',
+                  background: '#fff',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.03)',
+                  border: '1px solid rgba(0, 0, 0, 0.05)'
+                }}>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <TaskIcon sx={{
+                      color: statusConfig.find(s => s.key === status).color,
+                      mr: 1.5
+                    }} />
+                    <Typography variant="h6" fontWeight="700">
+                      {status.toUpperCase()} STATUS DETAILS
+                    </Typography>
+                  </Box>
+
+                  {statusComponents[status]}
+
+
+
+                </Box>
+              </motion.div>
+
+            </CardContent>
 
 
 
