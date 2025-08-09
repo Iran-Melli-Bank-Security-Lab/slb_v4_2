@@ -82,7 +82,7 @@ function MainForm({
 
     {/* <Pfc pageNumber={13} /> */}
 
-    <Pfd pageNumber={14} count={project.numberOfTest} />
+    <Pfd pageNumber={14} count={project.numberOfTest} data={dataToSend} />
     <Pfe pageNumber={15} count={project.numberOfTest} />
     <Pff pageNumber={16} count={project.numberOfTest} /> 
 
