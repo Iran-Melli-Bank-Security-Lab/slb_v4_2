@@ -49,7 +49,8 @@ function TestOrder({children}){
                                 textAlign: 'center'
                             }}
                         >
-                            آزمون مرتبه چهارم
+                            {/* آزمون مرتبه چهارم */}
+                            نتیجه آزمون 
                         </p>
                     
                     </td>
@@ -64,7 +65,7 @@ function TestOrder({children}){
                                 textAlign: 'center'
                             }}
                         >
-                            آزمون مرتبه سوم
+                            {/* آزمون مرتبه سوم */}
                         </p>
                        
                     </td>
@@ -79,7 +80,7 @@ function TestOrder({children}){
                                 textAlign: 'center'
                             }}
                         >
-                         آزمون مرتبه دوم
+                         {/* آزمون مرتبه دوم */}
                         </p>
                         
                     </td>
@@ -94,7 +95,7 @@ function TestOrder({children}){
                                 textAlign: 'center'
                             }}
                         >
-                            آزمون مرتبه اول
+                            {/* آزمون مرتبه اول */}
                         </p>
                        
                     </td>
