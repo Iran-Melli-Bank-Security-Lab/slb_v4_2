@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 
-const EditableCell = ({ test4 }) => {
+const EditableCell = ({ test4 , data  }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [value, setValue] = useState(test4 ? "Pass" : "");
     const [bgColor, setBgColor] = useState(test4 && test4 === "Fail" ? "red" : "transparent");
 
+
+
     const handleDoubleClick = () => {
+        console.log("data in line 11 : " , data )
         if (test4) setIsEditing(true);
     };
 
