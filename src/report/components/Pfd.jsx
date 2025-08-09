@@ -4,7 +4,7 @@ import PdfStructure from "./common/PdfStructure"
 import Discription from "./PF10/discription"
 import ReportTest from "./tables/ReportTest"
 
-function Pfd({count , pageNumber}) {
+function Pfd({count , pageNumber , data}) {
 
     return <>
         <div id="pfd" className="pf w0 h0" data-page-no="d">
@@ -25,7 +25,7 @@ function Pfd({count , pageNumber}) {
 
                 <div className={`c cx90 cw52 cy291pfd chbb`}>
 
-                     <ReportTest count={count}/>
+                     <ReportTest count={count} data={data}/>
 
                 </div>
 
