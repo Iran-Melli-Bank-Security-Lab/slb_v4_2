@@ -7,6 +7,7 @@ import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import Tooltip from "@mui/material/Tooltip";
 import { getTickets } from "../api/ticket/getTicket";
 import { useUserId } from "../hooks/useUserId";
+import PersianDateWithTooltip from "../components/dateTime/PersainDate";
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 const TicketList = () => {
@@ -400,7 +401,8 @@ const TicketList = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">
-                          <div className="font-medium">{ticket.updatedAt}</div>
+                          {/* <div className="font-medium">{ticket.updatedAt}</div> */}
+                          <PersianDateWithTooltip date={ticket.updatedAt} />
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">

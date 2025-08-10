@@ -8,7 +8,14 @@ import { postComment } from "../api/ticket/postComment";
 import { getComments } from "../api/ticket/getComments";
 import { useSocket } from "../context/SocketContext";
 import PersianDateWithTooltip from "../components/dateTime/PersainDate";
-import { FaCheck, FaCheckDouble, FaPaperclip, FaUserPlus, FaTimes, FaChevronDown } from "react-icons/fa";
+import {
+  FaCheck,
+  FaCheckDouble,
+  FaPaperclip,
+  FaUserPlus,
+  FaTimes,
+  FaChevronDown,
+} from "react-icons/fa";
 import { IoIosArrowForward } from "react-icons/io";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
@@ -40,26 +47,40 @@ const TicketView = () => {
 
   const userMap = useMemo(() => {
     const map = new Map();
-    allUsers?.forEach(user => map.set(user._id, user));
+    allUsers?.forEach((user) => map.set(user._id, user));
     return map;
   }, [allUsers]);
 
-  const getUserById = useCallback((userId) => {
-    const user = userMap.get(userId);
-    if (!user) return {
-      _id: userId,
-      name: "کاربر ناشناس",
-      avatar: "https://i.pravatar.cc/150?img=0",
-      role: "نقش نامشخص",
-    };
+const getUserById = useCallback((userId) => {
+  const user = userMap.get(userId);
+  if (!user) return {
+    _id: userId,
+    name: "کاربر ناشناس",
+    avatar: "https://i.pravatar.cc/150?img=0",
+    role: "نقش نامشخص",
+  };
 
-    return {
-      ...user,
-      avatar: user.profileImageUrl
-        ? `${BASE_URL}/${user.profileImageUrl}`
-        : "https://i.pravatar.cc/150?img=0",
-    };
-  }, [userMap]);
+  // Extract role name
+  let roleName = "کاربر";
+  if (user.roles) {
+    if (user.roles.Admin === 5150) {
+      roleName = "مدیر";
+    } else if (user.roles.User === 2001) {
+      roleName = "نفوذگر"; // Pentester
+    }
+    // Add more role checks if needed
+  }
+
+  return {
+    ...user,
+    firstName: user.firstName || "کاربر",
+    lastName: user.lastName || "",
+    avatar: user.profileImageUrl
+      ? `${BASE_URL}/${user.profileImageUrl}`
+      : "https://i.pravatar.cc/150?img=0",
+    role: roleName,
+  };
+}, [userMap]);
 
   const getNotificationRecipients = () => {
     const recipients = new Set();
@@ -164,9 +185,18 @@ const TicketView = () => {
     [ticket, allUsers, searchTerm, currentUser._id]
   );
 
-  const reporterInfo = useMemo(() => getUserById(ticket?.reporter),[ticket?.reporter, allUsers]);
-  const targetUserInfo = useMemo(() => getUserById(ticket?.targetUser), [ticket?.targetUser, allUsers]);
-  const assignedToInfo = useMemo(() => (ticket?.assignedTo ? getUserById(ticket?.assignedTo) : null), [ticket?.assignedTo, allUsers]);
+  const reporterInfo = useMemo(
+    () => getUserById(ticket?.reporter),
+    [ticket?.reporter, allUsers]
+  );
+  const targetUserInfo = useMemo(
+    () => getUserById(ticket?.targetUser),
+    [ticket?.targetUser, allUsers]
+  );
+  const assignedToInfo = useMemo(
+    () => (ticket?.assignedTo ? getUserById(ticket?.assignedTo) : null),
+    [ticket?.assignedTo, allUsers]
+  );
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -219,7 +249,9 @@ const TicketView = () => {
       <div className="flex items-center text-sm text-gray-500 mb-6">
         <span className="hover:text-blue-600 cursor-pointer">تیکت‌ها</span>
         <IoIosArrowForward className="mx-2 text-gray-400" />
-        <span className="text-gray-700 font-medium">مشاهده تیکت #{ticketId}</span>
+        <span className="text-gray-700 font-medium">
+          مشاهده تیکت #{ticketId}
+        </span>
       </div>
 
       {/* Main ticket card */}
@@ -285,7 +317,7 @@ const TicketView = () => {
                     {ticket.attachments.map((file, i) => (
                       <a
                         key={i}
-                        href={`${BASE_URL}`+"/"+file.url}
+                        href={`${BASE_URL}` + "/" + file.url}
                         target="_blank"
                         rel="noreferrer"
                         className="flex flex-col items-center p-3 border rounded-lg hover:bg-white transition-all duration-200 hover:shadow-sm"
@@ -342,7 +374,10 @@ const TicketView = () => {
                           onChange={(e) => setSearchTerm(e.target.value)}
                           className="w-full p-2 pr-8 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
-                        <FaChevronDown className="absolute left-3 top-3 text-gray-400" size={14} />
+                        <FaChevronDown
+                          className="absolute left-3 top-3 text-gray-400"
+                          size={14}
+                        />
                       </div>
 
                       <div className="max-h-40 overflow-y-auto mb-3 space-y-2 border border-gray-200 rounded-lg">
@@ -366,9 +401,13 @@ const TicketView = () => {
                                 <p className="font-medium text-sm truncate">
                                   {user.firstName} {user.lastName}
                                 </p>
-                                <p className="text-xs text-gray-500 truncate">{user.role}</p>
+                                <p className="text-xs text-gray-500 truncate">
+                                  {user.role}
+                                </p>
                               </div>
-                              {selectedUsers?.some((u) => u._id === user._id) && (
+                              {selectedUsers?.some(
+                                (u) => u._id === user._id
+                              ) && (
                                 <span className="text-blue-500">
                                   <FaCheck size={14} />
                                 </span>
@@ -488,7 +527,8 @@ const TicketView = () => {
                     <p className="font-medium text-sm flex items-center justify-end">
                       <span
                         className={`inline-block w-2 h-2 rounded-full ml-1 ${
-                          ticket.priority === "high" || ticket.priority === "urgent"
+                          ticket.priority === "high" ||
+                          ticket.priority === "urgent"
                             ? "bg-red-500"
                             : ticket.priority === "medium"
                               ? "bg-yellow-500"
@@ -540,7 +580,9 @@ const TicketView = () => {
                         <button
                           className="text-red-500 hover:text-red-700 mr-2 text-sm"
                           onClick={() =>
-                            alert(`حذف ${participantInfo.name} از مشارکت‌کنندگان`)
+                            alert(
+                              `حذف ${participantInfo.name} از مشارکت‌کنندگان`
+                            )
                           }
                         >
                           ×
@@ -618,16 +660,24 @@ const TicketView = () => {
                         >
                           {/* User info and timestamp */}
                           <div className="flex flex-col mb-2">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              
+                              {/* تغییر این خط */}
                               <h5 className="font-semibold text-sm">
                                 {commentUser.firstName} {commentUser.lastName}
                               </h5>
-                              <span className="text-xs text-gray-500">
-                                <PersianDateWithTooltip date={comment.createdAt} />
+                              <span className="text-xs text-gray-500 whitespace-nowrap">
+                                {" "}
+                                {/* اضافه کردن whitespace-nowrap */}
+                                <PersianDateWithTooltip
+                                  date={comment.createdAt}
+                                />
                               </span>
-                            </div>
+                            </div> {console.log("commentUser : ", commentUser)}
                             {commentUser.role && (
-                              <p className="text-xs text-gray-500">{commentUser.role}</p>
+                              <p className="text-xs text-gray-500 ">
+                                {commentUser.role}
+                              </p>
                             )}
                           </div>
 
@@ -642,7 +692,7 @@ const TicketView = () => {
                               {comment.attachments.map((file, j) => (
                                 <a
                                   key={j}
-                                  href={file.url}
+                                  href={BASE_URL + "/"+file.url}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="flex items-center p-2 bg-white rounded-lg border hover:bg-gray-50 transition text-sm"
@@ -662,7 +712,10 @@ const TicketView = () => {
                           {isCurrentUser && (
                             <div className="absolute left-3 bottom-2 text-xs">
                               {isRead ? (
-                                <FaCheckDouble className="text-blue-500" size={12} />
+                                <FaCheckDouble
+                                  className="text-blue-500"
+                                  size={12}
+                                />
                               ) : (
                                 <FaCheck className="text-gray-400" size={12} />
                               )}
