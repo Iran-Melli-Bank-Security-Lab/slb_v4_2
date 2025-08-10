@@ -2,7 +2,7 @@ import bge from "../images/bg5.png"
 import PdfStructure from "./common/PdfStructure"
 import ReportTestSecond from "./tables/ReportTestSecond"
 
-function Pfe({count , pageNumber}) {
+function Pfe({count , pageNumber , data }) {
 
     return <>
 
@@ -13,7 +13,7 @@ function Pfe({count , pageNumber}) {
 
                 <div className={`c cx90 cw52 cy291pfe chbb`}>
 
-                    <ReportTestSecond  count={count}/>
+                    <ReportTestSecond  count={count} data={data}/>
                 </div>
             </div>
         </div>
