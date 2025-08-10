@@ -1,31 +1,26 @@
 // utils/collectEligibleComponents.js
-export const collectEligibleComponents = (data, standard) => {
-  if (!data || typeof data !== 'object') return new Set();
+import { getStandardByIsoFast } from "./getStandardByIsoFast";
 
-  // همه idهای موجود در pf*‌های دیتا
+export const matchItemById = (item, idsInData) => {
+  if (!item) return false;
+  return idsInData.has(String(item.id));
+};
+
+export const getAllIdsOfData = (data) => {
   const idsInData = new Set();
-  for (const [key, arr] of Object.entries(data)) {
-
+  for (const [key, arr] of Object.entries(data || {})) {
     if (key.startsWith('pf') && Array.isArray(arr)) {
-      for (const item of arr) {
-        const id = String(item?.id || '').trim();
-
+      for (const it of arr) {
+        const id = String(it?.id ?? '').trim();
         if (id) idsInData.add(id);
       }
     }
   }
+  return idsInData;
+};
 
-  
-
-  // فقط ISOهایی که idشان در دیتا هم وجود دارد
-  // const eligible = new Set();
-  for (const m of (standard?.mappings || [])) {
-    const stdId = String(m?.id || '').trim();
-    // const iso   = String(m?.iso_15408_component || '').trim().toUpperCase();
-    if (stdId  && idsInData.has(stdId)) {
-      return true 
-    }
-  }
-return false 
-  
+export const collectEligibleComponents = (data, _standard, label) => {
+  const idsInData = getAllIdsOfData(data);
+  const item = getStandardByIsoFast(label); // object for that ISO
+  return matchItemById(item, idsInData);    // true only if item.id is present
 };
