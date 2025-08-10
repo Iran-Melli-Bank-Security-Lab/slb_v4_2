@@ -84,7 +84,7 @@ function Pfb2({ edarehKol = "بانک ملی ایران", page , project ,pageNu
                         1.2-شرح کلی از سامانه
                     </HeaderPage>
 
-                    <Discription_2 projectName={project.projectName} address={pocUrl} />
+                    <Discription_2 projectName={project?.projectName} address={pocUrl} />
 
 
                     <HeaderPage className="cxd0pfb_2" y="y229pfb_1">
@@ -92,7 +92,7 @@ function Pfb2({ edarehKol = "بانک ملی ایران", page , project ,pageNu
                     </HeaderPage>
 
 
-                    <Discription_3 edarehKol={project.identifier.employer} />
+                    <Discription_3 edarehKol={project?.identifier?.employer} />
 
 
 

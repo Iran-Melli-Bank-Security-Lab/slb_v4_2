@@ -1,8 +1,80 @@
-import React from 'react';
+import React ,{useEffect , useState , useMemo}from 'react';
 import "./document.css";
 import Tr from './Tr';
 
+const TOTAL_ITEMS = 42;
+const KEY = 'failCount'; // جایی که EditableCell می‌نویسه (sessionStorage)
+const CHAN_NAME = 'failCount:chan'; // اختیاری، اگر نویسنده پیام بده
+
+// خواندن شمارنده (اول sessionStorage، بعد localStorage به عنوان fallback)
+const readCount = () => {
+  const s = sessionStorage.getItem(KEY);
+  if (s != null) return Number(s) || 0;
+  const l = localStorage.getItem(KEY);
+  return Number(l) || 0;
+};
 const ReportTestSecond = ({count , data }) => {
+  const [failCount, setFailCount] = useState(() => readCount());
+
+
+    useEffect(() => {
+    let cancelled = false;
+
+    const update = () => {
+      if (cancelled) return;
+      setFailCount(readCount());
+    };
+
+    // 1) Sync فوری
+    update();
+
+    // 2) Poll کوتاه برای حل race (تا 1 ثانیه، هر 50ms)
+    let tries = 0;
+    const iv = setInterval(() => {
+      tries += 1;
+      update();
+      if (tries >= 20) clearInterval(iv);
+    }, 50);
+
+    // 3) اگر از BroadcastChannel استفاده می‌کنی (اختیاری اما توصیه‌شده)
+    let bc = null;
+    try {
+      bc = new BroadcastChannel(CHAN_NAME);
+      bc.onmessage = (e) => {
+        if (e?.data?.type === 'sync' && typeof e.data.value === 'number') {
+          setFailCount(e.data.value);
+        }
+      };
+    } catch {}
+
+    // 4) storage event (بین تب‌ها برای localStorage کار می‌کند)
+    const onStorage = (e) => {
+      if (e.key === KEY) update();
+    };
+    window.addEventListener('storage', onStorage);
+
+    // 5) با فوکوس شدن صفحه، مجدد بخوان
+    window.addEventListener('focus', update);
+
+    return () => {
+      cancelled = true;
+      clearInterval(iv);
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('focus', update);
+      try { bc && bc.close(); } catch {}
+    };
+  }, []);
+
+  
+  const failurePercent = useMemo(() => {
+    const pct = (failCount / TOTAL_ITEMS) * 100 ;
+    // return Math.max(0, Math.min(100, pct));
+    return pct ; 
+  }, [failCount]);
+
+
+
+  const displayPercent = failurePercent.toFixed(0); // یا .toFixed(1) برای یک رقم اعشار
 
     // Function to determine test prop values based on count
     const getTestValues = (count) => {
@@ -137,17 +209,18 @@ const ReportTestSecond = ({count , data }) => {
                 <tr style={{ height: '23pt' }}>
                     <td style={{ width: '434pt' }} colSpan="5" bgcolor="#FF0000">
                         <p
-                            className="s66"
-                            style={{
-                                paddingTop: '1pt',
-                                paddingLeft: '89pt',
-                                paddingRight: '88pt',
-                                textIndent: '0pt',
-                                textAlign: 'center'
-                            }}
-                        >
-                            : نتیجه نهایی ارزیابی (درصد انطباق بیان شود )
-                        </p>
+              className="s66"
+              style={{
+                paddingTop: '1pt',
+              
+                textIndent: '0pt',
+                textAlign: 'center',
+                direction: 'ltr',
+              }}
+            >
+               {displayPercent}%  : نتیجه نهایی ارزیابی (درصد انطباق بیان شود ){' '}
+              
+            </p>
                     </td>
                 </tr>
             </tbody>

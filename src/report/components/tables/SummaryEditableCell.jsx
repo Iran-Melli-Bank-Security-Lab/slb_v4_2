@@ -1,20 +1,20 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { collectEligibleComponents } from '../../utils/collectEligibleComponents';
+import { summaryCollectEligibleComponents } from '../../utils/summaryCollectEligibleComponents';
 
-const COUNTER_KEY = 'failCount';
+const COUNTER_KEY = 'summaryFailCount';
 const getFailCount = () => Number(sessionStorage.getItem(COUNTER_KEY) || '0');
 const setFailCount = (n) => sessionStorage.setItem(COUNTER_KEY, String(Math.max(0, n)));
 const addFail = (delta) => setFailCount(getFailCount() + delta);
 
-const EditableCell = ({ test4, data, label }) => {
+const SummaryEditableCell = ({ test4, data, id }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(test4 ? 'Pass' : '');
   const [touched, setTouched] = useState(false);
 
   // true => Fail, false => Pass
   const shouldFail = useMemo(
-    () => collectEligibleComponents(data, null, label),
-    [data, label]
+    () => summaryCollectEligibleComponents(data, null, id),
+    [data, id]
   );
   const autoValue = shouldFail ? 'Fail' : 'Pass';
 
@@ -23,9 +23,11 @@ const EditableCell = ({ test4, data, label }) => {
   const isFail = displayValue === 'Fail';
   const bgColor = isFail ? 'red' : 'transparent';
 
-  // --- شمارش و ذخیره در sessionStorage (ایمن در برابر دوباره‌شماری) ---
+  // Count only if this cell has a valid `id` (first column in STr)
   useEffect(() => {
-    const CELL_KEY = `failCell:${label}`;
+    if (!id) return; // prevent "failCell:undefined" collisions
+
+    const CELL_KEY = `failCell:${id}`;
     const prevFlag = sessionStorage.getItem(CELL_KEY) === '1';
     const newFlag = isFail;
 
@@ -34,7 +36,6 @@ const EditableCell = ({ test4, data, label }) => {
       sessionStorage.setItem(CELL_KEY, newFlag ? '1' : '0');
     }
 
-    // هنگام حذف سلول از DOM، اگر Fail بود از شمارش کم کن
     return () => {
       const lastFlag = sessionStorage.getItem(CELL_KEY) === '1';
       if (lastFlag) {
@@ -42,34 +43,24 @@ const EditableCell = ({ test4, data, label }) => {
         sessionStorage.setItem(CELL_KEY, '0');
       }
     };
-  }, [isFail, label]);
-  // -------------------------------------------------------------------
+  }, [isFail, id]);
 
   const handleDoubleClick = () => {
     if (!test4) return;
     if (!touched) {
-      setValue(autoValue);   // مقدار اولیه ویرایش = مقدار خودکار
+      setValue(autoValue);
       setTouched(true);
     }
     setIsEditing(true);
   };
 
   const handleBlur = () => setIsEditing(false);
-
-  const handleChange = (e) => {
-    setTouched(true);
-    setValue(e.target.value);
-  };
+  const handleChange = (e) => { setTouched(true); setValue(e.target.value); };
 
   return (
     <td style={{ width: '65pt', paddingTop: '5px', backgroundColor: bgColor }}>
       {isEditing ? (
-        <select
-          value={value}
-          onChange={handleChange}
-          onBlur={handleBlur}
-          autoFocus
-        >
+        <select value={value} onChange={handleChange} onBlur={handleBlur} autoFocus>
           <option value="Pass">Pass</option>
           <option value="Fail">Fail</option>
         </select>
@@ -87,4 +78,4 @@ const EditableCell = ({ test4, data, label }) => {
   );
 };
 
-export default EditableCell;
+export default SummaryEditableCell;

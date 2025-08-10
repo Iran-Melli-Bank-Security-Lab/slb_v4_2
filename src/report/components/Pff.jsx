@@ -4,8 +4,8 @@ import HeaderPage from "./common/Header";
 import PdfStructure from "./common/PdfStructure";
 import CaptionTable from "./PFF/CaptionTable"
 import SummaryTest from "./tables/SummaryTest";
-function Pff({count , pageNumber}) {
-   
+function Pff({count , pageNumber , data }) {
+   console.log("data in line 8: " , data )
     return <>
 
         <div id="pff" className="pf w0 h0" data-page-no="f">
@@ -18,7 +18,7 @@ function Pff({count , pageNumber}) {
 
                 <div className={`c cx90 cw52 cy291pff chbb`}>
 
-                    <SummaryTest count={count} />
+                    <SummaryTest count={count}  data={data}/>
                 
                 </div>
 

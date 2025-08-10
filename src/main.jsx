@@ -135,6 +135,11 @@ const router = createBrowserRouter([
             path:"userreports",
             Component:MainReport
             
+          } , 
+          {
+            path:"/users/reports/:projectId",
+            Component:MainReport
+            
           } 
     ],
   },

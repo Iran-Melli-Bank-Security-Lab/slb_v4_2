@@ -1,7 +1,17 @@
 import React from 'react';
 import Tr from './IdentifierDoc/Tr';
 import Td from './IdentifierDoc/Td';
+
+import { ordinalLabel } from './OrdinalLabel';
 import moment from 'moment-jalaali';
+moment.loadPersian({ usePersianDigits: true, dialect: 'persian-modern' });
+
+const faDate = (v) => {
+  if (!v) return '';
+  const t = typeof v === 'number' ? v : new Date(v).getTime(); // هم ms، هم ISO
+  return moment(t).format('jYYYY/jMM/jDD');
+};
+
 
 const IdentifierDoc = ({ project  , count }) => {
 
@@ -72,27 +82,34 @@ const IdentifierDoc = ({ project  , count }) => {
 </Tr>
 
 <Tr>
-  <Td fontFamily="btitr"  value={project.projectName} header="نام سامانه"/>
+  <Td fontFamily="btitr"  value={project?.projectName} header="نام سامانه"/>
 </Tr>
 
     <Tr>
       <Td fontFamily="btitr" className="s7" value=" فوق محرمانه" header="طبقه بندی مستند" bgcolor="#D9D9D9"/>
     </Tr>
-    <Tr>
-      <Td fontFamily="btitr"  value="1403/07/23" header="تاریخ پذیرش سامانه"/>
-    </Tr>
+<Tr>
+  <Td fontFamily="btitr"
+      value={faDate(project?.identifier?.projectAcceptanceDate)}
+      header="تاریخ پذیرش سامانه" />
+</Tr>
 
-    <Tr>
-      <Td fontFamily="btitr"  value="1403/۱۰/03" header="تاریخ صدور گزارش" bgcolor="#D9D9D9"/>
-    </Tr>
+  <Tr>
+  <Td fontFamily="btitr"
+      value={faDate(project?.identifier?.testDate)}
+      header="تاریخ آزمون" />
+</Tr>
+ <Tr>
+  <Td fontFamily="btitr"
+      value={faDate(project?.identifier?.reportIssueDate)}
+      header="تاریخ صدور گزارش"
+      bgcolor="#D9D9D9" />
+</Tr>
 
-    <Tr>
-      {/* {console.log("time of created : " , new Date(new Date(project.created_date).getTime()))} */}
-      <Td fontFamily="btitr" value={moment(new Date(project.created_date).getTime()).format('jYYYY/jMM/jDD')} header="تاریخ آزمون"/>
-    </Tr>
+
 
    <Tr>
-    <Td fontFamily="btitr" value={project.version} header="نسخه سامانه" bgcolor="#D9D9D9"/>
+    <Td fontFamily="btitr" value={project?.version} header="نسخه سامانه" bgcolor="#D9D9D9"/>
    </Tr>
 
    <Tr>
@@ -102,25 +119,27 @@ const IdentifierDoc = ({ project  , count }) => {
 
   <Tr>
     {/* <Td fontFamily="btitr" value={project.identifier.employer} header="پیمانکار"  bgcolor="#D9D9D9"/> */}
-    <Td fontFamily="btitr" value={project.identifier.beneficiaryOffice} header="پیمانکار"  bgcolor="#D9D9D9"/>
+    <Td fontFamily="btitr" value={project?.identifier?.beneficiaryOffice} header="پیمانکار"  bgcolor="#D9D9D9"/>
 
   </Tr>
 
   <Tr>
-    <Td fontFamily="btitr" value={project.identifier.employer} header="بهره بردار"  />
+    <Td fontFamily="btitr" value={project?.identifier?.employer} header="بهره بردار"  />
 
   </Tr>
 
   <Tr>
-    <Td fontFamily="btitr" value={project.letterNumber} header="شماره نامه دریافتی"  bgcolor="#D9D9D9"/>
+    <Td fontFamily="btitr" value={project?.letterNumber} header="شماره نامه دریافتی"  bgcolor="#D9D9D9"/>
 
   </Tr>
 
-  <Tr>
-    {/* <Td fontFamily="btitr" value={`${project.numberOfTest} مرتبه`} header="تعداد دفعات آزمون"  /> */}
-    <Td fontFamily="btitr" value={`مرتبه اول`} header="تعداد دفعات آزمون"  />
-
-  </Tr>
+<Tr>
+  <Td
+    fontFamily="btitr"
+    value={ordinalLabel(project?.numberOfTest)}   // ← «مرتبه اول/دوم/...»
+    header="تعداد دفعات آزمون"
+  />
+</Tr>
 
 
 

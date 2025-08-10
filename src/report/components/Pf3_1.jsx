@@ -15,7 +15,7 @@ console.log("propes project : " , props )
 
                 <div className={`pf3_1c cx90pf3_1 cw52pf3 cy291pf3_1 chbb`}>
 
-                    <PentesterHistory ProjectId={props.project._id}/>
+                    <PentesterHistory ProjectId={props.project?._id}/>
                     <div className="pf32cap">
                         <CaptionTable_1 caption="جدول 3: تاریخچه آزمونگران"/>
                     </div>

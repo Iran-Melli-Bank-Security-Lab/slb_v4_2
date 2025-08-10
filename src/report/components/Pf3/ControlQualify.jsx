@@ -1,6 +1,14 @@
 import React from 'react';
+import moment from 'moment-jalaali';
+moment.loadPersian({ usePersianDigits: true, dialect: 'persian-modern' });
 
-const ControlQualify = () => {
+const faDate = (v) => {
+  if (!v) return '';
+  const t = typeof v === 'number' ? v : new Date(v).getTime(); // هم ms، هم ISO
+  return moment(t).format('jYYYY/jMM/jDD');
+};
+
+const ControlQualify = ({project}) => {
   return (
     <table style={{ borderCollapse: 'collapse', marginLeft: '17.264pt', 
       backgroundColor:"white"
@@ -30,7 +38,9 @@ const ControlQualify = () => {
             }}
             bgcolor="#006FC0"
           >
-                        <p className="s5identifier" style={{fontFamily:"btitr", paddingTop: '5pt', textIndent: '0pt', textAlign: 'right' }}>1403/۱۰/۰۳</p>
+                        <p className="s5identifier" style={{fontFamily:"btitr", paddingTop: '5pt', textIndent: '0pt', textAlign: 'right' }}>
+                          {faDate(project?.verifiedReportByAdmin)}
+                        </p>
 
           </td>
           <td
@@ -44,7 +54,10 @@ const ControlQualify = () => {
             }}
             bgcolor="#006FC0"
           >
-            <p className="s5identifier" style={{ paddingTop: '5pt', paddingLeft: '4pt', textIndent: '0pt', textAlign: 'left'  , fontFamily:"btitr"}}>: تاریخ تایید</p>
+            <p className="s5identifier"
+             style={{
+               paddingTop: '5pt', paddingLeft: '4pt', 
+               textIndent: '0pt', textAlign: 'left'  , fontFamily:"btitr"}}>: تاریخ تایید</p>
           </td>
           <td
             style={{

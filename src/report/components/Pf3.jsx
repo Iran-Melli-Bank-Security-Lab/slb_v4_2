@@ -7,7 +7,7 @@ import PdfStructure from "./common/PdfStructure"
 import CaptionTable_1 from "./Pf3/CaptionTable_1";
 
 
-function Pf3(props  ) {
+function Pf3(props) {
 
 
     return <>
@@ -27,7 +27,7 @@ function Pf3(props  ) {
 
                 <div className={`cp1 cx90pf3_2 cw52 cy291pf3_2 chbb`}>
 
-                    <ControlQualify />
+                    <ControlQualify project={props.project} />
                     <div className="pf32cap">
                         <CaptionTable_1 caption="جدول 2: کنترل کیفیت گزارش "/>
                     </div>

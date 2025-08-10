@@ -6,7 +6,7 @@ import "./styles/fancy.min.css";
 import "./styles/main-form.css";
 import "./index.css";
 import "./temp/webReport_files/document.css";
-import { useLocation } from "react-router";
+import { useLocation, useParams } from "react-router";
 import Button from "@mui/material/Button";
 //  import Poc from "./pages/POC";
 import MainForm from "./MainForm";
@@ -15,13 +15,45 @@ import Pf10 from "./components/Pf10";
 import Pf1a from "./components/Pf1a";
 import { getAllBugsForReport } from "../api/bugs/getAllBugsForReport";
 import { setPage } from "../api/bugs/setPage";
+import { getProjectById } from "../api/projects/getProjectById";
 
 const MainReport = () => {
   const location = useLocation();
-  const project = location.state?.project;
+  const { projectId } = useParams();
 
+  // اگر از navigate با state آمده باشد:
+  const initialProject = location.state?.project || null;
+
+  const [project, setProject] = useState(initialProject);
+  // const project = location.state?.project;
+  console.log("project in main report : ", projectId  , initialProject);
   const [reports, setReports] = useState(null);
   const [counter, setCounter] = useState(1);
+
+
+
+ // projectId نهایی که باید باهاش کار کنیم (یا از state یا از params)
+  const effectiveProjectId = project?._id || projectId;
+
+  console.log("effective project : " , effectiveProjectId)
+  // اگر از state پروژه نداشتیم، با id از URL بگیر
+  useEffect(() => {
+    const fetchProject = async () => {
+      if (!project && projectId) {
+    
+        console.log("project ******************************************************************************************")
+        try {
+          const result  = await getProjectById(projectId);
+          console.log("result in line 24 getProject : " , result )
+          setProject(result);
+        } catch (e) {
+          console.error("Failed to fetch project by id:", e);
+        }
+    }
+    };
+    fetchProject();
+  }, [projectId]);
+
 
   const [pf10, setPf10] = useState([]);
   const [pf11, setPf11] = useState([]);
@@ -36,16 +68,20 @@ const MainReport = () => {
   const [pf1a, setPf1a] = useState([]);
   const [pf1b, setPf1b] = useState([]);
   const [pf1c, setPf1c] = useState([]);
-const [dataToSend , setDataToSend] = useState(null)
+
+  const [dataToSend, setDataToSend] = useState(null);
   const [bugsByCategory1, setbugsByCategory1] = useState([]);
 
   const [pageNumbers, setPageNumbers] = useState({}); // To store page numbers for w41 to w412
 
   useEffect(() => {
+
+    if (!effectiveProjectId) return;
+
+
     const getfoundedBugs = async () => {
-      
       try {
-        const result = await getAllBugsForReport(project._id);
+        const result = await getAllBugsForReport(effectiveProjectId);
 
         console.log("result in line 5000: ", result);
         setReports(result);
@@ -83,11 +119,9 @@ const [dataToSend , setDataToSend] = useState(null)
     };
 
     getfoundedBugs();
-  }, [project._id]);
+  }, [effectiveProjectId]);
 
- 
-useEffect(() => {
-
+  useEffect(() => {
     const registerAllWstg = async () => {
       const page = {};
       page.pf10 = 17;
@@ -241,7 +275,7 @@ useEffect(() => {
 
       setPageNumbers(page);
 
-     const   dataToSend = {
+      const dataToSend = {
         project: location.state?.project._id || "",
         projectManager: (reports && reports[0]?.projectManager) || "",
         pf10: Pf10,
@@ -259,7 +293,7 @@ useEffect(() => {
         pf1c: Pf1c,
       };
 
-      setDataToSend(dataToSend)
+      setDataToSend(dataToSend);
       try {
         console.log("data to send #####################  : ", dataToSend);
         await setPage(dataToSend);
@@ -268,12 +302,8 @@ useEffect(() => {
       }
     };
 
-
     registerAllWstg();
-  }, [
-    reports,
-    
-  ]);
+  }, [reports]);
 
   return (
     <div id="page-container">

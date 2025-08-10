@@ -1,98 +1,113 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  Stepper, Step, StepLabel, Button, 
-  TextField, FormControl, InputLabel, 
-  Select, MenuItem, Typography, Box, Paper, 
-  CircularProgress
-} from '@mui/material';
-import { useParams } from 'react-router';
-import { styled } from '@mui/system';
-import { postIdentifier } from '../api/projects/postIdentifier';
-import { toast } from 'react-toastify';
+import React, { useEffect, useState } from "react";
+import {
+  Stepper,
+  Step,
+  StepLabel,
+  Button,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Typography,
+  Box,
+  Paper,
+  CircularProgress,
+} from "@mui/material";
+import { useParams } from "react-router";
+import { styled } from "@mui/system";
+import { postIdentifier } from "../api/projects/postIdentifier";
+import { toast } from "react-toastify";
+import AdapterJalali from "../components/dateTime/AdapterJalali";
 
-const steps = ['Project Details', 'Organizational Unit', 'Beneficiary', 'Datacenter'];
-
+const steps = [
+  "Project Details",
+  "Organizational Unit",
+  "Beneficiary",
+  "Datacenter",
+  "Dates", // ⬅ استپ جدید
+];
 const FormContainer = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(4),
-  borderRadius: '16px',
-  boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-  backgroundColor: 'white',
-  maxWidth: '800px',
-  margin: 'auto',
-  [theme.breakpoints.down('md')]: {
+  borderRadius: "16px",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
+  backgroundColor: "white",
+  maxWidth: "800px",
+  margin: "auto",
+  [theme.breakpoints.down("md")]: {
     padding: theme.spacing(3),
-    maxWidth: '100%',
+    maxWidth: "100%",
   },
 }));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   marginBottom: theme.spacing(3),
-  '& .MuiOutlinedInput-root': {
-    borderRadius: '12px',
-    '& fieldset': {
-      borderColor: '#e0e0e0',
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "12px",
+    "& fieldset": {
+      borderColor: "#e0e0e0",
     },
-    '&:hover fieldset': {
+    "&:hover fieldset": {
       borderColor: theme.palette.primary.main,
     },
-    '&.Mui-focused fieldset': {
+    "&.Mui-focused fieldset": {
       borderColor: theme.palette.primary.main,
-      borderWidth: '2px',
+      borderWidth: "2px",
     },
   },
-  '& .MuiInputLabel-root': {
-    color: '#64748B',
+  "& .MuiInputLabel-root": {
+    color: "#64748B",
   },
-  '& .MuiInputLabel-root.Mui-focused': {
+  "& .MuiInputLabel-root.Mui-focused": {
     color: theme.palette.primary.main,
   },
 }));
 
 const StyledSelect = styled(Select)(({ theme }) => ({
-  borderRadius: '12px',
+  borderRadius: "12px",
   marginBottom: theme.spacing(3),
-  '& .MuiOutlinedInput-notchedOutline': {
-    borderColor: '#e0e0e0',
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#e0e0e0",
   },
-  '&:hover .MuiOutlinedInput-notchedOutline': {
+  "&:hover .MuiOutlinedInput-notchedOutline": {
     borderColor: theme.palette.primary.main,
   },
-  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
     borderColor: theme.palette.primary.main,
-    borderWidth: '2px',
+    borderWidth: "2px",
   },
-  '& .MuiInputLabel-root': {
-    color: '#64748B',
+  "& .MuiInputLabel-root": {
+    color: "#64748B",
   },
-  '& .MuiInputLabel-root.Mui-focused': {
+  "& .MuiInputLabel-root.Mui-focused": {
     color: theme.palette.primary.main,
   },
 }));
 
 const ProgressButton = styled(Button)(({ theme }) => ({
-  padding: '12px 24px',
-  borderRadius: '12px',
-  fontWeight: '600',
-  textTransform: 'none',
-  fontSize: '16px',
-  boxShadow: 'none',
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    boxShadow: 'none',
-    transform: 'translateY(-2px)',
+  padding: "12px 24px",
+  borderRadius: "12px",
+  fontWeight: "600",
+  textTransform: "none",
+  fontSize: "16px",
+  boxShadow: "none",
+  transition: "all 0.3s ease",
+  "&:hover": {
+    boxShadow: "none",
+    transform: "translateY(-2px)",
   },
 }));
 
-const StepIcon = styled('div')(({ theme, active }) => ({
+const StepIcon = styled("div")(({ theme, active }) => ({
   width: 24,
   height: 24,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: '50%',
-  backgroundColor: active ? theme.palette.primary.main : '#E2E8F0',
-  color: active ? 'white' : '#64748B',
-  fontWeight: 'bold',
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: "50%",
+  backgroundColor: active ? theme.palette.primary.main : "#E2E8F0",
+  color: active ? "white" : "#64748B",
+  fontWeight: "bold",
 }));
 
 function Identifier() {
@@ -101,30 +116,35 @@ function Identifier() {
   const [activeStep, setActiveStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    developer: '',
-    certificateRequest: 'Yes',
-    employer: '',
-    organizationalUnitName: '',
-    projectManagerName: '',
-    unitPhoneNumber: '',
-    beneficiaryOffice: '',
-    followerName: '',
-    beneficiaryPhoneNumber: '',
-    datacenterName: '',
-    responsibleName: '',
-    datacenterPhoneNumber: '',
+    developer: "",
+    certificateRequest: "Yes",
+    employer: "",
+    organizationalUnitName: "",
+    projectManagerName: "",
+    unitPhoneNumber: "",
+    beneficiaryOffice: "",
+    followerName: "",
+    beneficiaryPhoneNumber: "",
+    datacenterName: "",
+    responsibleName: "",
+    datacenterPhoneNumber: "",
+    projectAcceptanceDate: "", // تاریخ پذیرش پروژه
+    reportIssueDate: "", // تاریخ صدور گزارش
+    testDate: "", // تاریخ آزمون
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     const fetchProjectData = async () => {
       try {
-        const response = await axiosPrivate.get(`${serverIp}project/complete/${projectId}`);
+        const response = await axiosPrivate.get(
+          `${serverIp}project/complete/${projectId}`
+        );
         if (response.data) {
           setFormData(response.data);
         }
       } catch (error) {
-        console.error('Failed to fetch project data:', error);
+        console.error("Failed to fetch project data:", error);
       } finally {
         setLoading(false);
       }
@@ -135,28 +155,47 @@ function Identifier() {
 
   const validateStep = (step) => {
     const newErrors = {};
-    
+
     if (step === 0) {
-      if (!formData.developer.trim()) newErrors.developer = 'Developer name is required';
-      if (!formData.employer.trim()) newErrors.employer = 'Employer is required';
-      if (!formData.certificateRequest) newErrors.certificateRequest = 'Certificate Request is required';
+      if (!formData.developer.trim())
+        newErrors.developer = "Developer name is required";
+      if (!formData.employer.trim())
+        newErrors.employer = "Employer is required";
+      if (!formData.certificateRequest)
+        newErrors.certificateRequest = "Certificate Request is required";
     }
-    
+
     if (step === 1) {
-      if (!formData.organizationalUnitName.trim()) newErrors.organizationalUnitName = 'Organizational Unit Name is required';
-      if (!formData.projectManagerName.trim()) newErrors.projectManagerName = 'Project Manager Name is required';
+      if (!formData.organizationalUnitName.trim())
+        newErrors.organizationalUnitName =
+          "Organizational Unit Name is required";
+      if (!formData.projectManagerName.trim())
+        newErrors.projectManagerName = "Project Manager Name is required";
     }
-    
+
     if (step === 2) {
-      if (!formData.beneficiaryOffice.trim()) newErrors.beneficiaryOffice = 'Beneficiary Office is required';
-      if (!formData.followerName.trim()) newErrors.followerName = 'Follower Name is required';
+      if (!formData.beneficiaryOffice.trim())
+        newErrors.beneficiaryOffice = "Beneficiary Office is required";
+      if (!formData.followerName.trim())
+        newErrors.followerName = "Follower Name is required";
     }
-    
+
     if (step === 3) {
-      if (!formData.datacenterName.trim()) newErrors.datacenterName = 'Datacenter Name is required';
-      if (!formData.responsibleName.trim()) newErrors.responsibleName = 'Responsible Name is required';
+      if (!formData.datacenterName.trim())
+        newErrors.datacenterName = "Datacenter Name is required";
+      if (!formData.responsibleName.trim())
+        newErrors.responsibleName = "Responsible Name is required";
     }
-    
+
+    // ⬇️ استپ پنجم (Dates)
+    if (step === 4) {
+      if (!formData.projectAcceptanceDate)
+        newErrors.projectAcceptanceDate = "Project acceptance date is required";
+      if (!formData.reportIssueDate)
+        newErrors.reportIssueDate = "Report issue date is required";
+      if (!formData.testDate) newErrors.testDate = "Test date is required";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -179,42 +218,96 @@ function Identifier() {
     if (validateStep(activeStep)) {
       try {
         await postIdentifier(projectId, formData);
-        toast.success('Project data submitted successfully!', {
+        toast.success("Project data submitted successfully!", {
           hideProgressBar: false,
           closeOnClick: true,
           pauseOnHover: true,
           draggable: true,
           progress: undefined,
           style: {
-            borderRadius: '12px',
-            background: '#F8FAFC',
-            color: '#1E293B',
-            borderLeft: '6px solid #10B981',
+            borderRadius: "12px",
+            background: "#F8FAFC",
+            color: "#1E293B",
+            borderLeft: "6px solid #10B981",
           },
         });
       } catch (error) {
-        toast.error('There was an error submitting the data. Please try again.', {
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          style: {
-            borderRadius: '12px',
-            background: '#F8FAFC',
-            color: '#1E293B',
-            borderLeft: '6px solid #EF4444',
-          },
-        });
+        toast.error(
+          "There was an error submitting the data. Please try again.",
+          {
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            style: {
+              borderRadius: "12px",
+              background: "#F8FAFC",
+              color: "#1E293B",
+              borderLeft: "6px solid #EF4444",
+            },
+          }
+        );
       }
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleProjectAcceptanceDate = (date) => {
+    if (!date || isNaN(date)) {
+      setFormData((prev) => ({ ...prev, projectAcceptanceDate: "" }));
+      return;
+    }
+    const onlyDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+    setFormData((prev) => ({
+      ...prev,
+      projectAcceptanceDate: onlyDate.getTime(),
+    }));
+    if (errors.projectAcceptanceDate) {
+      setErrors((prev) => ({ ...prev, projectAcceptanceDate: "" }));
+    }
+  };
+
+  const handleReportIssueDate = (date) => {
+    if (!date || isNaN(date)) {
+      setFormData((prev) => ({ ...prev, reportIssueDate: "" }));
+      return;
+    }
+    const onlyDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+    setFormData((prev) => ({ ...prev, reportIssueDate: onlyDate.getTime() }));
+    if (errors.reportIssueDate) {
+      setErrors((prev) => ({ ...prev, reportIssueDate: "" }));
+    }
+  };
+
+  const handleTestDate = (date) => {
+    if (!date || isNaN(date)) {
+      setFormData((prev) => ({ ...prev, testDate: "" }));
+      return;
+    }
+    const onlyDate = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+    setFormData((prev) => ({ ...prev, testDate: onlyDate.getTime() }));
+    if (errors.testDate) {
+      setErrors((prev) => ({ ...prev, testDate: "" }));
     }
   };
 
@@ -232,7 +325,7 @@ function Identifier() {
               error={!!errors.developer}
               helperText={errors.developer}
             />
-            
+
             <StyledTextField
               label="Employer"
               name="employer"
@@ -242,9 +335,11 @@ function Identifier() {
               error={!!errors.employer}
               helperText={errors.employer}
             />
-            
+
             <FormControl fullWidth>
-              <InputLabel id="certificateRequest-label">Certificate Request</InputLabel>
+              <InputLabel id="certificateRequest-label">
+                Certificate Request
+              </InputLabel>
               <StyledSelect
                 labelId="certificateRequest-label"
                 name="certificateRequest"
@@ -257,7 +352,11 @@ function Identifier() {
                 <MenuItem value="No">No</MenuItem>
               </StyledSelect>
               {errors.certificateRequest && (
-                <Typography color="error" variant="body2" sx={{ mt: -2, mb: 2 }}>
+                <Typography
+                  color="error"
+                  variant="body2"
+                  sx={{ mt: -2, mb: 2 }}
+                >
                   {errors.certificateRequest}
                 </Typography>
               )}
@@ -357,6 +456,59 @@ function Identifier() {
             />
           </Box>
         );
+
+      case 4: // Dates
+        return (
+          <Box className="grid grid-cols-1 gap-6">
+            <Box>
+              <Typography
+                variant="subtitle1"
+                sx={{ mb: 2, fontWeight: "bold", direction:'rtl' }}
+              >
+                تاریخ پذیرش پروژه
+              </Typography>
+              <AdapterJalali
+                value={
+                  formData.projectAcceptanceDate
+                    ? new Date(formData.projectAcceptanceDate)
+                    : null
+                }
+                onChange={handleProjectAcceptanceDate}
+              />
+            </Box>
+
+            <Box>
+              <Typography
+                variant="subtitle1"
+                sx={{ mb: 2, fontWeight: "bold", direction:'rtl' }}
+              >
+                تاریخ صدور گزارش
+              </Typography>
+              <AdapterJalali
+                value={
+                  formData.reportIssueDate
+                    ? new Date(formData.reportIssueDate)
+                    : null
+                }
+                onChange={handleReportIssueDate}
+              />
+            </Box>
+
+            <Box>
+              <Typography
+                variant="subtitle1"
+                sx={{ mb: 2, fontWeight: "bold" , direction:'rtl'}}
+              >
+                تاریخ آزمون
+              </Typography>
+              <AdapterJalali
+                value={formData.testDate ? new Date(formData.testDate) : null}
+                onChange={handleTestDate}
+              />
+            </Box>
+          </Box>
+        );
+
       default:
         return null;
     }
@@ -366,10 +518,18 @@ function Identifier() {
     <Box className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-gray-50 p-4">
       <FormContainer>
         <Box className="text-center mb-8">
-          <Typography variant="h4" className="font-bold text-gray-800 mb-2" sx={{ fontWeight: 700 }}>
+          <Typography
+            variant="h4"
+            className="font-bold text-gray-800 mb-2"
+            sx={{ fontWeight: 700 }}
+          >
             Project Identifier Form
           </Typography>
-          <Typography variant="subtitle1" className="text-gray-600" sx={{ color: '#64748B' }}>
+          <Typography
+            variant="subtitle1"
+            className="text-gray-600"
+            sx={{ color: "#64748B" }}
+          >
             Complete all steps to register your project
           </Typography>
         </Box>
@@ -377,17 +537,17 @@ function Identifier() {
         <Stepper activeStep={activeStep} alternativeLabel className="mb-8">
           {steps.map((label, index) => (
             <Step key={label}>
-              <StepLabel 
+              <StepLabel
                 StepIconComponent={(props) => (
                   <StepIcon active={props.active || props.completed}>
                     {index + 1}
                   </StepIcon>
                 )}
                 sx={{
-                  '& .MuiStepLabel-label': {
-                    color: activeStep === index ? '#1E293B' : '#64748B',
+                  "& .MuiStepLabel-label": {
+                    color: activeStep === index ? "#1E293B" : "#64748B",
                     fontWeight: activeStep === index ? 600 : 400,
-                  }
+                  },
                 }}
               >
                 {label}
@@ -401,9 +561,7 @@ function Identifier() {
             <CircularProgress size={60} />
           </Box>
         ) : (
-          <Box className="mb-8">
-            {renderStepContent(activeStep)}
-          </Box>
+          <Box className="mb-8">{renderStepContent(activeStep)}</Box>
         )}
 
         <Box className="flex justify-between mt-8">
@@ -412,39 +570,43 @@ function Identifier() {
             onClick={handleBack}
             variant="outlined"
             sx={{
-              color: '#64748B',
-              borderColor: '#E2E8F0',
-              '&:hover': {
-                borderColor: '#CBD5E1',
-                backgroundColor: '#F8FAFC',
+              color: "#64748B",
+              borderColor: "#E2E8F0",
+              "&:hover": {
+                borderColor: "#CBD5E1",
+                backgroundColor: "#F8FAFC",
               },
             }}
           >
             Back
           </ProgressButton>
-          
+
           {activeStep === steps.length - 1 ? (
             <ProgressButton
               onClick={handleSubmit}
               variant="contained"
               sx={{
-                backgroundColor: '#3B82F6',
-                '&:hover': {
-                  backgroundColor: '#2563EB',
+                backgroundColor: "#3B82F6",
+                "&:hover": {
+                  backgroundColor: "#2563EB",
                 },
               }}
               disabled={loading}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Submit"
+              )}
             </ProgressButton>
           ) : (
             <ProgressButton
               onClick={handleNext}
               variant="contained"
               sx={{
-                backgroundColor: '#3B82F6',
-                '&:hover': {
-                  backgroundColor: '#2563EB',
+                backgroundColor: "#3B82F6",
+                "&:hover": {
+                  backgroundColor: "#2563EB",
                 },
               }}
             >

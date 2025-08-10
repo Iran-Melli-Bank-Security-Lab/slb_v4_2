@@ -19,11 +19,12 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@fontsource/roboto": "^5.2.6",
     "@mui/icons-material": "^7.1.0",
     "@mui/lab": "^7.0.0-beta.14",
     "@mui/material": "^7.1.0",
+    "@mui/x-date-pickers": "^8.10.0",
     "@mui/x-tree-view": "^8.3.1",
     "@react-hook/window-size": "^3.1.1",
     "@reduxjs/toolkit": "^2.7.0",
@@ -31,6 +32,9 @@
     "ae-cvss-calculator": "^1.0.8",
     "babel-plugin-react-compiler": "^19.1.0-rc.1",
     "date-fns": "^4.1.0",
+    "date-fns-jalali": "^4.0.0-0",
+    "dayjs": "^1.11.13",
+    "dayjs-jalali": "^0.0.2",
     "framer-motion": "^12.10.0",
     "moment-jalaali": "^0.10.4",
     "react": "^19.1.0",
@@ -44,6 +48,8 @@
     "react-window": "^1.8.11",
     "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.19",
+    "stylis": "^4.3.6",
+    "stylis-plugin-rtl": "^2.1.1",
     "sweetalert2": "^11.22.2"
   }
 }

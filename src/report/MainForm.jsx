@@ -41,7 +41,7 @@ function MainForm({
   pageNumbers,
   dataToSend,
 }) {
-  // const [page, setPage] = useState(null);
+  const [page, setPage] = useState(null);
 
   console.log("data to send line 44 : ", dataToSend);
 
@@ -60,33 +60,33 @@ function MainForm({
 
   {/* <Pf1 />  */}
     {/* <Pf2 />      */}
-    {/* <Pf3 project={project} count={count} pageNumber={1} /> */}
-    {/* <Pf3_1 project={project} pageNumber={2} /> */}
+    <Pf3 project={project} count={count} pageNumber={1} />
+  
+   
+    <Pf3_1 project={project} pageNumber={2} />
 
-    {/* <Pf4 pageNumber={3} org={project.identifier.beneficiaryOffice} projectName={project.projectName} /> */}
+    <Pf4 pageNumber={3} org={project?.identifier?.beneficiaryOffice} projectName={project?.projectName} />
 
-    {/* <Pf5 pageNumber={4} pageNumbers={pageNumbers}/> */}
-    {/* <Pf6 pageNumber={5} /> */}
-    {/* <Pf7 pageNumber={6} />
+    <Pf5 pageNumber={4} pageNumbers={pageNumbers}/>
+    <Pf6 pageNumber={5} />
+     <Pf7 pageNumber={6} />
     <Pf8 pageNumber={7} />
     <Pf9 pageNumber={8} />
-    <Pfa pageNumber={9} /> */}
+    <Pfa pageNumber={9} /> 
 
-    {/* <Pfb pageNumber={10} originalReport={originalReport} report={report} project={project} /> */}
+    <Pfb pageNumber={10} originalReport={originalReport} report={report} project={project} />
 
-    {/* <Pfb1 pageNumber={11} page={page} /> */}
-    {/* <Pfb1 pageNumber={11} page={dataToSend} /> */}
+    <Pfb1 pageNumber={11} page={dataToSend} />
     {console.log("line 79 in PFb1 : " , dataToSend )}
-    {/* <Pfb2 pageNumber={12} page={page} project={project} /> */}
-    {/* <Pfb2 pageNumber={12} page={dataToSend} project={project} /> */}
+    <Pfb2 pageNumber={12} page={dataToSend} project={project} />
 
-    {/* <Pfc pageNumber={13} /> */}
+    <Pfc pageNumber={13} />
 
-    <Pfd pageNumber={14} count={project.numberOfTest} data={dataToSend} />
-    <Pfe pageNumber={15} count={project.numberOfTest} data={dataToSend} />
-    <Pff pageNumber={16} count={project.numberOfTest} /> 
+    <Pfd pageNumber={14} count={project?.numberOfTest} data={dataToSend} />
+    <Pfe pageNumber={15} count={project?.numberOfTest} data={dataToSend} />
+    <Pff pageNumber={16} count={project?.numberOfTest}  data = {dataToSend} /> 
 
-      {/* <Pf10 page={dataToSend} pageNumber={17} />
+       <Pf10 page={dataToSend} pageNumber={17} />
       <PF reports={report["4.1"]} pageOffset={17} />
 
       <Pf11 page={dataToSend} pageNumber={pageNumbers} />
@@ -122,7 +122,7 @@ function MainForm({
       <PF reports={report["4.11"]} pageOffset={pageNumbers.pf1b} />
 
       <Pf1c page={dataToSend} pageNumber={pageNumbers} />
-      <PF reports={report["4.12"]} pageOffset={pageNumbers.pf1c} /> */}
+      <PF reports={report["4.12"]} pageOffset={pageNumbers.pf1c} />  
 
       {/* <Pf1d/> */}
 
