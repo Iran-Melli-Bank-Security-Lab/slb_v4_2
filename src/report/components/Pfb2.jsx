@@ -10,6 +10,7 @@ import Discription_4 from "./PFB/Discription_4"
 import { useEffect, useState } from "react"
 import { truncateToOneDecimal } from "../utils/truncateToOneDecimal"
 import { transformObject } from "../utils/transformObject"
+import { getProjectUrl } from "../../api/bugs/getProjectUrl"
 // import useAxiosPrivate from "../../hooks/useAxiosPrivate"
 
 function Pfb2({ edarehKol = "بانک ملی ایران", page , project ,pageNumber }) {
@@ -20,18 +21,19 @@ function Pfb2({ edarehKol = "بانک ملی ایران", page , project ,pageNu
     const [risk, setRisk] = useState(0)
     const [pocUrl, setPocUrl] = useState("http://pocurlinPfb2.ir")
 
-    // useEffect(() => {
+    useEffect(() => {
   
-    //   const getAddressOfProject = async () => {
+      const getAddressOfProject = async () => {
   
-    //     const { data } = await axiosPrivate.get(`${serverIp}project/pocurl/${project?._id}`)
+        // const { data } = await axiosPrivate.get(`${serverIp}project/pocurl/${project?._id}`)
+
+        const endpoints = await getProjectUrl(project?._id) 
+        console.log("Path line 29 : ", endpoints)
+         setPocUrl(endpoints?.endpoints[0]?.url)
+      }
   
-    //     console.log("Path line 29 : ", data)
-    //     setPocUrl(data?.address)
-    //   }
-  
-    //   getAddressOfProject()
-    // }, [])
+      getAddressOfProject()
+    }, [project?._id ])
 
     // const Page  = transformObject(page)
     useEffect(() => {
