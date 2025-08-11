@@ -12,8 +12,8 @@ function PF({ reports, pageOffset }) {
 
   return <>
     {reports && reports?.map((report, key) => {
-   const page = pageOffset + key  ; 
-if (report.severity === "Info") 
+      const page = pageOffset + key;
+      if (report.severity === "Info")
 
         return <Poc rowColor={colors[0].color} key={report._id} report={report} page={page} />;
 
