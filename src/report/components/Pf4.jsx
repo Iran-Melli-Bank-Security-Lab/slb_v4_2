@@ -1,8 +1,16 @@
 import bg13 from "../images/bg5.png"
 import PdfStructure from "./common/PdfStructure"
 import "./PF4/style.css"
+import moment from 'moment-jalaali';
+moment.loadPersian({ usePersianDigits: true, dialect: 'persian-modern' });
 
-function Pf4({projectName ="ایران زمین" , date=" ۱۴۰۳/۱۲/۱۲ " , org="سداد" , pageNumber} ) {
+const faDate = (v) => {
+  if (!v) return '';
+  const t = typeof v === 'number' ? v : new Date(v).getTime(); // هم ms، هم ISO
+  return moment(t).format('jYYYY/jMM/jDD');
+};
+
+function Pf4({project  , pageNumber} ) {
 
     return <>
         <div id="pf4" className="pf w0 h0" data-page-no="4">
@@ -19,16 +27,16 @@ function Pf4({projectName ="ایران زمین" , date=" ۱۴۰۳/۱۲/۱۲ " ,
                          در تاریخ 
 
                        {/* {' '} {date} {' '} */}
-                     {' '}  {'1403/10/03'}{' '}
+                     {' '}  {faDate(project?.identifier?.reportIssueDate)}{' '}
 
                          
                          توسط آزمایشگاه امنیت و کیفیت نرم افزار بانک ملی ایران به ‌منظور ارزیابی 
                           
-                         {' '} {projectName} {' '}
+                         {' '} {project?.projectName} {' '}
                           
                           متعلق به  
 
-                      {' '}  {org} {' '}
+                      {' '}  {project?.identifier?.beneficiaryOffice} {' '}
 
                             ارائه گردیده و ارزش و اعتبار دیگری ندارد. تمامی حقوق این اثر، متعلق به «آزمایشگاه امنیت و کیفیت نرم افزار بانک ملی ایران» بوده و هرگونه نسخه ‌برداری از آن، شامل رونوشت، نسخه‌ برداری الکترونیکی و یا ترجمه بخش یا تمام آن در گرو کسب اجازه کتبی از صاحب اثر است. همچنین مطالب این مستند بدون اطلاع قبلی به« آزمایشگاه امنیت و کیفیت نرم افزار بانک ملی ایران » غیرقابل تغییر است.
 
