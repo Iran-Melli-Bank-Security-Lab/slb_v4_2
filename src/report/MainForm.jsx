@@ -65,7 +65,7 @@ function MainForm({
    
     <Pf3_1 project={project} pageNumber={2} />
 
-    <Pf4 pageNumber={3} org={project?.identifier?.beneficiaryOffice} projectName={project?.projectName} />
+    <Pf4 project={project} pageNumber={3} org={project?.identifier?.beneficiaryOffice} projectName={project?.projectName} />
 
     <Pf5 pageNumber={4} pageNumbers={pageNumbers}/>
     <Pf6 pageNumber={5} />
