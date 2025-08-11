@@ -173,7 +173,7 @@ const MyTable = () => {
                             className="s35"
                             style={{ paddingTop: "10pt", paddingRight: "7pt", textIndent: "0pt", textAlign: "center" }}
                         >
-                            eeee
+                            
                         </p>
                     </td>
                     <td style={{ width: "32pt" }}>
@@ -181,7 +181,7 @@ const MyTable = () => {
                             className="s35"
                             style={{ paddingTop: "10pt", paddingLeft: "4pt", textIndent: "0pt", textAlign: "left" }}
                         >
-                           rwerwe
+                           
                         </p>
                     </td>
                     <td style={{ width: "56pt" }}>
