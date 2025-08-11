@@ -12,6 +12,7 @@ import {
 import { getRoleInfo } from "../utils/getRoleInfo";
 import { creatTicket } from "../api/ticket/craateTicket";
 import { newTicketId } from "../api/ticket/newTicketId";
+import { toast } from "react-toastify";
 const Tickets = () => {
   const [formData, setFormData] = useState({
     title: "",
@@ -152,8 +153,10 @@ await creatTicket(form);
         targetUser: "",
         attachments: [],
       });
+    toast.success("Your ticket was created successfully!!")
     } catch (error) {
       setSubmitError("خطا در ارسال تیکت. لطفا دوباره تلاش کنید.");
+    toast.error("Failed to create ticket.")
       console.error("Submission error:", error);
     } finally {
       setIsSubmitting(false);
