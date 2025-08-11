@@ -122,7 +122,7 @@ const ManagerProjects = () => {
       ),
     },
     { id: "version", label: "Version", sortable: true },
-    { id: "created_date", label: "Date", sortable: true , 
+    { id: "created_date", label: "Created At", sortable: true , 
        render: (row) =>
       row?.created_date ? 
       <PersianDateWithTooltip tooltipFormat = 'jD jMMMM jYYYY' date={row?.created_date} /> : console.log(row.created_date),
