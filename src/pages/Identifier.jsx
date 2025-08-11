@@ -131,6 +131,7 @@ function Identifier() {
     projectAcceptanceDate: "", // تاریخ پذیرش پروژه
     reportIssueDate: "", // تاریخ صدور گزارش
     testDate: "", // تاریخ آزمون
+    docId: "", 
   });
   const [errors, setErrors] = useState({});
 
@@ -194,6 +195,8 @@ function Identifier() {
       if (!formData.reportIssueDate)
         newErrors.reportIssueDate = "Report issue date is required";
       if (!formData.testDate) newErrors.testDate = "Test date is required";
+      if (!formData.docId || !formData.docId.trim())
+        newErrors.docId = "(شناسنامه مستند) is required";
     }
 
     setErrors(newErrors);
@@ -506,6 +509,21 @@ function Identifier() {
                 onChange={handleTestDate}
               />
             </Box>
+             {/* ⬇️ فیلد جدید زیر تاریخ آزمون */}
+            <StyledTextField
+              required
+              label="شناسنامه مستند "
+              name="docId"
+              value={formData.docId}
+              onChange={handleChange}
+              fullWidth
+              error={!!errors.docId}
+              helperText={errors.docId}
+              placeholder="e.g. SLB-W-0309222900110603"
+              inputProps={{ maxLength: 100  }}
+              
+            />
+          
           </Box>
         );
 
