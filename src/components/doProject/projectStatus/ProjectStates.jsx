@@ -232,16 +232,10 @@ const handleStatusChange = async (newStatus) => {
     );
   }
 
-  const { status, totalWorkTime, stateChanges = [] } = projectData;
+  const { status} = projectData;
 
-  // Calculate if the project is currently being tracked (in-progress)
-  const isTracking = currentStatus === "In-Progress";
 
-  // Get the last status change timestamp
-  const lastStatusChange =
-    stateChanges.length > 0
-      ? stateChanges[stateChanges.length - 1].timestamp
-      : null;
+
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
