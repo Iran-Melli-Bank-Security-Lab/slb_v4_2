@@ -123,7 +123,7 @@ const columns = useMemo(() => [
  
   {
     id: 'createdAt',
-    label: 'Date',
+    label: 'Created At',
     sortable: true,
     render: (row) =>
       row.created_at ? <PersianDateWithTooltip date={row.created_at}  /> : '—',
