@@ -95,17 +95,17 @@ const PocTable = ({ report, className = "ry291", pocUrl, rowColor, textColor = "
                 </TableRow>
 
                 <TableRow textColor={textColor} rowColor={rowColor} cell="امکان امن سازی توسط WAF">
-                    <TableHeader>
+                    <TableHeader>{console.log("report in pocTable : " , report)}
                         <label dir="rtl">
-                            {renderCheckStatus(report?.securingByWAF === "Yes")}
+                            {renderCheckStatus(report?.securingByWAF === "yes")}
                             <span style={{ marginRight: "5px", fontFamily: "bnazanin" }}>بله</span>
                         </label>
                         <label dir="rtl" style={{ marginLeft: "10px" }}>
-                            {renderCheckStatus(report?.securingByWAF === "Somewhat")}
+                            {renderCheckStatus(report?.securingByWAF === "somewhat")}
                             <span style={{ marginRight: "5px", fontFamily: "bnazanin" }}>تا حدودی</span>
                         </label>
                         <label dir="rtl" style={{ marginLeft: "10px" }}>
-                            {renderCheckStatus(report?.securingByWAF === "No")}
+                            {renderCheckStatus(report?.securingByWAF === "no")}
                             <span style={{ marginRight: "5px", fontFamily: "bnazanin" }}>خیر</span>
                         </label>
                     </TableHeader>
