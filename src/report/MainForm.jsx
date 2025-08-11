@@ -58,8 +58,8 @@ function MainForm({
     <>
       {/* <Suspense fallback={<div>Loading...</div>}> */}
 
-  {/* <Pf1 />  */}
-    {/* <Pf2 />      */}
+  <Pf1 /> 
+    <Pf2 />     
     <Pf3 project={project} count={count} pageNumber={1} />
   
    
