@@ -16,6 +16,8 @@ import Pf1a from "./components/Pf1a";
 import { getAllBugsForReport } from "../api/bugs/getAllBugsForReport";
 import { setPage } from "../api/bugs/setPage";
 import { getProjectById } from "../api/projects/getProjectById";
+import { getPocsArchive } from "../api/bugs/getPocsArchive";
+import { toast } from "react-toastify";
 
 const MainReport = () => {
   const location = useLocation();
@@ -26,34 +28,65 @@ const MainReport = () => {
 
   const [project, setProject] = useState(initialProject);
   // const project = location.state?.project;
-  console.log("project in main report : ", projectId  , initialProject);
+  console.log("project in main report : ", projectId, initialProject);
   const [reports, setReports] = useState(null);
   const [counter, setCounter] = useState(1);
 
 
 
- // projectId نهایی که باید باهاش کار کنیم (یا از state یا از params)
+
+  // projectId نهایی که باید باهاش کار کنیم (یا از state یا از params)
   const effectiveProjectId = project?._id || projectId;
 
-  console.log("effective project : " , effectiveProjectId)
+  console.log("effective project : ", effectiveProjectId)
   // اگر از state پروژه نداشتیم، با id از URL بگیر
   useEffect(() => {
     const fetchProject = async () => {
       if (!project && projectId) {
-    
+
         console.log("project ******************************************************************************************")
         try {
-          const result  = await getProjectById(projectId);
-          console.log("result in line 24 getProject : " , result )
+          const result = await getProjectById(projectId);
+          console.log("result in line 24 getProject : ", result)
           setProject(result);
         } catch (e) {
           console.error("Failed to fetch project by id:", e);
         }
-    }
+      }
     };
+
     fetchProject();
+
+    // if(location.state?.project){
+    //   downloadPocs()
+    // }
+
   }, [projectId]);
 
+
+  useEffect(() => {
+    const downloadPocs = async () => {
+      if (!effectiveProjectId) return;
+      try {
+        const { blob, filename } = await getPocsArchive(effectiveProjectId);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        toast.success("POCs downloaded successfully");
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to download POCs!");
+      }
+    };
+
+    downloadPocs()
+
+  }, [effectiveProjectId])
 
   const [pf10, setPf10] = useState([]);
   const [pf11, setPf11] = useState([]);
