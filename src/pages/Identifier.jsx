@@ -19,6 +19,36 @@ import { styled } from "@mui/system";
 import { postIdentifier } from "../api/projects/postIdentifier";
 import { toast } from "react-toastify";
 import AdapterJalali from "../components/dateTime/AdapterJalali";
+import { getIdentifier } from "../api/projects/getIdentifier";
+
+
+// --- helpers (module-scope) ---
+const toEpochMs = (v) => {
+  if (!v) return "";
+  if (typeof v === "number") return v;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? "" :
+         new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+};
+
+const normalizeIdentifier = (raw) => ({
+  developer: raw.developer ?? "",
+  certificateRequest: raw.certificateRequest ?? "Yes",
+  employer: raw.employer ?? "",
+  organizationalUnitName: raw.organizationalUnitName ?? "",
+  projectManagerName: raw.projectManagerName ?? "",
+  unitPhoneNumber: raw.unitPhoneNumber ?? "",
+  beneficiaryOffice: raw.beneficiaryOffice ?? "",
+  followerName: raw.followerName ?? "",
+  beneficiaryPhoneNumber: raw.beneficiaryPhoneNumber ?? "",
+  datacenterName: raw.datacenterName ?? "",
+  responsibleName: raw.responsibleName ?? "",
+  datacenterPhoneNumber: raw.datacenterPhoneNumber ?? "",
+  projectAcceptanceDate: toEpochMs(raw.projectAcceptanceDate),
+  reportIssueDate: toEpochMs(raw.reportIssueDate),
+  testDate: toEpochMs(raw.testDate),
+  docId: raw.docId ?? "",
+});
 
 const steps = [
   "Project Details",
@@ -136,22 +166,24 @@ function Identifier() {
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    const fetchProjectData = async () => {
-      try {
-        const response = await axiosPrivate.get(
-          `${serverIp}project/complete/${projectId}`
-        );
-        if (response.data) {
-          setFormData(response.data);
+    let ignore =false 
+    const load = async ()=>{
+      setLoading(true)
+      try{
+        const result = await getIdentifier(projectId)
+        if(!ignore &&result){
+          setFormData((prev) => ({ ...prev, ...normalizeIdentifier(result) }))
         }
-      } catch (error) {
-        console.error("Failed to fetch project data:", error);
-      } finally {
-        setLoading(false);
+      }catch(error){
+        console.log("Failed to load Identifier : " , error )
+        toast.error("خطا در دریافت اطلاعات شناسنامه پروژه");
+      }finally{
+        if(!ignore )setLoading(false)
       }
-    };
+    }
 
-    // fetchProjectData();
+load()
+return ()=>{ignore=true } 
   }, [projectId]);
 
   const validateStep = (step) => {
@@ -574,7 +606,7 @@ function Identifier() {
           ))}
         </Stepper>
 
-        {false ? (
+        {loading ? (
           <Box className="flex justify-center items-center h-64">
             <CircularProgress size={60} />
           </Box>
