@@ -17,6 +17,8 @@ import {
   FaChevronDown,
 } from "react-icons/fa";
 import { IoIosArrowForward } from "react-icons/io";
+import { updateStatus } from "../api/ticket/updateStatus";
+import { toast } from "react-toastify";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -36,6 +38,10 @@ const TicketView = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const socket = useSocket();
 
+
+
+
+
   const currentUser = useMemo(
     () => ({
       _id: userId,
@@ -51,36 +57,36 @@ const TicketView = () => {
     return map;
   }, [allUsers]);
 
-const getUserById = useCallback((userId) => {
-  const user = userMap.get(userId);
-  if (!user) return {
-    _id: userId,
-    name: "کاربر ناشناس",
-    avatar: "https://i.pravatar.cc/150?img=0",
-    role: "نقش نامشخص",
-  };
+  const getUserById = useCallback((userId) => {
+    const user = userMap.get(userId);
+    if (!user) return {
+      _id: userId,
+      name: "کاربر ناشناس",
+      avatar: "https://i.pravatar.cc/150?img=0",
+      role: "نقش نامشخص",
+    };
 
-  // Extract role name
-  let roleName = "کاربر";
-  if (user.roles) {
-    if (user.roles.Admin === 5150) {
-      roleName = "مدیر";
-    } else if (user.roles.User === 2001) {
-      roleName = "نفوذگر"; // Pentester
+    // Extract role name
+    let roleName = "کاربر";
+    if (user.roles) {
+      if (user.roles.Admin === 5150) {
+        roleName = "مدیر";
+      } else if (user.roles.User === 2001) {
+        roleName = "نفوذگر"; // Pentester
+      }
+      // Add more role checks if needed
     }
-    // Add more role checks if needed
-  }
 
-  return {
-    ...user,
-    firstName: user.firstName || "کاربر",
-    lastName: user.lastName || "",
-    avatar: user.profileImageUrl
-      ? `${BASE_URL}/${user.profileImageUrl}`
-      : "https://i.pravatar.cc/150?img=0",
-    role: roleName,
-  };
-}, [userMap]);
+    return {
+      ...user,
+      firstName: user.firstName || "کاربر",
+      lastName: user.lastName || "",
+      avatar: user.profileImageUrl
+        ? `${BASE_URL}/${user.profileImageUrl}`
+        : "https://i.pravatar.cc/150?img=0",
+      role: roleName,
+    };
+  }, [userMap]);
 
   const getNotificationRecipients = () => {
     const recipients = new Set();
@@ -199,17 +205,36 @@ const getUserById = useCallback((userId) => {
   );
 
   useEffect(() => {
+    const changeToInProgress = async () => {
+      try {
+        await updateStatus(userId, ticketId , "pending" )
+      } catch (error) {
+
+        console.log("error : ", error.message)
+      }
+    }
     const fetchUsers = async () => {
       const result = await getUsers();
       setAllUsers(result?.users);
     };
+
     const fetchTicket = async () => {
       const result = await getTicket(ticketId);
+      console.log("result in line 226 : ", result)
       setTicket(result);
+
+      if (result.status === "pending") {
+
+       const res =  await changeToInProgress()
+       console.log("res line 229 : " ,res )
+      }
+
+
     };
     const fetchComments = async () => {
       const result = await getComments(ticketId);
       setComments(result.comments);
+
     };
     fetchUsers();
     fetchTicket();
@@ -274,13 +299,12 @@ const getUserById = useCallback((userId) => {
               </div>
             </div>
             <div
-              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center ${
-                ticket.status === "in-progress"
+              className={`px-4 py-2 rounded-full text-sm font-medium flex items-center ${ticket.status === "in-progress"
                   ? "bg-yellow-100 text-yellow-800"
                   : ticket.status === "closed"
                     ? "bg-green-100 text-green-800"
                     : "bg-blue-100 text-blue-800"
-              }`}
+                }`}
             >
               {ticket.status === "in-progress"
                 ? "در حال بررسی"
@@ -385,11 +409,10 @@ const getUserById = useCallback((userId) => {
                           filteredUsers.map((user) => (
                             <div
                               key={user._id}
-                              className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
-                                selectedUsers?.some((u) => u._id === user._id)
+                              className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${selectedUsers?.some((u) => u._id === user._id)
                                   ? "bg-blue-50"
                                   : "hover:bg-gray-50"
-                              }`}
+                                }`}
                               onClick={() => toggleUserSelection(user)}
                             >
                               <img
@@ -408,10 +431,10 @@ const getUserById = useCallback((userId) => {
                               {selectedUsers?.some(
                                 (u) => u._id === user._id
                               ) && (
-                                <span className="text-blue-500">
-                                  <FaCheck size={14} />
-                                </span>
-                              )}
+                                  <span className="text-blue-500">
+                                    <FaCheck size={14} />
+                                  </span>
+                                )}
                             </div>
                           ))
                         ) : (
@@ -424,11 +447,10 @@ const getUserById = useCallback((userId) => {
                       <button
                         type="submit"
                         disabled={selectedUsers.length === 0}
-                        className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
-                          selectedUsers.length > 0
+                        className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${selectedUsers.length > 0
                             ? "bg-blue-600 text-white hover:bg-blue-700"
                             : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                        }`}
+                          }`}
                       >
                         ارسال دعوت ({selectedUsers.length})
                       </button>
@@ -526,14 +548,13 @@ const getUserById = useCallback((userId) => {
                     <p className="text-xs text-gray-500 mb-1">اولویت</p>
                     <p className="font-medium text-sm flex items-center justify-end">
                       <span
-                        className={`inline-block w-2 h-2 rounded-full ml-1 ${
-                          ticket.priority === "high" ||
-                          ticket.priority === "urgent"
+                        className={`inline-block w-2 h-2 rounded-full ml-1 ${ticket.priority === "high" ||
+                            ticket.priority === "urgent"
                             ? "bg-red-500"
                             : ticket.priority === "medium"
                               ? "bg-yellow-500"
                               : "bg-green-500"
-                        }`}
+                          }`}
                       ></span>
                       {ticket.priority === "high"
                         ? "بالا"
@@ -604,11 +625,10 @@ const getUserById = useCallback((userId) => {
             <nav className="flex gap-8">
               <button
                 onClick={() => setActiveTab("comments")}
-                className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-1 ${
-                  activeTab === "comments"
+                className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-1 ${activeTab === "comments"
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                  }`}
               >
                 نظرات
                 <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full text-xs">
@@ -617,11 +637,10 @@ const getUserById = useCallback((userId) => {
               </button>
               <button
                 onClick={() => setActiveTab("activity")}
-                className={`py-3 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === "activity"
+                className={`py-3 px-1 border-b-2 font-medium text-sm ${activeTab === "activity"
                     ? "border-blue-500 text-blue-600"
                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                  }`}
               >
                 فعالیت‌ها
               </button>
@@ -652,16 +671,15 @@ const getUserById = useCallback((userId) => {
                         />
 
                         <div
-                          className={`relative p-4 rounded-2xl shadow-sm ${
-                            isCurrentUser
+                          className={`relative p-4 rounded-2xl shadow-sm ${isCurrentUser
                               ? "bg-blue-50 rounded-tl-none ml-3"
                               : "bg-gray-50 rounded-tr-none mr-3"
-                          }`}
+                            }`}
                         >
                           {/* User info and timestamp */}
                           <div className="flex flex-col mb-2">
                             <div className="flex items-center gap-4">
-                              
+
                               {/* تغییر این خط */}
                               <h5 className="font-semibold text-sm">
                                 {commentUser.firstName} {commentUser.lastName}
@@ -692,7 +710,7 @@ const getUserById = useCallback((userId) => {
                               {comment.attachments.map((file, j) => (
                                 <a
                                   key={j}
-                                  href={BASE_URL + "/"+file.url}
+                                  href={BASE_URL + "/" + file.url}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="flex items-center p-2 bg-white rounded-lg border hover:bg-gray-50 transition text-sm"
@@ -718,7 +736,7 @@ const getUserById = useCallback((userId) => {
                                 />
                               ) : (
                                 <FaCheck className="text-gray-400" size={12} />
-                              )} 
+                              )}
                             </div>
                           )}
                         </div>
@@ -778,11 +796,10 @@ const getUserById = useCallback((userId) => {
                     <button
                       type="submit"
                       disabled={!commentText.trim()}
-                      className={`px-5 py-2 rounded-lg font-medium text-sm ${
-                        commentText.trim()
+                      className={`px-5 py-2 rounded-lg font-medium text-sm ${commentText.trim()
                           ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
                           : "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      }`}
+                        }`}
                     >
                       ارسال نظر
                     </button>
@@ -819,7 +836,7 @@ const getUserById = useCallback((userId) => {
                         </div>
                       </div>
                       <p className="text-gray-800 text-sm">
-                        وضعیت از{" "}
+                        وضعیت به{" "}
                         <span className="font-semibold">
                           {activity.status === "pending"
                             ? "جدید"
@@ -858,11 +875,10 @@ const getUserById = useCallback((userId) => {
                     ticket.status === "closed" ? "reopen" : "close"
                   )
                 }
-                className={`px-6 py-2 rounded-lg font-medium text-sm transition ${
-                  ticket.status === "closed"
+                className={`px-6 py-2 rounded-lg font-medium text-sm transition ${ticket.status === "closed"
                     ? "bg-green-600 text-white hover:bg-green-700 shadow-sm"
                     : "bg-red-600 text-white hover:bg-red-700 shadow-sm"
-                }`}
+                  }`}
               >
                 {ticket.status === "closed" ? "باز کردن تیکت" : "بستن تیکت"}
               </button>
