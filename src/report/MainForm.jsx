@@ -43,8 +43,6 @@ function MainForm({
 }) {
   const [page, setPage] = useState(null);
 
-  console.log("data to send line 44 : ", dataToSend);
-
   // useEffect(() => {
   //   const getPagesNumber = async () => {
   //     const result = await getPage(project._id);
