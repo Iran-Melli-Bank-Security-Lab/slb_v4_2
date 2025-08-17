@@ -23,7 +23,7 @@ const FinishStatusContent = () => {
             <Typography variant="h3" className="font-bold mb-4 text-gray-800">
                 Project Completed Successfully!
             </Typography>
-            <Grid container spacing={3} className="mb-8">
+            {/* <Grid container spacing={3} className="mb-8">
                 <Grid item xs={12} sm={6} md={3}>
                     <MetricCard
                         value="32"
@@ -56,7 +56,7 @@ const FinishStatusContent = () => {
                         color="bg-amber-50"
                     />
                 </Grid>
-            </Grid>
+            </Grid> */}
         </Box>
     );
 };
