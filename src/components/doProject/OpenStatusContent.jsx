@@ -37,7 +37,7 @@ const OpenStatusContent = () => {
       <Typography variant="h4" className="font-bold mb-4 text-gray-800">
         Project is Open for Work
       </Typography>
-      <Typography
+      {/* <Typography
         variant="body1"
         className="text-gray-600 mb-6 max-w-2xl mx-auto text-lg leading-relaxed"
       >
@@ -52,7 +52,7 @@ const OpenStatusContent = () => {
         startIcon={<PersonIcon />}
       >
         Claim Project
-      </Button>
+      </Button> */}
     </Box>
   );
 };
