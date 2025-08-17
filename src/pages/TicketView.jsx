@@ -18,7 +18,6 @@ import {
 } from "react-icons/fa";
 import { IoIosArrowForward } from "react-icons/io";
 import { updateStatus } from "../api/ticket/updateStatus";
-import { toast } from "react-toastify";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
@@ -37,9 +36,6 @@ const TicketView = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const socket = useSocket();
-
-
-
 
 
   const currentUser = useMemo(
@@ -207,7 +203,7 @@ const TicketView = () => {
   useEffect(() => {
     const changeToInProgress = async () => {
       try {
-        await updateStatus(userId, ticketId , "pending" )
+        await updateStatus(userId, ticketId, "pending")
       } catch (error) {
 
         console.log("error : ", error.message)
@@ -225,8 +221,8 @@ const TicketView = () => {
 
       if (result.status === "pending") {
 
-       const res =  await changeToInProgress()
-       console.log("res line 229 : " ,res )
+        const res = await changeToInProgress()
+        console.log("res line 229 : ", res)
       }
 
 
@@ -300,10 +296,10 @@ const TicketView = () => {
             </div>
             <div
               className={`px-4 py-2 rounded-full text-sm font-medium flex items-center ${ticket.status === "in-progress"
-                  ? "bg-yellow-100 text-yellow-800"
-                  : ticket.status === "closed"
-                    ? "bg-green-100 text-green-800"
-                    : "bg-blue-100 text-blue-800"
+                ? "bg-yellow-100 text-yellow-800"
+                : ticket.status === "closed"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-blue-100 text-blue-800"
                 }`}
             >
               {ticket.status === "in-progress"
@@ -410,8 +406,8 @@ const TicketView = () => {
                             <div
                               key={user._id}
                               className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${selectedUsers?.some((u) => u._id === user._id)
-                                  ? "bg-blue-50"
-                                  : "hover:bg-gray-50"
+                                ? "bg-blue-50"
+                                : "hover:bg-gray-50"
                                 }`}
                               onClick={() => toggleUserSelection(user)}
                             >
@@ -448,8 +444,8 @@ const TicketView = () => {
                         type="submit"
                         disabled={selectedUsers.length === 0}
                         className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${selectedUsers.length > 0
-                            ? "bg-blue-600 text-white hover:bg-blue-700"
-                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          ? "bg-blue-600 text-white hover:bg-blue-700"
+                          : "bg-gray-200 text-gray-500 cursor-not-allowed"
                           }`}
                       >
                         ارسال دعوت ({selectedUsers.length})
@@ -549,11 +545,11 @@ const TicketView = () => {
                     <p className="font-medium text-sm flex items-center justify-end">
                       <span
                         className={`inline-block w-2 h-2 rounded-full ml-1 ${ticket.priority === "high" ||
-                            ticket.priority === "urgent"
-                            ? "bg-red-500"
-                            : ticket.priority === "medium"
-                              ? "bg-yellow-500"
-                              : "bg-green-500"
+                          ticket.priority === "urgent"
+                          ? "bg-red-500"
+                          : ticket.priority === "medium"
+                            ? "bg-yellow-500"
+                            : "bg-green-500"
                           }`}
                       ></span>
                       {ticket.priority === "high"
@@ -626,8 +622,8 @@ const TicketView = () => {
               <button
                 onClick={() => setActiveTab("comments")}
                 className={`py-3 px-1 border-b-2 font-medium text-sm flex items-center gap-1 ${activeTab === "comments"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
               >
                 نظرات
@@ -638,8 +634,8 @@ const TicketView = () => {
               <button
                 onClick={() => setActiveTab("activity")}
                 className={`py-3 px-1 border-b-2 font-medium text-sm ${activeTab === "activity"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
               >
                 فعالیت‌ها
@@ -672,8 +668,8 @@ const TicketView = () => {
 
                         <div
                           className={`relative p-4 rounded-2xl shadow-sm ${isCurrentUser
-                              ? "bg-blue-50 rounded-tl-none ml-3"
-                              : "bg-gray-50 rounded-tr-none mr-3"
+                            ? "bg-blue-50 rounded-tl-none ml-3"
+                            : "bg-gray-50 rounded-tr-none mr-3"
                             }`}
                         >
                           {/* User info and timestamp */}
@@ -797,8 +793,8 @@ const TicketView = () => {
                       type="submit"
                       disabled={!commentText.trim()}
                       className={`px-5 py-2 rounded-lg font-medium text-sm ${commentText.trim()
-                          ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
-                          : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
+                        : "bg-gray-200 text-gray-500 cursor-not-allowed"
                         }`}
                     >
                       ارسال نظر
@@ -876,8 +872,8 @@ const TicketView = () => {
                   )
                 }
                 className={`px-6 py-2 rounded-lg font-medium text-sm transition ${ticket.status === "closed"
-                    ? "bg-green-600 text-white hover:bg-green-700 shadow-sm"
-                    : "bg-red-600 text-white hover:bg-red-700 shadow-sm"
+                  ? "bg-green-600 text-white hover:bg-green-700 shadow-sm"
+                  : "bg-red-600 text-white hover:bg-red-700 shadow-sm"
                   }`}
               >
                 {ticket.status === "closed" ? "باز کردن تیکت" : "بستن تیکت"}
