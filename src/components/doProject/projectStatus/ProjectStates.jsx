@@ -15,6 +15,10 @@ import {
   CircularProgress,
   CardContent,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -27,7 +31,8 @@ import {
   AccessTime as TimeIcon,
   PlayArrow as StartIcon,
   Pause as PauseIcon,
-  Stop as StopIcon, TaskAlt as TaskIcon
+  Stop as StopIcon, TaskAlt as TaskIcon,
+  PlayArrow
 
 
 
@@ -39,6 +44,14 @@ import { fetchProjectByUserProjectManager } from "../../../api/projects/fetchPro
 import { AnimatePresence, motion } from "framer-motion";
 import TimerDisplay from "../timework/TimerDisplay";
 import { updateProjectStatus } from "../../../api/projects/updateProjectStatus";
+
+
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+
+import { format } from 'date-fns';
+
 
 // Luxury color palette
 const colors = {
@@ -90,6 +103,7 @@ const GradientButton = styled(Button)(({ theme }) => ({
     transform: 'translateY(-2px)'
   }
 }));
+
 const statusConfig = [
   {
     key: "Open",
@@ -136,6 +150,11 @@ const ProjcetStates = ({ statusComponents }) => {
   const [error, setError] = useState(null);
   const [currentStatus, setCurrentStatus] = useState("Open"); // Initialize with default status
 
+  const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [dateType, setDateType] = useState(null); // 'start' or 'finish'
+  const [startDate, setStartDate] = useState(projectData?.startDate ? new Date(projectData.startDate) : null);
+  const [finishDate, setFinishDate] = useState(projectData?.finishDate ? new Date(projectData.finishDate) : null);
+
   const toggleSection = (section) => {
     setExpandedSections((prev) => ({
       ...prev,
@@ -166,30 +185,30 @@ const ProjcetStates = ({ statusComponents }) => {
     fetchProjectData();
   }, [id, userId, projectManager]);
 
-const handleStatusChange = async (newStatus) => {
-  try {
-    setCurrentStatus(newStatus);
+  const handleStatusChange = async (newStatus) => {
+    try {
+      setCurrentStatus(newStatus);
 
-    const response = await updateProjectStatus({
-      projectId: projectData?.project,
-      userId,
-      newStatus
-    });
+      const response = await updateProjectStatus({
+        projectId: projectData?.project,
+        userId,
+        newStatus
+      });
 
-    // داده‌های برگشتی از بک‌اند منبع حقیقت هستند
-    setProjectData(prev => ({
-      ...prev,
-      status: response.status,
-      totalWorkTime: response.totalWorkTime,
-      stateChanges: response.stateChanges,
-      startDate: response.startDate,
-    }));
+      // داده‌های برگشتی از بک‌اند منبع حقیقت هستند
+      setProjectData(prev => ({
+        ...prev,
+        status: response.status,
+        totalWorkTime: response.totalWorkTime,
+        stateChanges: response.stateChanges,
+        startDate: response.startDate,
+      }));
 
-  } catch (err) {
-    console.error("Status change error:", err);
-    setError(err.message || 'Failed to update project status');
-  }
-};
+    } catch (err) {
+      console.error("Status change error:", err);
+      setError(err.message || 'Failed to update project status');
+    }
+  };
 
 
 
@@ -232,7 +251,7 @@ const handleStatusChange = async (newStatus) => {
     );
   }
 
-  const { status} = projectData;
+  const { status } = projectData;
 
 
 
@@ -485,6 +504,99 @@ const handleStatusChange = async (newStatus) => {
                   </Box>
                 </Box>
               </Box>
+
+              {/* Date Buttons Section */}
+              <Box sx={{
+                mb: '24px',
+                p: '20px',
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                borderRadius: '12px',
+                border: '1px solid rgba(0, 0, 0, 0.05)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.03)'
+              }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box display="flex" alignItems="center">
+                    <PendingActionsIcon sx={{
+                      color: statusConfig.find(s => s.key === status).color,
+                      mr: 1.5,
+                      fontSize: '28px'
+                    }} />
+                    <Typography variant="h6" fontWeight="700">
+                      PROJECT DATES
+                    </Typography>
+                  </Box>
+
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Button
+                      variant="outlined"
+                      startIcon={<PlayArrow />}
+                      onClick={() => {
+                        setDateType('start');
+                        setDateModalOpen(true);
+                      }}
+                      sx={{ minWidth: '180px' }}
+                    >
+                      {startDate ? format(startDate, 'MMM d, yyyy') : 'Set Start Date'}
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<TaskIcon />}
+                      onClick={() => {
+                        setDateType('finish');
+                        setDateModalOpen(true);
+                      }}
+                      sx={{ minWidth: '180px' }}
+                      disabled={!startDate} // Disable finish date until start date is set
+                    >
+                      {finishDate ? format(finishDate, 'MMM d, yyyy') : 'Set Finish Date'}
+                    </Button>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Date Selection Modal */}
+              <Dialog open={dateModalOpen} onClose={() => setDateModalOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>
+                  Set {dateType === 'start' ? 'Project Start' : 'Project Finish'} Date
+                </DialogTitle>
+                <DialogContent sx={{ pt: 3 }}>
+                  <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <DatePicker
+                      label={dateType === 'start' ? 'Start Date' : 'Finish Date'}
+                      value={dateType === 'start' ? startDate : finishDate}
+                      onChange={(newValue) => {
+                        if (dateType === 'start') {
+                          setStartDate(newValue);
+                        } else {
+                          setFinishDate(newValue);
+                        }
+                      }}
+                      minDate={dateType === 'finish' ? startDate : null}
+                      renderInput={(params) => (
+                        <TextField {...params} fullWidth sx={{ mt: 1 }} />
+                      )}
+                    />
+                  </LocalizationProvider>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setDateModalOpen(false)}>Cancel</Button>
+                  <Button
+                    onClick={() => {
+                      // Here you would typically save the dates to your backend
+                      setDateModalOpen(false);
+                    }}
+                    variant="contained"
+                    color="primary"
+                  >
+                    Save
+                  </Button>
+                </DialogActions>
+              </Dialog>
+
+
+
+
+
 
 
               <Divider sx={{ my: 3, borderColor: theme.palette.divider }} />
