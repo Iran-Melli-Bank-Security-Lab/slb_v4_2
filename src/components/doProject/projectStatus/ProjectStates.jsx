@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  DialogContentText,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -32,11 +33,14 @@ import {
   PlayArrow as StartIcon,
   Pause as PauseIcon,
   Stop as StopIcon, TaskAlt as TaskIcon,
-  PlayArrow
+  PlayArrow,
+  AccessTime,
+  Fullscreen as FullscreenIcon,
 
 
 
 } from "@mui/icons-material";
+
 import { styled, alpha, useTheme } from "@mui/material/styles";
 import { useParams } from "react-router";
 import { useUserId } from "../../../hooks/useUserId";
@@ -44,14 +48,25 @@ import { fetchProjectByUserProjectManager } from "../../../api/projects/fetchPro
 import { AnimatePresence, motion } from "framer-motion";
 import TimerDisplay from "../timework/TimerDisplay";
 import { updateProjectStatus } from "../../../api/projects/updateProjectStatus";
+import { savaProjectDate } from "../../../api/projects/saveProjectDate";
+
+import {
+  Timeline,
+  TimelineItem,
+  TimelineSeparator,
+  TimelineConnector,
+  TimelineContent,
+  TimelineDot,
+  TimelineOppositeContent,
+} from '@mui/lab';
 
 
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { formatDistanceToNow } from 'date-fns';
 
-import { format } from 'date-fns';
-
+import AdapterJalali from "../../dateTime/AdapterJalali";
+import { faIR } from 'date-fns-jalali/locale';
+import { format as formatJalali } from 'date-fns-jalali';
+import { toast } from "react-toastify";
 
 // Luxury color palette
 const colors = {
@@ -138,7 +153,10 @@ const statusConfig = [
     description: "Project successfully delivered",
   },
 ];
-
+const formatPersianDate = (date) => {
+  if (!date) return '';
+  return formatJalali(date, 'yyyy/M/d', { locale: faIR });
+};
 const ProjcetStates = ({ statusComponents }) => {
   const [expandedSections, setExpandedSections] = useState({ dashboard: true });
   const { id, projectManager } = useParams();
@@ -154,6 +172,49 @@ const ProjcetStates = ({ statusComponents }) => {
   const [dateType, setDateType] = useState(null); // 'start' or 'finish'
   const [startDate, setStartDate] = useState(projectData?.startDate ? new Date(projectData.startDate) : null);
   const [finishDate, setFinishDate] = useState(projectData?.finishDate ? new Date(projectData.finishDate) : null);
+
+  const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+
+  // const handleSaveProjectDates = async (e) => {
+
+  //   try{
+  //   if (dateType === "start") {
+
+  //     const result =  await savaProjectDate(id , userId , startDate , "start")
+  //     toast.success("Sucessfully Updated Project Start Date!!")
+
+  //   } else {
+
+  //     const result = await savaProjectDate(id , userId , finishDate , "finish")
+  //     toast.success("Sucessfully Updated Project Finish Date!!")
+
+
+  //   }
+  // }catch(error){
+  //   console.log("error in line 196 : " , error.message )
+  // }
+  //   setDateModalOpen(false);
+
+  // }
+  const handleSaveProjectDates = async (e) => {
+    try {
+      if (dateType === "start") {
+         await savaProjectDate(id, userId, startDate, "start");
+        toast.success("Successfully Updated Project Start Date!!");
+      } else {
+         await savaProjectDate(id, userId, finishDate, "finish");
+        toast.success("Successfully Updated Project Finish Date!!");
+      }
+    } catch (error) {
+      console.log("Error saving date:", error);
+      // Display the actual error message from backend
+      toast.error(error.message || "Failed to save project date");
+      return; // Don't close the modal if there's an error
+    }
+    setDateModalOpen(false);
+  }
+
 
   const toggleSection = (section) => {
     setExpandedSections((prev) => ({
@@ -252,9 +313,6 @@ const ProjcetStates = ({ statusComponents }) => {
   }
 
   const { status } = projectData;
-
-
-
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
@@ -433,7 +491,7 @@ const ProjcetStates = ({ statusComponents }) => {
                       totalWorkTime={projectData.totalWorkTime} // Total seconds from backend
                       isTracking={currentStatus === "In-Progress"} // True when in-progress
                       lastStatusChange={
-                        projectData.stateChanges?.filter(c => c.state === "In-Progress").slice(-1)[0]?.timestamp
+                        projectData?.stateChanges?.filter(c => c.state === "In-Progress").slice(-1)[0]?.timestamp
                       }
                     />
                     <Typography variant="caption" color="text.secondary">
@@ -529,62 +587,52 @@ const ProjcetStates = ({ statusComponents }) => {
                   <Box display="flex" alignItems="center" gap={1}>
                     <Button
                       variant="outlined"
-                      startIcon={<PlayArrow />}
+
                       onClick={() => {
                         setDateType('start');
                         setDateModalOpen(true);
                       }}
-                      sx={{ minWidth: '180px' }}
+                      sx={{ minWidth: '180px', direction: 'rtl' }}
                     >
-                      {startDate ? format(startDate, 'MMM d, yyyy') : 'Set Start Date'}
+                      {startDate ? formatPersianDate(startDate) : 'Set Start Date'}
                     </Button>
                     <Button
                       variant="outlined"
-                      startIcon={<TaskIcon />}
                       onClick={() => {
                         setDateType('finish');
                         setDateModalOpen(true);
                       }}
-                      sx={{ minWidth: '180px' }}
+                      sx={{ minWidth: '180px', direction: 'rtl' }}
                       disabled={!startDate} // Disable finish date until start date is set
                     >
-                      {finishDate ? format(finishDate, 'MMM d, yyyy') : 'Set Finish Date'}
+                      {finishDate ? formatPersianDate(finishDate) : 'Set Finish Date'}
                     </Button>
                   </Box>
                 </Box>
               </Box>
 
-              {/* Date Selection Modal */}
+              {/* Date Selection Modal with Jalali Calendar */}
               <Dialog open={dateModalOpen} onClose={() => setDateModalOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>
                   Set {dateType === 'start' ? 'Project Start' : 'Project Finish'} Date
                 </DialogTitle>
                 <DialogContent sx={{ pt: 3 }}>
-                  <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <DatePicker
-                      label={dateType === 'start' ? 'Start Date' : 'Finish Date'}
-                      value={dateType === 'start' ? startDate : finishDate}
-                      onChange={(newValue) => {
-                        if (dateType === 'start') {
-                          setStartDate(newValue);
-                        } else {
-                          setFinishDate(newValue);
-                        }
-                      }}
-                      minDate={dateType === 'finish' ? startDate : null}
-                      renderInput={(params) => (
-                        <TextField {...params} fullWidth sx={{ mt: 1 }} />
-                      )}
-                    />
-                  </LocalizationProvider>
+                  <AdapterJalali
+                    value={dateType === 'start' ? startDate : finishDate}
+                    onChange={(newValue) => {
+                      if (dateType === 'start') {
+                        setStartDate(newValue);
+                      } else {
+                        setFinishDate(newValue);
+                      }
+                    }}
+                  // minDate={dateType === 'finish' ? startDate : null}
+                  />
                 </DialogContent>
                 <DialogActions>
                   <Button onClick={() => setDateModalOpen(false)}>Cancel</Button>
                   <Button
-                    onClick={() => {
-                      // Here you would typically save the dates to your backend
-                      setDateModalOpen(false);
-                    }}
+                    onClick={handleSaveProjectDates}
                     variant="contained"
                     color="primary"
                   >
@@ -594,10 +642,180 @@ const ProjcetStates = ({ statusComponents }) => {
               </Dialog>
 
 
+              {/* Status History Section */}
+              <Box sx={{
+                mb: '24px',
+                p: '20px',
+                background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+                borderRadius: '12px',
+                border: '1px solid rgba(0, 0, 0, 0.05)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.03)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                  <Box display="flex" alignItems="center">
+                    <AccessTime sx={{
+                      color: statusConfig.find(s => s.key === status).color,
+                      mr: 1.5,
+                      fontSize: '28px'
+                    }} />
+                    <Typography variant="h6" fontWeight="700">
+                      STATUS HISTORY
+                    </Typography>
+                  </Box>
+                  <Box>
+                    <Tooltip title="View full history">
+                      <IconButton
+                        onClick={() => setHistoryDialogOpen(true)}
+                        sx={{ mr: 1 }}
+                      >
+                        <FullscreenIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <IconButton onClick={() => setHistoryExpanded(!historyExpanded)}>
+                      {historyExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    </IconButton>
+                  </Box>
+                </Box>
+
+                <Collapse in={historyExpanded}>
+                  {projectData?.stateChanges?.length > 0 ? (
+                    <Timeline position="alternate" sx={{ p: 0 }}>
+                      {projectData.stateChanges.slice(0, historyExpanded ? undefined : 3).map((change, index) => {
+                        const statusItem = statusConfig.find(s => s.key === change.state);
+                        const isLast = index === projectData.stateChanges.length - 1;
+                        const date = new Date(change.timestamp);
+
+                        return (
+                          <TimelineItem sx={{ direction: 'ltr' }} key={index}>
+                            <TimelineOppositeContent
+                              sx={{ m: 'auto 0', direction: "rtl" }}
+                              align="right"
+                              variant="body2"
+                              color="text.secondary"
+                            >
+                              {formatPersianDate(date, 'MMM d, yyyy')}
+                              <br />
+                              {formatJalali(date, 'h:mm a')}
+                            </TimelineOppositeContent>
+                            <TimelineSeparator>
+                              <TimelineConnector />
+                              <TimelineDot sx={{ bgcolor: statusItem.color }}>
+                                {statusItem.icon}
+                              </TimelineDot>
+                              {!isLast && <TimelineConnector />}
+                            </TimelineSeparator>
+                            <TimelineContent sx={{ py: '12px', px: 2 }}>
+                              <Typography variant="h6" component="span">
+                                Changed to {statusItem.label}
+                              </Typography>
+                              <Typography>
+                                {formatDistanceToNow(date, { addSuffix: true })}
+                              </Typography>
+                              {change.note && (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                  Note: {change.note}
+                                </Typography>
+                              )}
+                            </TimelineContent>
+                          </TimelineItem>
+                        );
+                      })}
+                    </Timeline>
+                  ) : (
+                    <Typography variant="body1" color="text.secondary" textAlign="center" py={4}>
+                      No status history available
+                    </Typography>
+                  )}
+                </Collapse>
+
+                {!historyExpanded && projectData?.stateChanges?.length > 3 && (
+                  <Button
+                    fullWidth
+                    onClick={() => setHistoryExpanded(true)}
+                    endIcon={<ExpandMoreIcon />}
+                    sx={{ mt: 2 }}
+                  >
+                    Show more history
+                  </Button>
+                )}
+              </Box>
+
+              {/* Status History Dialog */}
+              <Dialog
+                open={historyDialogOpen}
+                onClose={() => setHistoryDialogOpen(false)}
+                fullWidth
+                maxWidth="md"
+              >
+                <DialogTitle>
+                  <Box display="flex" alignItems="center">
+                    <AccessTime sx={{ mr: 1.5, color: statusConfig.find(s => s.key === status).color }} />
+                    <Typography variant="h6">Complete Status History</Typography>
+                  </Box>
+                </DialogTitle>
+                <DialogContent dividers>
+                  {projectData?.stateChanges?.length > 0 ? (
+                    <Timeline position="alternate" sx={{ p: 0 }}>
+                      {projectData?.stateChanges.map((change, index) => {
+                        const statusItem = statusConfig.find(s => s.key === change.state);
+                        const isLast = index === projectData?.stateChanges.length - 1;
+                        const date = new Date(change.timestamp);
+
+                        return (
+                          <TimelineItem key={index}>
+                            <TimelineOppositeContent
+                              sx={{ m: 'auto 0' }}
+                              align="right"
+                              variant="body2"
+                              color="text.secondary"
+                            >
+                              {formatPersianDate(date, 'MMM d, yyyy')}
 
 
-
-
+                              <br />
+                              {formatJalali(date, 'h:mm a')}
+                            </TimelineOppositeContent>
+                            <TimelineSeparator>
+                              <TimelineConnector />
+                              <TimelineDot sx={{ bgcolor: statusItem.color }}>
+                                {statusItem.icon}
+                              </TimelineDot>
+                              {!isLast && <TimelineConnector />}
+                            </TimelineSeparator>
+                            <TimelineContent sx={{ py: '12px', px: 2 }}>
+                              <Typography variant="h6" component="span">
+                                Changed to {statusItem.label}
+                              </Typography>
+                              <Typography>
+                                {formatDistanceToNow(date, { addSuffix: true })}
+                              </Typography>
+                              {change.note && (
+                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                  Note: {change.note}
+                                </Typography>
+                              )}
+                              {change.changedBy && (
+                                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                                  Changed by: {change.changedBy}
+                                </Typography>
+                              )}
+                            </TimelineContent>
+                          </TimelineItem>
+                        );
+                      })}
+                    </Timeline>
+                  ) : (
+                    <DialogContentText textAlign="center" py={4}>
+                      No status history available
+                    </DialogContentText>
+                  )}
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setHistoryDialogOpen(false)}>Close</Button>
+                </DialogActions>
+              </Dialog>
 
               <Divider sx={{ my: 3, borderColor: theme.palette.divider }} />
 
@@ -626,23 +844,9 @@ const ProjcetStates = ({ statusComponents }) => {
 
                   {statusComponents[status]}
 
-
-
                 </Box>
               </motion.div>
-
             </CardContent>
-
-
-
-
-
-
-
-
-
-
-
           </Box>
         </Collapse>
       </SectionCard>
