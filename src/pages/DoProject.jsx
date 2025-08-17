@@ -38,7 +38,7 @@ const DoProject = () => {
   const statusComponents = {
     Open: <OpenStatusContent />,
     Pending: <PendingStatusContent />,
-    "In-Progress": <InProgressContent  />,
+    "In-Progress": <InProgressContent />,
     Finish: <FinishStatusContent />,
   };
 
@@ -55,13 +55,13 @@ const DoProject = () => {
   return (
     <Container maxWidth="xl" className="py-8 px-4 sm:px-6 lg:px-8">
 
-      <ProjectInfo/>
+      <ProjectInfo />
 
 
-<ProjcetStates statusComponents={statusComponents}/>
-     
+      <ProjcetStates statusComponents={statusComponents} />
 
-    
+
+
     </Container>
   );
 };
