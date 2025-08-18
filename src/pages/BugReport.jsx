@@ -223,7 +223,7 @@ const BugReportForm = () => {
                   </div>
                 </div>
 
-                <div className="mb-4">
+                <div className="mb-4" dir="rtl">
                   <p className="text-gray-700">{report.description}</p>
                 </div>
 
