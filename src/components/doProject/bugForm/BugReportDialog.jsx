@@ -455,6 +455,7 @@ useEffect(() => {
         setFormData({
           cve: "",
           path: "",
+          description:"", 
           impact: "",
           exploit: "",
           solution: "",
