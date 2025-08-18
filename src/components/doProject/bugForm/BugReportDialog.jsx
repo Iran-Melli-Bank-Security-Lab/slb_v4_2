@@ -26,6 +26,7 @@ import { useParams } from "react-router";
 import { useUserId } from "../../../hooks/useUserId";
 import { useSocket } from "../../../context/SocketContext";
 import { toast } from "react-toastify";
+import { getOwaspItem } from "../../../api/owasp/web/getOwaspItem";
 
 // Update the valid file types in handleFileChange
 const validTypes = [
@@ -231,6 +232,29 @@ const BugReportDialog = ({ open, onClose, initialData, onSuccess }) => {
 
   const fileInputRef = useRef(null);
   const [cvssDialogKey, setCvssDialogKey] = useState(0);
+
+useEffect(() => {
+  if (open && !initialData && id) {
+    const fetchOwaspItem = async () => {
+      try {
+        const owaspItem = await getOwaspItem(id);
+        if (owaspItem) {
+          setFormData(prev => ({
+            ...prev,
+            description: owaspItem.description || "",
+            impact: owaspItem.impact || "",
+            exploit: owaspItem.exploit_fa  || "", 
+            solution:owaspItem.solution || " "
+          }));
+        }
+      } catch (error) {
+        console.error("Error fetching OWASP item:", error);
+      }
+    };
+    
+    fetchOwaspItem();
+  }
+}, [open, id, initialData]);
 
   useEffect(() => {
     if (open) {
