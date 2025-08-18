@@ -201,8 +201,8 @@ const formatFileSize = (bytes) => {
 };
 
 const BugReportDialog = ({ open, onClose, initialData, onSuccess }) => {
-  const { id, label,labelfa, wstg, projectId, projectManager } = useParams();
-  
+  const { id, label, labelfa, wstg, projectId, projectManager } = useParams();
+
   const userId = useUserId();
   const socket = useSocket();
 
@@ -233,28 +233,28 @@ const BugReportDialog = ({ open, onClose, initialData, onSuccess }) => {
   const fileInputRef = useRef(null);
   const [cvssDialogKey, setCvssDialogKey] = useState(0);
 
-useEffect(() => {
-  if (open && !initialData && id) {
-    const fetchOwaspItem = async () => {
-      try {
-        const owaspItem = await getOwaspItem(id);
-        if (owaspItem) {
-          setFormData(prev => ({
-            ...prev,
-            description: owaspItem.description || "",
-            impact: owaspItem.impact || "",
-            exploit: owaspItem.exploit_fa  || "", 
-            solution:owaspItem.solution || " "
-          }));
+  useEffect(() => {
+    if (open && !initialData && id) {
+      const fetchOwaspItem = async () => {
+        try {
+          const owaspItem = await getOwaspItem(id);
+          if (owaspItem) {
+            setFormData(prev => ({
+              ...prev,
+              description: owaspItem.description || "",
+              impact: owaspItem.impact || "",
+              exploit: owaspItem.exploit_fa || "",
+              solution: owaspItem.solution || " "
+            }));
+          }
+        } catch (error) {
+          console.error("Error fetching OWASP item:", error);
         }
-      } catch (error) {
-        console.error("Error fetching OWASP item:", error);
-      }
-    };
-    
-    fetchOwaspItem();
-  }
-}, [open, id, initialData]);
+      };
+
+      fetchOwaspItem();
+    }
+  }, [open, id, initialData]);
 
   useEffect(() => {
     if (open) {
@@ -288,12 +288,12 @@ useEffect(() => {
         files: [],
         existingFiles: initialData.pocs
           ? initialData.pocs.map((poc) => ({
-              id: poc.filename,
-              name: poc.originalname,
-              type: poc.type,
-              url: poc.path,
-              size: poc.size,
-            }))
+            id: poc.filename,
+            name: poc.originalname,
+            type: poc.type,
+            url: poc.path,
+            size: poc.size,
+          }))
           : [],
       });
 
@@ -413,7 +413,7 @@ useEffect(() => {
       submissionData.append("id", id);
       submissionData.append("wstg", wstg);
       submissionData.append("label", label);
-      submissionData.append("labelfa" , decodeURIComponent(labelfa))
+      submissionData.append("labelfa", decodeURIComponent(labelfa))
       submissionData.append("projectId", projectId);
       submissionData.append("projectManager", projectManager);
       submissionData.append("userId", userId);
@@ -436,7 +436,7 @@ useEffect(() => {
       });
 
       // Append CVSS data if available
-      if (cvssData.score) {
+      if (cvssData.score !== undefined || cvssData.score !==null ) {
         submissionData.append("cvssScore", cvssData.score);
         submissionData.append("cvssSeverity", cvssData.severity);
         submissionData.append("cvssVector", cvssData.vector);
@@ -455,7 +455,7 @@ useEffect(() => {
         setFormData({
           cve: "",
           path: "",
-          description:"", 
+          description: "",
           impact: "",
           exploit: "",
           solution: "",
@@ -528,7 +528,7 @@ useEffect(() => {
                       </Button>
                     </div>
 
-                    {cvssData.score ? (
+                    {/* {cvssData.score ? (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-500">
@@ -583,7 +583,69 @@ useEffect(() => {
                       <p className="text-sm text-gray-500">
                         No CVSS assessment added yet
                       </p>
+                    )} */}
+
+                    {cvssData.score !== undefined && cvssData.score !== null ? (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">
+                            Score
+                          </label>
+                          <div className="mt-1 text-2xl font-bold">
+                            <span
+                              className={
+                                cvssData.score === 0
+                                  ? "text-green-600"
+                                  : cvssData.score >= 9
+                                    ? "text-red-600"
+                                    : cvssData.score >= 7
+                                      ? "text-orange-600"
+                                      : cvssData.score >= 4
+                                        ? "text-yellow-600"
+                                        : "text-blue-600"
+                              }
+                            >
+                              {cvssData.score}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">
+                            Severity
+                          </label>
+                          <div className="mt-1 text-lg font-medium">
+                            <span
+                              className={
+                                cvssData.severity === "Critical"
+                                  ? "text-red-600"
+                                  : cvssData.severity === "High"
+                                    ? "text-orange-600"
+                                    : cvssData.severity === "Medium"
+                                      ? "text-yellow-600"
+                                      : cvssData.severity === "Info"
+                                        ? "text-green-600"
+                                        : "text-blue-600"
+                              }
+                            >
+                              {cvssData.severity}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-500">
+                            Vector
+                          </label>
+                          <div className="mt-1 text-sm font-mono break-all">
+                            {cvssData.vector}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500">
+                        No CVSS assessment added yet
+                      </p>
                     )}
+
                   </div>
 
                   {/* CVE Input */}
@@ -938,6 +1000,7 @@ useEffect(() => {
         open={cvssDialogOpen}
         onClose={() => setCvssDialogOpen(false)}
         onScoreSelect={(cvssData) => {
+          console.log("cvss data in line 941 : ", cvssData)
           setCvssData(cvssData);
         }}
       />
