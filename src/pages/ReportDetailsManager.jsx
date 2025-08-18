@@ -41,7 +41,7 @@ import {
   Typography,
   Slider,
   Chip,
-  Avatar,
+  
   Divider,
   Tooltip,
   CircularProgress,
@@ -51,15 +51,7 @@ import {
 import { styled } from "@mui/material/styles";
 import { toast } from "react-toastify";
 
-// Styled Components
-const StyledBadge = styled(Badge)(({ theme }) => ({
-  "& .MuiBadge-badge": {
-    right: -3,
-    top: 13,
-    border: `2px solid ${theme.palette.background.paper}`,
-    padding: "0 4px",
-  },
-}));
+
 
 // StatusBadge component with updated colors
 const StatusBadge = ({ status }) => {
@@ -239,7 +231,7 @@ const ReportDetailsManager = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedAction, setSelectedAction] = useState(null);
   const [feedbackText, setFeedbackText] = useState("");
-  const [score, setScore] = useState(50); // Default to 50
+  const [score, setScore] = useState(0); // Default to 50
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState(null);
 
