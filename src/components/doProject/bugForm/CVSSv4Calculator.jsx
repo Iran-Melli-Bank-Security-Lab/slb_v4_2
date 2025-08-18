@@ -375,7 +375,7 @@ setVector(vectorString)
           onClick={handleApply}
           variant="contained"
           color="primary"
-          disabled={!score}
+          
         >
           Apply CVSS Score
         </Button>
