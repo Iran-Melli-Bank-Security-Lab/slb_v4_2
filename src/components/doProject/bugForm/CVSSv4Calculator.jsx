@@ -58,37 +58,63 @@ const CVSSv4Calculator = ({ open, onClose, onScoreSelect }) => {
     setCvss(newCvss);
   }, [metrics]);
 
+  //     useEffect(()=>{
+  //         const cvss4 = new Cvss4P0();
+  //         cvss4.applyVector(cvss);
+  //         const jSchema = cvss4.createJsonSchema()
+  //         console.log("JSchema : " , jSchema)
+  //         setBase(jSchema)
+  //         // const {baseScore , baseSeverity , vectorString  } = jSchema 
+  //   // Extract values with fallbacks for zero score cases
+  //         const baseScore = jSchema.baseScore || 0.0;
+  //         const baseSeverity = (baseScore === 0.0) ? "INFO" : jSchema.baseSeverity;
+  //         const vectorString = jSchema.vectorString || cvss;
+
+  //         setScore(parseFloat(baseScore))
+
+  // setSeverity(baseSeverity)
+  // setVector(vectorString)
+  //         // sessionStorage.setItem('cvss' , JSON.stringify(jSchema))
+  //     } , [cvss])
+
+ useEffect(() => {
+  const cvss4 = new Cvss4P0();
+  try {
+    cvss4.applyVector(cvss);
+    const jSchema = cvss4.createJsonSchema();
+    
+    // Force INFO severity when score is 0.0
+    const baseScore = parseFloat(jSchema.baseScore) || 0.0;
+    const baseSeverity = baseScore === 0.0 ? "INFO" : jSchema.baseSeverity;
+    
+    setScore(baseScore);
+    setSeverity(baseSeverity);
+    setVector(jSchema.vectorString || cvss);
+    setBase(jSchema);
+    
+  } catch (error) {
+    console.error("CVSS calculation error:", error);
+    // Default to INFO when there's an error
+    setScore(0.0);
+    setSeverity("INFO");
+    setVector(cvss);
+  }
+}, [cvss]);
 
 
-    useEffect(()=>{
-        const cvss4 = new Cvss4P0();
-        cvss4.applyVector(cvss);
-        const jSchema = cvss4.createJsonSchema()
-        console.log("JSchema : " , jSchema)
-        setBase(jSchema)
-        const {baseScore , baseSeverity , vectorString  } = jSchema 
-        console.log("base Score : " , baseScore , baseSeverity , vectorString)
-
-        setScore(parseFloat(baseScore))
-
-setSeverity(baseSeverity)
-setVector(vectorString)
-        // sessionStorage.setItem('cvss' , JSON.stringify(jSchema))
-    } , [cvss])
-
-
-
- 
- 
 
   const handleApply = () => {
-    onScoreSelect({
-      score,
-      severity,
-      vector,
-    });
-    onClose();
-  };
+  // Calculate final score right before applying
+  const finalScore = score === 0.0 ? 0.0 : score;
+  const finalSeverity = score === 0.0 ? "INFO" : severity;
+  
+  onScoreSelect({
+    score: finalScore,
+    severity: finalSeverity,
+    vector,
+  });
+  onClose();
+};
 
   const updateMetric = (metric, value) => {
     setMetrics((prev) => ({
@@ -189,7 +215,9 @@ setVector(vectorString)
                     ? "#f57c00"
                     : severity === "MEDIUM"
                       ? "#fbc02d"
-                      : "#388e3c",
+                      : severity === "INFO"
+                        ? "#2196f3"  // Blue for info
+                        : "#388e3c", // Default green for low
             }}
           >
             <Grid container spacing={2} alignItems="center">
@@ -212,7 +240,9 @@ setVector(vectorString)
                           ? "#f57c00"
                           : severity === "MEDIUM"
                             ? "#fbc02d"
-                            : "#388e3c",
+                            : severity === "INFO"
+                              ? "#2196f3"
+                              : "#388e3c",
                   }}
                 >
                   {severity || "--"}
@@ -321,7 +351,7 @@ setVector(vectorString)
           </Paper>
 
 
-  {/* Subsequent System Impact Metrics  */}
+          {/* Subsequent System Impact Metrics  */}
           <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
             <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
               Subsequent System Impact Metrics
