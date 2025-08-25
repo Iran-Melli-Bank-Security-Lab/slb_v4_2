@@ -228,6 +228,8 @@ const BugReportDialog = ({ open, onClose, initialData, onSuccess }) => {
     wafPossibility: "",
     files: [],
     existingFiles: [],
+    httpMethod: "GET",
+    parameter:""
   });
 
   const fileInputRef = useRef(null);
@@ -320,6 +322,9 @@ const BugReportDialog = ({ open, onClose, initialData, onSuccess }) => {
         wafPossibility: "",
         files: [],
         existingFiles: [],
+        httpMethod:"GET", 
+        parameter:""
+
       });
       setCvssData({
         score: null,
@@ -466,6 +471,8 @@ const BugReportDialog = ({ open, onClose, initialData, onSuccess }) => {
           wafPossibility: "",
           files: [],
           existingFiles: [],
+          httpMethod:"GET", 
+          parameter:""
         });
         setCvssData({
           score: null,
@@ -667,6 +674,29 @@ const BugReportDialog = ({ open, onClose, initialData, onSuccess }) => {
                     />
                   </div>
 
+
+<div className="space-y-2">
+  <label htmlFor="httpMethod" className="block text-sm font-medium text-gray-700">
+    HTTP Method
+  </label>
+  <select
+    id="httpMethod"
+    name="httpMethod"
+    value={formData.httpMethod}
+    onChange={handleChange}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+  >
+    <option value="GET">GET</option>
+    <option value="POST">POST</option>
+    <option value="PUT">PUT</option>
+    <option value="DELETE">DELETE</option>
+    <option value="PATCH">PATCH</option>
+    <option value="OPTIONS">OPTIONS</option>
+    <option value="HEAD">HEAD</option>
+  </select>
+</div>
+
+
                   {/* Path Input */}
                   <div className="space-y-2">
                     <label
@@ -685,6 +715,23 @@ const BugReportDialog = ({ open, onClose, initialData, onSuccess }) => {
                       placeholder="/vulnerable/endpoint"
                     />
                   </div>
+
+
+{/* Parameter */}
+<div className="space-y-2">
+  <label htmlFor="parameter" className="block text-sm font-medium text-gray-700">
+    Parameter 
+  </label>
+  <input
+    type="text"
+    id="parameter"
+    name="parameter"
+    value={formData.parameter}
+    onChange={handleChange}
+    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500"
+    placeholder="userId"
+  />
+</div>
 
                   {/* Description Textarea - Required */}
                   <div className="space-y-2">
