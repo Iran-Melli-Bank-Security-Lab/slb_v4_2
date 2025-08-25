@@ -432,7 +432,10 @@ const BugReportForm = () => {
 <div className="flex gap-2">
   <button
     onClick={() => handleEditClick(report)}
-    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-150 transform hover:scale-105"
+    className= {`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm 
+      ${report.state==="Verify" || report.state==="Duplicate"  || report.state==="Not Applicable"
+      ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
+     :" text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-150 transform hover:scale-105"}` }
   >
     <svg
       className="-ml-1 mr-2 h-5 w-5"
