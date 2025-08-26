@@ -36,6 +36,7 @@
     "dayjs": "^1.11.13",
     "dayjs-jalali": "^0.0.2",
     "framer-motion": "^12.10.0",
+    "jwt-decode": "^4.0.0",
     "moment-jalaali": "^0.10.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
