@@ -10,6 +10,8 @@ import { ReactRouterAppProvider } from '@toolpad/core/react-router';
 import { Outlet, useNavigate } from 'react-router';
 import { useSession } from './SessionContext'; // 👈 updated import
 import validateSession from './utils/validateSession';
+import {jwtDecode} from 'jwt-decode';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button } from '@mui/material';
 
 const BASE_NAVIGATION = [
   {
@@ -74,8 +76,43 @@ const DEVOPS_NAVIGATION = [
 
 function AppContent() {
   const { session, clearSession, loading } = useSession();
-  console.log("session : " , session)
   const navigate = useNavigate();
+  const [showSessionExpired, setShowSessionExpired] = React.useState(false);
+
+
+React.useEffect(() => {
+    if (!loading && session?.token) {
+      try {
+        // decode JWT to get expiration time
+        const decoded = jwtDecode(session.token);
+        const expiryTime = decoded.exp * 1000; // convert to ms
+        const now = Date.now();
+        const timeLeft = expiryTime - now;
+
+        if (timeLeft <= 0) {
+          // already expired
+          handleSessionExpired();
+        } else {
+          const timer = setTimeout(handleSessionExpired, timeLeft);
+          return () => clearTimeout(timer);
+        }
+      } catch (err) {
+        console.error('Failed to decode token', err);
+        handleSessionExpired();
+      }
+    }
+  }, [loading, session]);
+
+  const handleSessionExpired = () => {
+    clearSession();
+    setShowSessionExpired(true);
+  };
+
+  const handleLoginAgain = () => {
+    setShowSessionExpired(false);
+    navigate('/sign-in');
+  };
+
 
   React.useEffect(() => {
     async function checkSession() {
@@ -91,6 +128,7 @@ function AppContent() {
     }
     checkSession();
   }, [loading, session, navigate, clearSession]);
+
 
   const signIn = React.useCallback(() => {
     navigate('/sign-in');
@@ -130,7 +168,7 @@ function AppContent() {
   }
 
 
-  return (
+  return (<>
     <ReactRouterAppProvider
       navigation={navigation}
       session={session}
@@ -138,6 +176,21 @@ function AppContent() {
     >
       <Outlet />
     </ReactRouterAppProvider>
+
+ {/* Modal for session expired */}
+      <Dialog open={showSessionExpired} disableEscapeKeyDown disableBackdropClick>
+        <DialogTitle>Session Expired</DialogTitle>
+        <DialogContent>
+          Your session has expired. Please login again to continue.
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleLoginAgain} variant="contained" color="primary">
+            Login Again
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+    </>
   );
 }
 
