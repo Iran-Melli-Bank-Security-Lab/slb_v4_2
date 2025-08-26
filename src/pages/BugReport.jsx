@@ -67,7 +67,7 @@ const SeverityBadge = ({ severity }) => {
 };
 
 const BugReportForm = () => {
-  const { label ,id, projectId, projectManager } = useParams();
+  const { label, id, projectId, projectManager } = useParams();
   const userId = useUserId();
   const [reports, setReports] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,10 +76,10 @@ const BugReportForm = () => {
   const [editingReport, setEditingReport] = useState(null);
 
   //delete report 
-   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState(null);
 
-  const handleDeleteClick =async (report) => {
+  const handleDeleteClick = async (report) => {
     setReportToDelete(report);
     setDeleteModalOpen(true);
   };
@@ -107,7 +107,6 @@ const BugReportForm = () => {
     setReportToDelete(null);
   };
 
-
   const handleOpenForm = () => {
     setOpenForm(true);
   };
@@ -117,7 +116,7 @@ const BugReportForm = () => {
     setEditingReport(null);
   };
 
-   const getReports = async () => {
+  const getReports = async () => {
     try {
       setIsLoading(true);
       const result = await fetchReports(projectId, userId, projectManager, id);
@@ -127,9 +126,9 @@ const BugReportForm = () => {
     } finally {
       setIsLoading(false);
     }
-    };
+  };
+  
   useEffect(() => {
-   
     getReports();
   }, []);
 
@@ -137,6 +136,7 @@ const BugReportForm = () => {
     setEditingReport(report);
     setOpenForm(true);
   };
+  
   // Function to render RTL text with line breaks
   const renderRtlText = (text) => {
     if (!text) return null;
@@ -204,7 +204,7 @@ const BugReportForm = () => {
                     {report.label}
                   </h2>
                   <div className="flex space-x-2">
-                    <StatusBadge status={report.state === "Verify" ? "Verified" :report.state } />
+                    <StatusBadge status={report.state === "Verify" ? "Verified" : report.state} />
                     <SeverityBadge severity={report.severity} />
                   </div>
                 </div>
@@ -288,9 +288,47 @@ const BugReportForm = () => {
                     </div>
                   )}
 
-                  {report.path && (
-                    <div className="text-sm text-gray-600">
-                      <span className="font-medium">Path:</span> {report.path}
+                  {/* Display Path, HTTP Method and Parameters together */}
+                  {(report.path || report.httpMethod || report.parameter) && (
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h3 className="text-lg font-medium text-gray-800 mb-3">Request Details</h3>
+                      
+                      {report.path && (
+                        <div className="mb-3">
+                          <span className="font-medium text-gray-700">Path:</span> 
+                          <code className="ml-2 px-2 py-1 bg-gray-100 text-gray-800 rounded text-sm font-mono">
+                            {report.path}
+                          </code>
+                        </div>
+                      )}
+                      
+                      {report.httpMethod && (
+                        <div className="mb-3">
+                          <span className="font-medium text-gray-700">HTTP Method:</span> 
+                          <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium">
+                            {report.httpMethod}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {report.parameter  && (
+                        <div>
+                          <span className="font-medium text-gray-700">Parameter: </span>
+                        
+                            
+                              
+                                <span className="font-medium text-gray-700 mr-2 min-w-[80px]">
+                                  
+                                   <code className="ml-2 px-2 py-1 bg-gray-100 text-gray-800 rounded text-sm font-mono">
+                           {report.parameter}
+                          </code>
+                                  </span>
+                                {/* <span className="text-gray-800 break-all">{report.parameter}</span> */}
+                        
+                            
+                      
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -360,11 +398,10 @@ const BugReportForm = () => {
                 </div>
               </div>
 
-              {/* Add footer with timestamps and edit button */}
-
+              {/* Footer with timestamps and action buttons */}
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4">
-                  {/* Horizontal stack for timestamps */}
+                  {/* Timestamps */}
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                     {report.created_at && (
                       <div className="flex items-center text-sm text-gray-600">
@@ -426,55 +463,49 @@ const BugReportForm = () => {
                     )}
                   </div>
 
-
-                  {/* Edit button aligned to the right */}
-                  {/* Edit and Delete buttons aligned to the right */}
-<div className="flex gap-2">
-  <button
-    onClick={() => handleEditClick(report)}
-    className= {`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm 
-      ${report.state==="Verify" || report.state==="Duplicate"  || report.state==="Not Applicable"
-      ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
-     :" text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-150 transform hover:scale-105"}` }
-  >
-    <svg
-      className="-ml-1 mr-2 h-5 w-5"
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 20 20"
-      fill="currentColor"
-    >
-      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-    </svg>
-    Edit Report
-  </button>
- <button
-  onClick={() => handleDeleteClick(report)}
-  disabled={true}
-  className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm 
-    ${report.state==="Verify" || report.state==="Duplicate"  || report.state==="Not Applicable"
-      ? "bg-gray-300 text-gray-500 cursor-not-allowed" 
-      : "text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-150 transform hover:scale-105"
-    }`}
->
-  <svg
-    className="-ml-1 mr-2 h-5 w-5"
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 20 20"
-    fill="currentColor"
-  >
-    <path
-      fillRule="evenodd"
-      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-      clipRule="evenodd"
-    />
-  </svg>
-  Delete
-</button>
-
-</div>
-
-
-
+                  {/* Action buttons */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEditClick(report)}
+                      className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm 
+                        ${report.state === "Verify" || report.state === "Duplicate" || report.state === "Not Applicable"
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-150 transform hover:scale-105"}`}
+                    >
+                      <svg
+                        className="-ml-1 mr-2 h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                      Edit Report
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(report)}
+                      disabled={report.state === "Verify" || report.state === "Duplicate" || report.state === "Not Applicable"}
+                      className={`inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm 
+                        ${report.state === "Verify" || report.state === "Duplicate" || report.state === "Not Applicable"
+                          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                          : "text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-150 transform hover:scale-105"
+                        }`}
+                    >
+                      <svg
+                        className="-ml-1 mr-2 h-5 w-5"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -482,35 +513,34 @@ const BugReportForm = () => {
         </div>
       )}
 
-{/* Delete Confirmation Modal */}
-{deleteModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
-      <div className="flex items-center mb-4">
-        <WarningIcon className="text-red-500 mr-2" />
-        <h3 className="text-lg font-bold text-gray-800">Confirm Deletion</h3>
-      </div>
-      <p className="mb-6 text-gray-600">
-        Are you sure you want to delete this report? This action cannot be undone.
-      </p>
-      <div className="flex justify-end space-x-3">
-        <button
-          onClick={handleCancelDelete}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={handleConfirmDelete}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full">
+            <div className="flex items-center mb-4">
+              <WarningIcon className="text-red-500 mr-2" />
+              <h3 className="text-lg font-bold text-gray-800">Confirm Deletion</h3>
+            </div>
+            <p className="mb-6 text-gray-600">
+              Are you sure you want to delete this report? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleCancelDelete}
+                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BugReportDialog
         open={openForm}
