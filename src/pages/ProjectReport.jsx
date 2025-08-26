@@ -201,7 +201,7 @@ const ProjectReport = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Pentester</TableCell>
+                {/* <TableCell>Pentester</TableCell> */}
                 <TableCell>Name</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Date</TableCell>
@@ -220,7 +220,7 @@ const ProjectReport = () => {
                     onDoubleClick={() => handleRowDoubleClick(report._id)}
                     sx={{ cursor: "pointer" }}
                   >
-                    <TableCell>{report?.pentester?.lastName}</TableCell>
+                    {/* <TableCell>{report?.pentester?.lastName}</TableCell> */}
                     <TableCell>{report?.label}</TableCell>
 
                     <TableCell>
