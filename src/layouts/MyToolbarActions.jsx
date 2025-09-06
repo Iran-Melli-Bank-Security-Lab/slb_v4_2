@@ -38,7 +38,6 @@ const MyToolbarActions = () => {
     async function getNotif() {
       try {
         const notifs = await userNotif(user.id);
-        console.log("Notifs : ", notifs.notifications);
 
         const formattedNotifs = notifs.notifications.map((n) => ({
           ...n,

@@ -2,6 +2,7 @@ import React from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import WebAssetIcon from '@mui/icons-material/WebAsset';
 import SettingsInputComponentIcon from '@mui/icons-material/SettingsInputComponent';
 import AddIcon from '@mui/icons-material/Add';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
@@ -29,6 +30,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import LoginIcon from '@mui/icons-material/Login';
+import { WebAsset } from '@mui/icons-material';
 
 const BASE_NAVIGATION = [
   {
@@ -62,6 +64,21 @@ const BASE_NAVIGATION = [
     title: 'Ticket List',
     icon: <ManageAccountsIcon />,
   },
+    {
+    kind: 'header',
+    title: 'Assets',
+  },
+   {
+    segment: 'assets',
+    title: 'Assets',
+    icon: <AddIcon />,
+  },
+   {
+    segment: 'assets/add_asset',
+    title: 'Add Asset',
+    icon: <WebAsset />,
+  },
+
 ];
 
 const DEVOPS_NAVIGATION = [
