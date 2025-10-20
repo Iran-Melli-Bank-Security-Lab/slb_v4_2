@@ -13,9 +13,10 @@
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "4.7.0",
     "@vitejs/plugin-react-swc": "^3.11.0",
+    "babel-plugin-react-compiler": "^1.0.0",
     "tailwindcss": "^4.1.4",
     "typescript": "^5",
-    "vite": "^7.0.6"
+    "vite": "^7.1.10"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -30,7 +31,6 @@
     "@reduxjs/toolkit": "^2.7.0",
     "@toolpad/core": "^0.14.0",
     "ae-cvss-calculator": "^1.0.8",
-    "babel-plugin-react-compiler": "^19.1.0-rc.1",
     "date-fns": "^4.1.0",
     "date-fns-jalali": "^4.0.0-0",
     "dayjs": "^1.11.13",
@@ -51,6 +51,6 @@
     "styled-components": "^6.1.19",
     "stylis": "^4.3.6",
     "stylis-plugin-rtl": "^2.1.1",
-    "sweetalert2": "^11.22.2"
+    "sweetalert2": "^11.26.3"
   }
 }
