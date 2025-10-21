@@ -36,6 +36,7 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import AddAsset from './pages/AddAsset.jsx';
 import Assets from './pages/Assets.jsx';
+import AssetDetails from './pages/AssetDetails.jsx';
 
 const router = createBrowserRouter([
   {
@@ -133,6 +134,10 @@ const router = createBrowserRouter([
             {
             path:"assets", 
             Component:Assets
+          }, 
+          {
+            path:"assets/details/:assetId", 
+            Component:AssetDetails
           }
 
         ],
