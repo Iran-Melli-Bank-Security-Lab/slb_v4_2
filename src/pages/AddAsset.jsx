@@ -1,19 +1,32 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
 import { addAsset } from "../api/asset/addAsset";
 import { useUserId } from "../hooks/useUserId";
+import { getAsset } from "../api/asset/getAsset";
+import { updateAsset } from "../api/asset/updateAsset";
+import Swal from "sweetalert2";
+import JalaliDateField from "../components/dateTime/JalaliDateField";
 
 const VALID_TYPES = ["hardware", "software"];
 const VALID_OWNER_TYPES = ["bank", "user"];
 const VALID_DEPARTMENTS = ["security", "quality"];
 const VALID_PLATFORMS = ["web", "mobile", "desktop", "api"];
-
+const swalOptions = {
+  confirmButtonText: "باشه",
+  confirmButtonColor: "#4f46e5",
+  customClass: {
+    popup: "swal-rtl",
+    confirmButton: "swal-btn",
+    title: "text-right",
+    htmlContainer: "text-right",
+  },
+};
 function AddAsset() {
-  const { id } = useParams();
+  const { assetId } = useParams();
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const  userId  = useUserId();
-  console.log("userID : " , useUserId()  )
+  const userId = useUserId();
+  const navigate = useNavigate()
 
   const [formData, setFormData] = useState({
     // --- Required defaults
@@ -49,20 +62,27 @@ function AddAsset() {
     installDate: "",
     allowedInstallations: "",
   });
+  const fetchAsset = async () => {
+    try {
+
+      const data = await getAsset(assetId);
+      console.log("data in line 57 : ", data)
+      setFormData(data?.data);
+
+    } catch (err) {
+      console.error("❌ Error fetching asset details:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Edit mode loader
   useEffect(() => {
-    if (id) {
+    if (assetId) {
       setIsEditMode(true);
-      fetch(`http://localhost:5000/api/assets/${id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          // اگر API شما data را داخل data.data برمی‌گرداند، این خط را به setFormData(data.data) تغییر دهید
-          setFormData(data);
-        })
-        .catch((err) => console.error("❌ خطا در دریافت دارایی:", err));
+      fetchAsset(assetId)
     }
-  }, [id]);
+  }, [assetId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -167,52 +187,51 @@ function AddAsset() {
       // اعتبارسنجی Required
       const errors = validateRequired(payload);
       if (errors.length > 0) {
-        alert(`لطفاً موارد زیر را تکمیل/اصلاح کنید:\n\n${errors.join("\n")}`);
+        await Swal.fire({
+          icon: "warning",
+          title: "موارد زیر را بررسی کنید:",
+          html: errors.join("<br/>"),
+          ...swalOptions,
+        });
         return;
       }
 
-      const data = await addAsset(payload);
-
-      if (data?.success) {
-        // reset form (required defaults remain)
-        setFormData({
-          name: "",
-          type: "hardware",
-          ownerType: "bank",
-          departmentScope: ["security"],
-          platforms: ["web"],
-
-          owner: "",
-          description: "",
-          brand: "",
-          model: "",
-          version: "",
-          serialNumber: "",
-          licenseKey: "",
-          macAddress: "",
-          ipAddress: "",
-          status: "available",
-          location: "",
-          assignedTo: "",
-          assignedDate: "",
-          purchaseDate: "",
-          warrantyExpiry: "",
-          maintenanceSchedule: "",
-          cost: "",
-          vendor: "",
-          tags: [],
-          softwareType: "free",
-          licenseStatus: "licensed",
-          licenseExpiry: "",
-          installDate: "",
-          allowedInstallations: "",
-        });
+      let data;
+      if (isEditMode && assetId) {
+        data = await updateAsset(assetId, payload);
       } else {
-        alert("❌ خطا در ثبت دارایی: " + (data?.message || "نامشخص"));
+        data = await addAsset(payload);
+      }
+      if (data?.success) {
+        await Swal.fire({
+          icon: "success",
+          title: isEditMode ? "دارایی بروزرسانی شد ✅" : "دارایی ثبت شد ✅",
+          text: "اطلاعات با موفقیت ذخیره شد.",
+          confirmButtonText: "تایید",
+          ...swalOptions,
+
+        });
+        navigate("/assets");
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "خطا!",
+          text: data?.message || "در ثبت اطلاعات مشکلی رخ داد.",
+          confirmButtonText: "باشه",
+          ...swalOptions,
+
+        });
       }
     } catch (err) {
       console.error("❌ خطا در ارسال:", err);
-      alert("⚠️ خطا در اتصال به سرور");
+      await Swal.fire({
+        icon: "error",
+        title: "خطا در اتصال به سرور!",
+        text: "لطفاً اتصال خود را بررسی کنید.",
+        confirmButtonText: "باشه",
+        ...swalOptions,
+
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -224,7 +243,7 @@ function AddAsset() {
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white">
           <h2 className="text-3xl font-bold text-center">
-            {isEditMode ? "ویرایش دارایی" : "ثبت دارایی جدید"}
+            {isEditMode ? `ویرایش دارایی (${formData.name || "..."})` : "ثبت دارایی جدید"}
           </h2>
           <p className="text-center mt-2 opacity-90">
             ابتدا فیلدهای اجباری را تکمیل کنید؛ سپس فیلدهای اختیاری را در ادامه ببینید.
@@ -303,11 +322,10 @@ function AddAsset() {
                 ].map((dep) => (
                   <label
                     key={dep.id}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm border border-gray-200 hover:border-blue-400 transition-all cursor-pointer ${
-                      formData.departmentScope.includes(dep.id)
-                        ? "bg-blue-100 border-blue-400"
-                        : "bg-white"
-                    }`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm border border-gray-200 hover:border-blue-400 transition-all cursor-pointer ${formData.departmentScope.includes(dep.id)
+                      ? "bg-blue-100 border-blue-400"
+                      : "bg-white"
+                      }`}
                   >
                     <input
                       type="checkbox"
@@ -336,11 +354,10 @@ function AddAsset() {
                 ].map((platform) => (
                   <label
                     key={platform.id}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm border border-gray-200 hover:border-blue-400 transition-all cursor-pointer ${
-                      formData.platforms.includes(platform.id)
-                        ? "bg-blue-100 border-blue-400"
-                        : "bg-white"
-                    }`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm border border-gray-200 hover:border-blue-400 transition-all cursor-pointer ${formData.platforms.includes(platform.id)
+                      ? "bg-blue-100 border-blue-400"
+                      : "bg-white"
+                      }`}
                   >
                     <input
                       type="checkbox"
@@ -434,7 +451,7 @@ function AddAsset() {
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
                         />
                       </div>
-                      <div className="space-y-2">
+                      {/* <div className="space-y-2">
                         <label className="block text-gray-600 text-sm">تاریخ انقضا</label>
                         <input
                           type="date"
@@ -443,21 +460,35 @@ function AddAsset() {
                           onChange={handleChange}
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
                         />
-                      </div>
+                      </div> */}
+                      <JalaliDateField
+                        className="rounded-lg"
+                        name="licenseExpiry"
+                        label="تاریخ انقضای لایسنس"
+                        value={formData.licenseExpiry}
+                        onChange={handleChange}
+                      />
+
                     </div>
                   )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="block text-gray-600 text-sm">تاریخ نصب</label>
-                      <input
+                    {/* <div className="space-y-2"> */}
+                    {/* <label className="block text-gray-600 text-sm">تاریخ نصب</label> */}
+                    {/* <input
                         type="date"
                         name="installDate"
                         value={formData.installDate}
                         onChange={handleChange}
                         className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
-                      />
-                    </div>
+                      /> */}
+                    <JalaliDateField
+                      name="installDate"
+                      label="تاریخ نصب"
+                      value={formData.installDate}
+                      onChange={handleChange}
+                    />
+                    {/* </div> */}
                     <div className="space-y-2">
                       <label className="block text-gray-600 text-sm">تعداد نصب مجاز</label>
                       <input
@@ -545,7 +576,7 @@ function AddAsset() {
           {/* تاریخ‌ها، انتساب و فروشنده/هزینه (اختیاری) */}
           <div className="bg-gray-50 p-4 rounded-xl space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <label className="block text-gray-600 text-sm">تاریخ تخصیص</label>
                 <input
                   type="date"
@@ -554,8 +585,16 @@ function AddAsset() {
                   onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
                 />
-              </div>
-              <div className="space-y-2">
+              </div> */}
+
+              <JalaliDateField
+                name="assignedDate"
+                label="تاریخ تخصیص"
+                value={formData.assignedDate}
+                onChange={handleChange}
+              />
+              
+              {/* <div className="space-y-2">
                 <label className="block text-gray-600 text-sm">تاریخ خرید</label>
                 <input
                   type="date"
@@ -564,8 +603,14 @@ function AddAsset() {
                   onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
                 />
-              </div>
-              <div className="space-y-2">
+              </div> */}
+              <JalaliDateField
+                name="purchaseDate"
+                label="تاریخ خرید"
+                value={formData.purchaseDate}
+                onChange={handleChange}
+              />
+              {/* <div className="space-y-2">
                 <label className="block text-gray-600 text-sm">انقضا گارانتی</label>
                 <input
                   type="date"
@@ -574,8 +619,15 @@ function AddAsset() {
                   onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
                 />
-              </div>
-              <div className="space-y-2">
+              </div> */}
+
+              <JalaliDateField
+                name="warrantyExpiry"
+                label="انقضا گارانتی"
+                value={formData.warrantyExpiry}
+                onChange={handleChange}
+              />
+              {/* <div className="space-y-2">
                 <label className="block text-gray-600 text-sm">زمان‌بندی نگهداری</label>
                 <input
                   type="date"
@@ -584,7 +636,15 @@ function AddAsset() {
                   onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
                 />
-              </div>
+              </div> */}
+              <JalaliDateField
+                name="maintenanceSchedule"
+                label="زمان‌بندی نگهداری"
+                value={formData.maintenanceSchedule}
+                onChange={handleChange}
+              />
+
+
               <div className="space-y-2">
                 <label className="block text-gray-600 text-sm">هزینه/قیمت</label>
                 <input
@@ -635,17 +695,34 @@ function AddAsset() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`${
-                isSubmitting
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
-              } text-white font-medium px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300`}
+              className={`${isSubmitting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800"
+                } text-white font-medium px-8 py-3 rounded-lg shadow-md hover:shadow-lg transition-all duration-300`}
             >
-              {isSubmitting ? "در حال ثبت..." : "ثبت ابزار"}
+              {isSubmitting
+                ? isEditMode
+                  ? "در حال بروزرسانی..."
+                  : "در حال ثبت..."
+                : isEditMode
+                  ? "بروزرسانی دارایی"
+                  : "ثبت دارایی"}
             </button>
           </div>
         </form>
       </div>
+      {/* استایل RTL برای SweetAlert */}
+      <style>{`
+        .swal-rtl {
+          direction: rtl !important;
+          text-align: right !important;
+          font-family: 'Vazirmatn', sans-serif;
+        }
+        .swal-btn {
+          font-family: 'Vazirmatn', sans-serif;
+          font-weight: 600;
+        }
+      `}</style>
     </div>
   );
 }
