@@ -38,11 +38,14 @@ export default function AdapterJalali(props) {
         
           <DatePicker 
           {...props}
+          
+          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
           defaultValue={new Date()} 
           orientation="landscape"
           onChange={props.onChange} // Pass the onChange callback
 
           slotProps={{
+          textField:{size:"small" , fullWidth:true } , 
             actionBar: { actions: ['accept' , 'today'] },
             desktopPaper: {
               dir: "rtl",
@@ -50,6 +53,7 @@ export default function AdapterJalali(props) {
             mobilePaper: {
               dir: "rtl",
             },
+          
           }} />           
           </LocalizationProvider>
         </div>
