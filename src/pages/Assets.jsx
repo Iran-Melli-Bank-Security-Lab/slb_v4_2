@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { useUserId } from "../hooks/useUserId";
 import {getAssets} from "../api/asset/getAssets" 
+import Swal from "sweetalert2";
+import {deleteAsset} from "../api/asset/deleteAsset"
 
 function AssetTable() {
   const navigate = useNavigate();
@@ -92,12 +94,81 @@ useEffect(() => {
   };
 
   // حذف دارایی
-  const handleDelete = async (id) => {
-    if (window.confirm("آیا از حذف این دارایی اطمینان دارید؟")) {
-      await axios.delete(`http://localhost:5000/api/assets/${id}`);
-      fetchAssets(currentPage);
+
+const handleDelete = async (assetId, assetName) => {
+  const result = await Swal.fire({
+    title: "آیا از حذف اطمینان دارید؟",
+    html: `<b>${assetName}</b> حذف خواهد شد و قابل بازگردانی نیست.`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "بله، حذف شود",
+    cancelButtonText: "لغو",
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#4f46e5",
+    customClass: {
+      popup: "swal-rtl",
+      confirmButton: "swal-btn",
+      cancelButton: "swal-btn",
+      title: "text-right",
+      htmlContainer: "text-right",
+    },
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const data = await deleteAsset(assetId);
+
+      if (data.success) {
+        await Swal.fire({
+          icon: "success",
+          title: "حذف انجام شد ✅",
+          text: `دارایی "${assetName}" با موفقیت حذف شد.`,
+          confirmButtonText: "باشه",
+          confirmButtonColor: "#4f46e5",
+          customClass: {
+            popup: "swal-rtl",
+            confirmButton: "swal-btn",
+            title: "text-right",
+            htmlContainer: "text-right",
+          },
+        });
+
+        // مثلاً دوباره لیست رو رفرش کن
+         fetchAssets();
+      } else {
+        await Swal.fire({
+          icon: "error",
+          title: "خطا!",
+          text: data.message || "در حذف دارایی مشکلی رخ داد.",
+          confirmButtonText: "باشه",
+          confirmButtonColor: "#4f46e5",
+          customClass: {
+            popup: "swal-rtl",
+            confirmButton: "swal-btn",
+            title: "text-right",
+            htmlContainer: "text-right",
+          },
+        }); 
+      }
+    } catch (error) {
+      console.error("❌ Error deleting asset:", error);
+      await Swal.fire({
+        icon: "error",
+        title: "خطا در اتصال به سرور!",
+        text: "لطفاً اتصال اینترنت را بررسی کنید.",
+        confirmButtonText: "باشه",
+        confirmButtonColor: "#4f46e5",
+        customClass: {
+          popup: "swal-rtl",
+          confirmButton: "swal-btn",
+          title: "text-right",
+          htmlContainer: "text-right",
+        },
+      });
     }
-  };
+  }
+};
+
 
   // نمایش وضعیت به فارسی
   const getStatusLabel = (status) => {
@@ -123,7 +194,7 @@ useEffect(() => {
             <p className="mt-1 text-sm opacity-80">نمایش، ویرایش و حذف دارایی‌ها</p>
           </div>
           <button
-            onClick={() => navigate("/assets/add")}
+            onClick={() => navigate("/assets/add_asset")}
             className="bg-white text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-50 transition"
           >
             + افزودن دارایی جدید
@@ -252,7 +323,7 @@ useEffect(() => {
                           ویرایش
                         </button>
                         <button
-                          onClick={() => handleDelete(asset._id)}
+                          onClick={() => handleDelete(asset._id, asset.name)}
                           className="text-red-600 hover:text-red-900"
                         >
                           حذف
@@ -338,6 +409,18 @@ useEffect(() => {
           </div>
         )}
       </div>
+        {/* استایل RTL برای SweetAlert */}
+      <style>{`
+        .swal-rtl {
+          direction: rtl !important;
+          text-align: right !important;
+          font-family: 'Vazirmatn', sans-serif;
+        }
+        .swal-btn {
+          font-family: 'Vazirmatn', sans-serif;
+          font-weight: 600;
+        }
+      `}</style>
     </div>
   );
 }
