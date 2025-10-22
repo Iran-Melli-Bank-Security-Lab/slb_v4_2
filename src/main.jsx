@@ -138,6 +138,10 @@ const router = createBrowserRouter([
           {
             path:"assets/details/:assetId", 
             Component:AssetDetails
+          }, 
+          {
+            path:"assets/edit/:assetId", 
+            Component:AddAsset
           }
 
         ],
