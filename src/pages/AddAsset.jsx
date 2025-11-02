@@ -576,16 +576,7 @@ function AddAsset() {
           {/* تاریخ‌ها، انتساب و فروشنده/هزینه (اختیاری) */}
           <div className="bg-gray-50 p-4 rounded-xl space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* <div className="space-y-2">
-                <label className="block text-gray-600 text-sm">تاریخ تخصیص</label>
-                <input
-                  type="date"
-                  name="assignedDate"
-                  value={formData.assignedDate}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
-                />
-              </div> */}
+             
 
               <JalaliDateField
                 name="assignedDate"
@@ -594,32 +585,14 @@ function AddAsset() {
                 onChange={handleChange}
               />
               
-              {/* <div className="space-y-2">
-                <label className="block text-gray-600 text-sm">تاریخ خرید</label>
-                <input
-                  type="date"
-                  name="purchaseDate"
-                  value={formData.purchaseDate}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
-                />
-              </div> */}
+         
               <JalaliDateField
                 name="purchaseDate"
                 label="تاریخ خرید"
                 value={formData.purchaseDate}
                 onChange={handleChange}
               />
-              {/* <div className="space-y-2">
-                <label className="block text-gray-600 text-sm">انقضا گارانتی</label>
-                <input
-                  type="date"
-                  name="warrantyExpiry"
-                  value={formData.warrantyExpiry}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
-                />
-              </div> */}
+           
 
               <JalaliDateField
                 name="warrantyExpiry"
@@ -627,16 +600,7 @@ function AddAsset() {
                 value={formData.warrantyExpiry}
                 onChange={handleChange}
               />
-              {/* <div className="space-y-2">
-                <label className="block text-gray-600 text-sm">زمان‌بندی نگهداری</label>
-                <input
-                  type="date"
-                  name="maintenanceSchedule"
-                  value={formData.maintenanceSchedule}
-                  onChange={handleChange}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500"
-                />
-              </div> */}
+            
               <JalaliDateField
                 name="maintenanceSchedule"
                 label="زمان‌بندی نگهداری"
