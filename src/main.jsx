@@ -1,5 +1,5 @@
-import  React, { Suspense , lazy } from 'react';
-import  ReactDOM from 'react-dom/client';
+import React, { Suspense, lazy } from 'react';
+import ReactDOM from 'react-dom/client';
 import './index.css'      // ← make sure this import is here
 import { createBrowserRouter, RouterProvider } from 'react-router';
 // In your main App.js or layout component
@@ -11,7 +11,7 @@ const DashboardPage = lazy(() => import('./pages/index'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Managing = lazy(() => import('./pages/Managing'));
 const SignInPage = lazy(() => import('./pages/signIn'));
-const MainReport = lazy(()=>import("./report/MainReport.jsx"))
+const MainReport = lazy(() => import("./report/MainReport.jsx"))
 import { Provider } from 'react-redux';
 import store from "./store"
 import { SocketProvider } from './context/SocketContext';
@@ -37,6 +37,7 @@ import '@fontsource/roboto/700.css';
 import AddAsset from './pages/AddAsset.jsx';
 import Assets from './pages/Assets.jsx';
 import AssetDetails from './pages/AssetDetails.jsx';
+import UserRegistration from './pages/Register.jsx';
 
 const router = createBrowserRouter([
   {
@@ -56,92 +57,92 @@ const router = createBrowserRouter([
           },
           {
             path: '/managing',
-            Component: Managing ,
+            Component: Managing,
           },
           {
-            path:'do-project/:id/:projectManager' , 
-            Component:DoProjectPage
-          }, 
-          {
-            path:"create_project",
-            Component:CreateProject
-            
-          }, 
-          {
-            path:"devops",
-            Component:DevOps
-            
-          },
-           {
-            path:"edit_project/:projectId",
-            Component:EditProjectForm
-            
-          },
-           {
-            path:"devopsinfo/:projectId",
-            Component:DevOpsInfoForm
-            
-          }, 
-          {
-            path:"bugReportForm/:id/:wstg/:label/:labelfa/:projectId/:projectManager",
-            Component:BugReport
-            
-          },
-           {
-            path:"project/:projectId/reports",
-            Component:ProjectReport
-            
+            path: 'do-project/:id/:projectManager',
+            Component: DoProjectPage
           },
           {
-            path:"project/report/:reportId",
-            Component:ReportDetailsManager
-            
-          }, 
-          {
-            path:"reports/:projectId",
-            Component:UserProjectReport
-            
-          }, 
-          {
-            path:"user/report/:reportId",
-            Component:UserReportDetails
-            
-          } , 
-          {
-            path:"tickets",
-            Component:Tickets
-            
-          } ,
-          {
-            path:"tickets/view/:ticketId",
-            Component:TicketView
-            
-          } , 
-          {
-            path:"tickets/list",
-            Component:TicketList
-            
-          } , 
-         
-          {
-            path:"projects/identifier/:projectId", 
-            Component:Identifier
+            path: "create_project",
+            Component: CreateProject
+
           },
-           {
-            path:"assets/add_asset", 
-            Component:AddAsset
-          }, 
-            {
-            path:"assets", 
-            Component:Assets
-          }, 
           {
-            path:"assets/details/:assetId", 
-            Component:AssetDetails
-          }, 
+            path: "devops",
+            Component: DevOps
+
+          },
           {
-            path:"assets/edit/:assetId", 
-            Component:AddAsset
+            path: "edit_project/:projectId",
+            Component: EditProjectForm
+
+          },
+          {
+            path: "devopsinfo/:projectId",
+            Component: DevOpsInfoForm
+
+          },
+          {
+            path: "bugReportForm/:id/:wstg/:label/:labelfa/:projectId/:projectManager",
+            Component: BugReport
+
+          },
+          {
+            path: "project/:projectId/reports",
+            Component: ProjectReport
+
+          },
+          {
+            path: "project/report/:reportId",
+            Component: ReportDetailsManager
+
+          },
+          {
+            path: "reports/:projectId",
+            Component: UserProjectReport
+
+          },
+          {
+            path: "user/report/:reportId",
+            Component: UserReportDetails
+
+          },
+          {
+            path: "tickets",
+            Component: Tickets
+
+          },
+          {
+            path: "tickets/view/:ticketId",
+            Component: TicketView
+
+          },
+          {
+            path: "tickets/list",
+            Component: TicketList
+
+          },
+
+          {
+            path: "projects/identifier/:projectId",
+            Component: Identifier
+          },
+          {
+            path: "assets/add_asset",
+            Component: AddAsset
+          },
+          {
+            path: "assets",
+            Component: Assets
+          },
+          {
+            path: "assets/details/:assetId",
+            Component: AssetDetails
+          },
+          {
+            path: "assets/edit/:assetId",
+            Component: AddAsset
           }
 
         ],
@@ -150,16 +151,20 @@ const router = createBrowserRouter([
         path: '/sign-in',
         Component: SignInPage,
       },
-   {
-            path:"userreports",
-            Component:MainReport
-            
-          } , 
-          {
-            path:"/users/reports/:projectId",
-            Component:MainReport
-            
-          } 
+      {
+        path: '/register',
+        Component: UserRegistration,
+      },
+      {
+        path: "userreports",
+        Component: MainReport
+
+      },
+      {
+        path: "/users/reports/:projectId",
+        Component: MainReport
+
+      }
     ],
   },
 ]);
@@ -170,26 +175,26 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <Provider store={store}>
 
       <SessionProvider>
-              <ToastContainer 
-        position="bottom-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+        <ToastContainer
+          position="bottom-right"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
 
-    <SocketProvider>
-    <Suspense fallback={<div>Loading...</div>}>
+        <SocketProvider>
+          <Suspense fallback={<div>Loading...</div>}>
 
-    <RouterProvider router={router} />
-    </Suspense>
+            <RouterProvider router={router} />
+          </Suspense>
 
-    </SocketProvider>
-    </SessionProvider>
+        </SocketProvider>
+      </SessionProvider>
     </Provider>
-  </React.StrictMode>, 
+  </React.StrictMode>,
 );
