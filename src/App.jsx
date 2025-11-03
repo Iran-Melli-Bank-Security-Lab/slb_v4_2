@@ -149,6 +149,9 @@ function AppContent() {
 
   React.useEffect(() => {
     async function checkSession() {
+       const publicRoutes = ['/sign-in', '/register'];
+    if (publicRoutes.includes(window.location.pathname)) return; // skip redirect
+
       if (!loading && session) {
         const valid = await validateSession();
         if (!valid) {
