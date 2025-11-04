@@ -36,6 +36,7 @@ import {
 } from "@mui/icons-material";
 import { getAsset } from "../api/asset/getAsset";
 
+
 const AssetDetails = () => {
   const { assetId } = useParams();
   const navigate = useNavigate();
@@ -62,46 +63,47 @@ const AssetDetails = () => {
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
-      case "فعال": return "success";
-      case "غیرفعال": return "default";
-      case "در حال تعمیر": return "warning";
-      case "از رده خارج": return "error";
+      case "available": return "success";
+      case "in-use": return "default";
+      case "maintenance": return "warning";
+      case 'retired': return "error";
       default: return "primary";
     }
   };
-
   const getOwnerTypeColor = (ownerType) => {
     switch (ownerType?.toLowerCase()) {
-      case "شرکتی": return "primary";
-      case "شخصی": return "secondary";
-      case "اشتراکی": return "info";
+      case "bank": return "primary";
+      case "user": return "secondary";
+      case "lab": return "info";
       default: return "default";
     }
   };
 
+
   const getStatusText = (status) => {
     switch (status?.toLowerCase()) {
-      case "active": return "فعال";
-      case "inactive": return "غیرفعال";
+      case "available": return "موجود";
+      case "in-use": return "در حال استفاده";
       case "maintenance": return "در حال تعمیر";
       case "retired": return "از رده خارج";
+      case "lost": return "گمشده";
       default: return status;
     }
   };
 
   const getOwnerTypeText = (ownerType) => {
     switch (ownerType?.toLowerCase()) {
-      case "company": return "شرکتی";
-      case "personal": return "شخصی";
-      case "shared": return "اشتراکی";
+      case "bank": return "بانک";
+      case "user": return "شخصی";
+      case "lab": return "آزمایشگاه";
       default: return ownerType;
     }
   };
 
   const InfoCard = ({ label, value, icon = null, tooltip = "" }) => (
-    <Paper 
-      elevation={0} 
-      sx={{ 
+    <Paper
+      elevation={0}
+      sx={{
         p: 3,
         borderRadius: 3,
         background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
@@ -117,23 +119,23 @@ const AssetDetails = () => {
     >
       <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, direction: 'rtl' }}>
         {icon && (
-          <Avatar 
-            sx={{ 
-              width: 48, 
-              height: 48, 
+          <Avatar
+            sx={{
+              width: 48,
+              height: 48,
               bgcolor: 'primary.50',
               color: 'primary.main',
               transition: 'all 0.3s ease',
               flexShrink: 0
-            }} 
+            }}
           >
             {icon}
           </Avatar>
         )}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography 
-            variant="caption" 
-            sx={{ 
+          <Typography
+            variant="caption"
+            sx={{
               color: 'text.secondary',
               fontWeight: 600,
               fontSize: '0.75rem',
@@ -144,9 +146,9 @@ const AssetDetails = () => {
           >
             {label}
           </Typography>
-          <Typography 
-            variant="h6" 
-            sx={{ 
+          <Typography
+            variant="h6"
+            sx={{
               fontWeight: 700,
               color: 'text.primary',
               wordBreak: 'break-word',
@@ -196,11 +198,11 @@ const AssetDetails = () => {
 
   if (loading) {
     return (
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
+      <Box sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
       }}>
@@ -219,10 +221,10 @@ const AssetDetails = () => {
     return (
       <Container maxWidth="sm" sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', py: 8 }}>
         <Box sx={{ textAlign: 'center', width: '100%' }}>
-          <Alert 
-            severity="error" 
-            sx={{ 
-              borderRadius: 3, 
+          <Alert
+            severity="error"
+            sx={{
+              borderRadius: 3,
               boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
               mb: 3,
               fontSize: '1rem'
@@ -232,10 +234,10 @@ const AssetDetails = () => {
           </Alert>
           <Button
             variant="contained"
-            
+
             onClick={() => navigate(-1)}
             size="small"
-            sx={{ 
+            sx={{
               borderRadius: 2.5,
               px: 4,
               py: 1.2,
@@ -268,7 +270,7 @@ const AssetDetails = () => {
             startIcon={<ArrowBack />}
             onClick={() => navigate(-1)}
             size="large"
-            sx={{ 
+            sx={{
               borderRadius: 2.5,
               px: 4,
               py: 1.2,
@@ -292,12 +294,12 @@ const AssetDetails = () => {
             underline="hover"
             color="inherit"
             onClick={() => navigate("/assets")}
-            sx={{ 
-              cursor: 'pointer', 
-              fontWeight: 600, 
+            sx={{
+              cursor: 'pointer',
+              fontWeight: 600,
               fontSize: '0.95rem',
-              '&:hover': { color: 'primary.main' }, 
-              transition: 'color 0.3s ease' 
+              '&:hover': { color: 'primary.main' },
+              transition: 'color 0.3s ease'
             }}
           >
             دارایی ها
@@ -308,16 +310,16 @@ const AssetDetails = () => {
         </Breadcrumbs>
 
         {/* Header Section */}
-        <Card 
-        className="p-6 !bg-gradient-to-r !from-blue-600 !to-indigo-700 !text-white"
-        sx={{ 
-          borderRadius: 2, 
-          mb: 1,
-          overflow: 'hidden',
-        }}>
+        <Card
+          className="p-6 !bg-gradient-to-r !from-blue-600 !to-indigo-700 !text-white"
+          sx={{
+            borderRadius: 2,
+            mb: 1,
+            overflow: 'hidden',
+          }}>
           <CardContent sx={{ p: 2 }}>
-            <Box sx={{ 
-              display: 'flex', 
+            <Box sx={{
+              display: 'flex',
               flexDirection: { xs: 'column', lg: 'row' },
               justifyContent: 'space-between',
               alignItems: { xs: 'flex-start', lg: 'center' },
@@ -325,10 +327,10 @@ const AssetDetails = () => {
               direction: 'rtl'
             }}>
               <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 3, flex: 1 }}>
-                <Avatar 
-                  sx={{ 
-                    width: 88, 
-                    height: 88, 
+                <Avatar
+                  sx={{
+                    width: 88,
+                    height: 88,
                     bgcolor: 'rgba(255,255,255,0.15)',
                     backdropFilter: 'blur(10px)',
                     border: '2px solid rgba(255,255,255,0.2)',
@@ -341,38 +343,53 @@ const AssetDetails = () => {
                   <Typography variant="h3" sx={{ fontWeight: 800, mb: 2, textAlign: 'right', fontSize: { xs: '2rem', md: '2.5rem' } }}>
                     {asset.name}
                   </Typography>
+                  {['bank', 'lab'].includes(asset.ownerType?.toLowerCase()) && asset.assetCode && (
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 700,
+                        color: 'rgba(255,255,255,0.9)',
+                        mb: 1,
+                        textAlign: 'right',
+                        fontSize: '1.1rem'
+                      }}
+                    >
+                      شماره اموال: {asset.assetCode}
+                    </Typography>
+                  )}
+
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center' }}>
-                    <Chip 
-                      label={asset.type?.toUpperCase()} 
-                      size="medium" 
-                      sx={{ 
-                        backgroundColor: 'white', 
-                        color: 'primary.main', 
-                        fontWeight: 700, 
+                    <Chip
+                      label={asset.type?.toUpperCase()}
+                      size="medium"
+                      sx={{
+                        backgroundColor: 'white',
+                        color: 'primary.main',
+                        fontWeight: 700,
                         boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                         fontSize: '0.8rem'
                       }}
                     />
-                    <Chip 
-                      label={`وضعیت: ${getStatusText(asset.status)}`} 
-                      color={getStatusColor(asset.status)} 
+                    <Chip
+                      label={`وضعیت: ${getStatusText(asset.status)}`}
+                      color={getStatusColor(asset.status)}
                       size="medium"
                       variant="outlined"
-                      sx={{ 
-                        color: 'white', 
-                        borderColor: 'white', 
+                      sx={{
+                        color: 'white',
+                        borderColor: 'white',
                         fontWeight: 600,
                         fontSize: '0.8rem'
                       }}
                     />
-                    <Chip 
-                      label={`مالکیت: ${getOwnerTypeText(asset.ownerType)}`} 
-                      color={getOwnerTypeColor(asset.ownerType)} 
+                    <Chip
+                      label={`مالکیت: ${getOwnerTypeText(asset.ownerType)}`}
+                      color={getOwnerTypeColor(asset.ownerType)}
                       size="medium"
                       variant="outlined"
-                      sx={{ 
-                        color: 'white', 
-                        borderColor: 'white', 
+                      sx={{
+                        color: 'white',
+                        borderColor: 'white',
                         fontWeight: 600,
                         fontSize: '0.8rem'
                       }}
@@ -383,15 +400,15 @@ const AssetDetails = () => {
               <Button
                 variant="outlined"
                 onClick={() => navigate(-1)}
-                sx={{ 
-                  color: 'white', 
-                  borderColor: 'white', 
-                  fontWeight: 700, 
+                sx={{
+                  color: 'white',
+                  borderColor: 'white',
+                  fontWeight: 700,
                   px: 4,
                   py: 1.2,
                   borderRadius: 2.5,
                   fontSize: '1rem',
-                  '&:hover': { 
+                  '&:hover': {
                     backgroundColor: 'rgba(255,255,255,0.15)',
                     transform: 'translateY(-1px)'
                   },
@@ -410,23 +427,23 @@ const AssetDetails = () => {
         <Grid container spacing={3} sx={{ direction: 'rtl' }}>
           {/* Left Column - Asset Details */}
           <Grid item xs={12} xl={9}>
-            <Card sx={{ 
-              borderRadius: 4, 
-              boxShadow: '0 12px 40px rgba(0,0,0,0.12)', 
-              border: 'none', 
+            <Card sx={{
+              borderRadius: 4,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
+              border: 'none',
               overflow: 'hidden',
               background: 'white'
             }}>
               <CardContent sx={{ p: 4 }}>
-                <SectionHeader 
-                  title="اطلاعات دارایی" 
+                <SectionHeader
+                  title="اطلاعات دارایی"
                   icon={<InfoOutlined sx={{ color: 'primary.main', fontSize: '28px' }} />}
                   subtitle="جزئیات کامل و مشخصات فنی دارایی"
                 />
-                
+
                 {/* Basic Information */}
-                <SectionHeader 
-                  title="اطلاعات پایه" 
+                <SectionHeader
+                  title="اطلاعات پایه"
                   icon={<Business sx={{ color: 'text.secondary', fontSize: '26px' }} />}
                 />
                 <Grid container spacing={2.5} sx={{ mb: 4 }}>
@@ -442,8 +459,8 @@ const AssetDetails = () => {
                 </Grid>
 
                 {/* Identification Details */}
-                <SectionHeader 
-                  title="مشخصات شناسایی" 
+                <SectionHeader
+                  title="مشخصات شناسایی"
                   icon={<Memory sx={{ color: 'text.secondary', fontSize: '26px' }} />}
                 />
                 <Grid container spacing={2.5} sx={{ mb: 4 }}>
@@ -459,19 +476,19 @@ const AssetDetails = () => {
                 </Grid>
 
                 {/* Location & Vendor */}
-                <SectionHeader 
-                  title="موقعیت و فروشنده" 
+                <SectionHeader
+                  title="موقعیت و فروشنده"
                   icon={<LocationOn sx={{ color: 'text.secondary', fontSize: '26px' }} />}
                 />
                 <Grid container spacing={2.5} sx={{ mb: 4 }}>
                   {[
                     { label: "موقعیت", value: asset.location, icon: <LocationOn />, tooltip: "موقعیت فیزیکی" },
                     { label: "فروشنده", value: asset.vendor, icon: <Business />, tooltip: "تامین کننده یا فروشنده" },
-                    { 
-                      label: "هزینه", 
-                      value: asset.cost ? `${parseFloat(asset.cost).toLocaleString('fa-IR')} تومان` : null, 
-                      icon: <AttachMoney />, 
-                      tooltip: "هزینه خرید" 
+                    {
+                      label: "هزینه",
+                      value: asset.cost ? `${parseFloat(asset.cost).toLocaleString('fa-IR')} تومان` : null,
+                      icon: <AttachMoney />,
+                      tooltip: "هزینه خرید"
                     }
                   ].map((item, index) => (
                     <Grid item xs={12} sm={6} lg={4} key={index}>
@@ -481,8 +498,8 @@ const AssetDetails = () => {
                 </Grid>
 
                 {/* Dates */}
-                <SectionHeader 
-                  title="تاریخ های مهم" 
+                <SectionHeader
+                  title="تاریخ های مهم"
                   icon={<CalendarToday sx={{ color: 'text.secondary', fontSize: '26px' }} />}
                 />
                 <Grid container spacing={2.5} sx={{ mb: 4 }}>
@@ -498,8 +515,8 @@ const AssetDetails = () => {
                 </Grid>
 
                 {/* Assignment Information */}
-                <SectionHeader 
-                  title="اطلاعات انتساب" 
+                <SectionHeader
+                  title="اطلاعات انتساب"
                   icon={<Person sx={{ color: 'text.secondary', fontSize: '26px' }} />}
                 />
                 <Grid container spacing={2.5} sx={{ mb: 4 }}>
@@ -516,8 +533,8 @@ const AssetDetails = () => {
                 {/* Software Information */}
                 {asset.softwareType && (
                   <>
-                    <SectionHeader 
-                      title="اطلاعات نرم افزار" 
+                    <SectionHeader
+                      title="اطلاعات نرم افزار"
                       icon={<Speed sx={{ color: 'text.secondary', fontSize: '26px' }} />}
                     />
                     <Grid container spacing={2.5} sx={{ mb: 4 }}>
@@ -540,13 +557,13 @@ const AssetDetails = () => {
                 {/* Description */}
                 {asset.description && (
                   <>
-                    <SectionHeader 
-                      title="توضیحات" 
+                    <SectionHeader
+                      title="توضیحات"
                       icon={<Description sx={{ color: 'text.secondary', fontSize: '26px' }} />}
                     />
-                    <Paper 
-                      elevation={0} 
-                      sx={{ 
+                    <Paper
+                      elevation={0}
+                      sx={{
                         p: 3,
                         borderRadius: 3,
                         background: 'linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%)',
@@ -557,11 +574,11 @@ const AssetDetails = () => {
                         <Avatar sx={{ width: 52, height: 52, bgcolor: 'primary.main', flexShrink: 0 }}>
                           <Description />
                         </Avatar>
-                        <Typography variant="body1" sx={{ 
-                          color: 'text.primary', 
-                          lineHeight: 1.8, 
-                          fontSize: '1.05rem', 
-                          textAlign: 'right' 
+                        <Typography variant="body1" sx={{
+                          color: 'text.primary',
+                          lineHeight: 1.8,
+                          fontSize: '1.05rem',
+                          textAlign: 'right'
                         }}>
                           {asset.description}
                         </Typography>
@@ -576,21 +593,21 @@ const AssetDetails = () => {
           {/* Right Column - Metadata */}
           <Grid item xs={12} xl={3}>
             {/* Tags */}
-            <Card sx={{ 
-              borderRadius: 3, 
-              boxShadow: '0 8px 32px rgba(0,0,0,0.1)', 
-              border: 'none', 
+            <Card sx={{
+              borderRadius: 3,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+              border: 'none',
               mb: 3,
               background: 'white'
             }}>
               <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ 
-                  fontWeight: 700, 
-                  mb: 2, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 1, 
-                  color: 'text.primary', 
+                <Typography variant="h6" sx={{
+                  fontWeight: 700,
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  color: 'text.primary',
                   textAlign: 'right',
                   fontSize: '1.1rem'
                 }}>
@@ -601,26 +618,26 @@ const AssetDetails = () => {
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, direction: 'rtl' }}>
                   {asset.tags?.length ? (
                     asset.tags.map((tag) => (
-                      <Chip 
-                        key={tag} 
-                        label={tag} 
-                        variant="outlined" 
+                      <Chip
+                        key={tag}
+                        label={tag}
+                        variant="outlined"
                         color="primary"
                         size="medium"
-                        sx={{ 
-                          fontWeight: 600, 
-                          borderRadius: 2, 
+                        sx={{
+                          fontWeight: 600,
+                          borderRadius: 2,
                           borderWidth: 2,
                           fontSize: '0.8rem'
                         }}
                       />
                     ))
                   ) : (
-                    <Typography variant="body2" sx={{ 
-                      color: 'text.disabled', 
-                      fontStyle: 'italic', 
-                      textAlign: 'center', 
-                      width: '100%', 
+                    <Typography variant="body2" sx={{
+                      color: 'text.disabled',
+                      fontStyle: 'italic',
+                      textAlign: 'center',
+                      width: '100%',
                       p: 2,
                       fontSize: '0.9rem'
                     }}>
@@ -633,18 +650,18 @@ const AssetDetails = () => {
 
             {/* Department Scope */}
             {asset.departmentScope?.length > 0 && (
-              <Card sx={{ 
-                borderRadius: 3, 
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)', 
-                border: 'none', 
+              <Card sx={{
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
+                border: 'none',
                 mb: 3,
                 background: 'white'
               }}>
                 <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h6" sx={{ 
-                    fontWeight: 700, 
-                    mb: 2, 
-                    color: 'text.primary', 
+                  <Typography variant="h6" sx={{
+                    fontWeight: 700,
+                    mb: 2,
+                    color: 'text.primary',
                     textAlign: 'right',
                     fontSize: '1.1rem'
                   }}>
@@ -653,15 +670,15 @@ const AssetDetails = () => {
                   <Divider sx={{ mb: 2 }} />
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, direction: 'rtl' }}>
                     {asset.departmentScope.map((dep) => (
-                      <Chip 
-                        key={dep} 
-                        label={dep} 
-                        color="success" 
+                      <Chip
+                        key={dep}
+                        label={dep}
+                        color="success"
                         size="medium"
                         variant="outlined"
-                        sx={{ 
-                          fontWeight: 600, 
-                          borderRadius: 2, 
+                        sx={{
+                          fontWeight: 600,
+                          borderRadius: 2,
                           borderWidth: 2,
                           fontSize: '0.8rem'
                         }}
@@ -674,17 +691,17 @@ const AssetDetails = () => {
 
             {/* Platforms */}
             {asset.platforms?.length > 0 && (
-              <Card sx={{ 
-                borderRadius: 3, 
-                boxShadow: '0 8px 32px rgba(0,0,0,0.1)', 
+              <Card sx={{
+                borderRadius: 3,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
                 border: 'none',
                 background: 'white'
               }}>
                 <CardContent sx={{ p: 3 }}>
-                  <Typography variant="h6" sx={{ 
-                    fontWeight: 700, 
-                    mb: 2, 
-                    color: 'text.primary', 
+                  <Typography variant="h6" sx={{
+                    fontWeight: 700,
+                    mb: 2,
+                    color: 'text.primary',
                     textAlign: 'right',
                     fontSize: '1.1rem'
                   }}>
@@ -693,15 +710,15 @@ const AssetDetails = () => {
                   <Divider sx={{ mb: 2 }} />
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, direction: 'rtl' }}>
                     {asset.platforms.map((p) => (
-                      <Chip 
-                        key={p} 
-                        label={p} 
-                        variant="outlined" 
+                      <Chip
+                        key={p}
+                        label={p}
+                        variant="outlined"
                         color="info"
                         size="medium"
-                        sx={{ 
-                          fontWeight: 600, 
-                          borderRadius: 2, 
+                        sx={{
+                          fontWeight: 600,
+                          borderRadius: 2,
                           borderWidth: 2,
                           fontSize: '0.8rem'
                         }}
