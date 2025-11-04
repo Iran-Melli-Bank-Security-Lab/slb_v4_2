@@ -337,27 +337,6 @@ function AddAsset() {
               </select>
             </div>
 
-            {/* مالکیت ★ */}
-            <div className="space-y-2">
-              <label className="block text-gray-700 font-medium">
-                مالکیت <span className="text-red-600">★</span>
-              </label>
-              <select
-                name="ownerType"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={formData.ownerType}
-                onChange={handleChange}
-                required
-              >
-                <option value="bank">بانک</option>
-                <option value="lab">آزمایشگاه</option>
-                <option value="user">شخصی</option>              </select>
-              {formData.ownerType === "user" && (
-                <p className="text-sm text-gray-600">
-                  مالک به‌صورت خودکار کاربر فعلی تنظیم می‌شود.
-                </p>
-              )}
-            </div>
 
             {/* بخش مربوطه ★ */}
             <div className="space-y-3">
