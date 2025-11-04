@@ -240,8 +240,7 @@ const handleDelete = async (assetId, assetName) => {
               <option value="">بخش</option>
               <option value="security">امنیت</option>
               <option value="quality">کیفیت</option>
-              <option value="it">فناوری اطلاعات</option>
-              <option value="finance">مالی</option>
+              
             </select>
             <select
               className="p-2 border border-gray-300 rounded-lg"
