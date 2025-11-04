@@ -8,7 +8,7 @@ import Swal from "sweetalert2";
 import JalaliDateField from "../components/dateTime/JalaliDateField";
 
 const VALID_TYPES = ["hardware", "software"];
-const VALID_OWNER_TYPES = ["bank", "user"];
+const VALID_OWNER_TYPES = ["bank","lab", "user"];
 const VALID_DEPARTMENTS = ["security", "quality"];
 const VALID_PLATFORMS = ["web", "mobile", "desktop", "api"];
 const swalOptions = {
@@ -31,6 +31,7 @@ function AddAsset() {
   const [formData, setFormData] = useState({
     // --- Required defaults
     name: "",
+    assetCode: "",
     type: "hardware",
     ownerType: "bank",
     departmentScope: ["security"],
@@ -133,6 +134,7 @@ function AddAsset() {
     // رشته‌ها trim
     [
       "name",
+      "assetCode",
       "description",
       "brand",
       "model",
@@ -154,6 +156,10 @@ function AddAsset() {
     const errors = [];
 
     if (!data.name?.trim()) errors.push("• نام ابزار (name) الزامی است.");
+    if ((data.ownerType === "bank" || data.ownerType === "lab") && !data.assetCode?.trim()) {
+      errors.push("• کد اموال برای دارایی‌های بانک یا آزمایشگاه الزامی است.");
+    }
+
     if (!VALID_TYPES.includes(data.type))
       errors.push("• نوع (type) نامعتبر/الزامی است.");
     if (!VALID_OWNER_TYPES.includes(data.ownerType))
@@ -227,7 +233,7 @@ function AddAsset() {
       await Swal.fire({
         icon: "error",
         title: "خطا در اتصال به سرور!",
-        text: "لطفاً اتصال خود را بررسی کنید.",
+        text: `${err.message}`,
         confirmButtonText: "باشه",
         ...swalOptions,
 
@@ -271,6 +277,49 @@ function AddAsset() {
               />
             </div>
 
+            {/* مالکیت ★ */}
+            <div className="space-y-2">
+              <label className="block text-gray-700 font-medium">
+                مالکیت <span className="text-red-600">★</span>
+              </label>
+              <select
+                name="ownerType"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.ownerType}
+                onChange={handleChange}
+                required
+              >
+                <option value="bank">بانک</option>
+                <option value="lab">آزمایشگاه</option>
+                <option value="user">شخصی</option>              </select>
+              {formData.ownerType === "user" && (
+                <p className="text-sm text-gray-600">
+                  مالک به‌صورت خودکار کاربر فعلی تنظیم می‌شود.
+                </p>
+              )}
+            </div>
+
+            {/* کد اموال ★ (فقط برای بانک و آزمایشگاه) */}
+            {(formData.ownerType === "bank" || formData.ownerType === "lab") && (
+              <div className="space-y-2">
+                <label className="block text-gray-700 font-medium">
+                  کد اموال <span className="text-red-600">★</span>
+                </label>
+                <input
+                  type="text"
+                  name="assetCode"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={formData.assetCode}
+                  onChange={handleChange}
+                  placeholder="مثلاً 000123 یا LAB-045"
+                  required
+                />
+                <p className="text-xs text-gray-500">
+                  برای دارایی‌های بانک یا آزمایشگاه الزامی است.
+                </p>
+              </div>
+            )}
+
             {/* نوع ★ */}
             <div className="space-y-2">
               <label className="block text-gray-700 font-medium">
@@ -301,8 +350,8 @@ function AddAsset() {
                 required
               >
                 <option value="bank">بانک</option>
-                <option value="user">کاربر</option>
-              </select>
+                <option value="lab">آزمایشگاه</option>
+                <option value="user">شخصی</option>              </select>
               {formData.ownerType === "user" && (
                 <p className="text-sm text-gray-600">
                   مالک به‌صورت خودکار کاربر فعلی تنظیم می‌شود.
@@ -576,7 +625,7 @@ function AddAsset() {
           {/* تاریخ‌ها، انتساب و فروشنده/هزینه (اختیاری) */}
           <div className="bg-gray-50 p-4 rounded-xl space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             
+
 
               <JalaliDateField
                 name="assignedDate"
@@ -584,15 +633,15 @@ function AddAsset() {
                 value={formData.assignedDate}
                 onChange={handleChange}
               />
-              
-         
+
+
               <JalaliDateField
                 name="purchaseDate"
                 label="تاریخ خرید"
                 value={formData.purchaseDate}
                 onChange={handleChange}
               />
-           
+
 
               <JalaliDateField
                 name="warrantyExpiry"
@@ -600,7 +649,7 @@ function AddAsset() {
                 value={formData.warrantyExpiry}
                 onChange={handleChange}
               />
-            
+
               <JalaliDateField
                 name="maintenanceSchedule"
                 label="زمان‌بندی نگهداری"
