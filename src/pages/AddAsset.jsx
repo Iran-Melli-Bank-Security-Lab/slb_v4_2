@@ -291,7 +291,8 @@ function AddAsset() {
               >
                 <option value="bank">بانک</option>
                 <option value="lab">آزمایشگاه</option>
-                <option value="user">شخصی</option>              </select>
+                <option value="user">شخصی</option>            
+                  </select>
               {formData.ownerType === "user" && (
                 <p className="text-sm text-gray-600">
                   مالک به‌صورت خودکار کاربر فعلی تنظیم می‌شود.
