@@ -46,7 +46,7 @@ const UserRegistration = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    
+
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
@@ -70,7 +70,7 @@ const UserRegistration = () => {
 
       setFormData(prev => ({ ...prev, profileImage: file }));
       setErrors(prev => ({ ...prev, profileImage: '' }));
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -123,7 +123,7 @@ const UserRegistration = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -139,15 +139,12 @@ const UserRegistration = () => {
       submitFormData.append('lastName', formData.lastName);
       submitFormData.append('username', formData.username);
       submitFormData.append('password', formData.password);
+      // Add team selections
       submitFormData.append('devOps', formData.devOps);
-      
-      // Add roles based on checkboxes
-      const roles = {
-        User: 2001
-      };
-      
-      submitFormData.append('roles', JSON.stringify(roles));
+      submitFormData.append('security', formData.security);
+      submitFormData.append('qualityAssurance', formData.qualityAssurance);
 
+   
       // Add profile image if exists
       if (formData.profileImage) {
         submitFormData.append('profileImageUrl', formData.profileImage);
@@ -155,7 +152,7 @@ const UserRegistration = () => {
 
 
 
-    const response = await registerUserApi(submitFormData)
+      const response = await registerUserApi(submitFormData)
       setSnackbar({
         open: true,
         message: 'Registration successful!',
@@ -176,14 +173,14 @@ const UserRegistration = () => {
         agreeToTerms: false,
       });
       setImagePreview('');
-      
+
       console.log('Registration response:', response.data);
 
     } catch (error) {
       console.error('Registration error:', error);
-      
+
       let errorMessage = 'Registration failed. Please try again.';
-      
+
       if (error.response) {
         // Server responded with error status
         if (error.response.data?.message) {
@@ -192,7 +189,7 @@ const UserRegistration = () => {
           errorMessage = 'Username already exists';
         }
       }
-      
+
       setSnackbar({
         open: true,
         message: errorMessage,
@@ -326,11 +323,11 @@ const UserRegistration = () => {
             required
           />
 
-          {/* Role Checkboxes */}
+          {/* Team Section */}
           <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-            Roles & Skills
+            Team
           </Typography>
-          
+
           <FormGroup>
             <FormControlLabel
               control={
@@ -352,7 +349,7 @@ const UserRegistration = () => {
                   disabled={loading}
                 />
               }
-              label="Security (Admin Role)"
+              label="Security"
             />
             <FormControlLabel
               control={
@@ -366,6 +363,7 @@ const UserRegistration = () => {
               label="Quality Assurance"
             />
           </FormGroup>
+
 
           {/* Terms and Conditions Checkbox */}
           <FormControlLabel
@@ -407,9 +405,9 @@ const UserRegistration = () => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
           sx={{ width: '100%' }}
         >
           {snackbar.message}
