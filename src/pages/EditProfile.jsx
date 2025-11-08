@@ -16,27 +16,64 @@ import {
   ThemeProvider,
   createTheme,
 } from '@mui/material';
-import { PhotoCamera } from '@mui/icons-material';
+import { PhotoCamera, Edit } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import stylisRTLPlugin from 'stylis-plugin-rtl';
+import { prefixer } from 'stylis';
 import { getUserInfoById } from '../api/users/getUserInfoById';
 import { updateUserApi } from '../api/users/updateUserApi';
 
 // ✅ ایجاد کش برای پشتیبانی از جهت راست به چپ
 const cacheRtl = createCache({
   key: 'muirtl',
-  stylisPlugins: [stylisRTLPlugin],
+  stylisPlugins: [prefixer, stylisRTLPlugin],
 });
 
 // ✅ ساخت تم MUI با جهت RTL
 const theme = createTheme({
   direction: 'rtl',
+  palette: {
+    primary: {
+      main: '#6366f1',
+      light: '#818cf8',
+      dark: '#4338ca',
+    },
+    secondary: {
+      main: '#ec4899',
+      light: '#f472b6',
+      dark: '#db2777',
+    },
+  },
   typography: {
-    fontFamily: 'IRANSans, Vazirmatn, Roboto, Arial, sans-serif',
+    fontFamily: 'Vazirmatn, Tahoma, Arial, sans-serif',
+    h4: {
+      fontWeight: 700,
+      background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+      backgroundClip: 'text',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+    },
   },
 });
+
+// تابع کمکی برای ساخت URL کامل عکس
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+
+const getFullImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  if (imagePath.startsWith('/')) {
+    return `${BASE_URL}${imagePath}`;
+  }
+  
+  return `${BASE_URL}/${imagePath}`;
+};
 
 const UserEditProfile = () => {
   const { userId } = useParams();
@@ -53,6 +90,7 @@ const UserEditProfile = () => {
 
   const [errors, setErrors] = useState({});
   const [imagePreview, setImagePreview] = useState('');
+  const [currentImageUrl, setCurrentImageUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [snackbar, setSnackbar] = useState({
@@ -78,8 +116,11 @@ const UserEditProfile = () => {
           profileImage: null,
         });
 
+        // تنظیم عکس فعلی کاربر
         if (userData.profileImageUrl) {
-          setImagePreview(userData.profileImageUrl);
+          const fullImageUrl = getFullImageUrl(userData.profileImageUrl);
+          setCurrentImageUrl(fullImageUrl);
+          setImagePreview(fullImageUrl);
         }
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -119,8 +160,8 @@ const UserEditProfile = () => {
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        setErrors((prev) => ({ ...prev, profileImage: 'حجم تصویر باید کمتر از ۵ مگابایت باشد' }));
+      if (file.size > 50 * 1024 * 1024) {
+        setErrors((prev) => ({ ...prev, profileImage: 'حجم تصویر باید کمتر از ۵۰ مگابایت باشد' }));
         return;
       }
 
@@ -131,6 +172,12 @@ const UserEditProfile = () => {
       reader.onload = (e) => setImagePreview(e.target.result);
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData((prev) => ({ ...prev, profileImage: null }));
+    setImagePreview(currentImageUrl);
+    setErrors((prev) => ({ ...prev, profileImage: '' }));
   };
 
   const validateForm = () => {
@@ -159,13 +206,17 @@ const UserEditProfile = () => {
       submitFormData.append('devOps', formData.devOps);
       submitFormData.append('security', formData.security);
       submitFormData.append('qualityAssurance', formData.qualityAssurance);
-      submitFormData.append("userId" , userId  )
+      submitFormData.append("userId", userId);
+
       if (formData.profileImage) {
-        submitFormData.append('profileImageUrl', formData.profileImage);
+        // submitFormData.append('profileImage', formData.profileImage);
+                submitFormData.append('profileImage', formData.profileImage);
+
       }
 
+
       // ارسال درخواست آپدیت کاربر
-      const response = await updateUserApi( submitFormData);
+      const response = await updateUserApi(submitFormData);
       
       setSnackbar({
         open: true,
@@ -178,7 +229,7 @@ const UserEditProfile = () => {
         navigate('/profile');
       }, 2000);
 
-      console.log('Update response:', response.data);
+      console.log('Update response:', response);
     } catch (error) {
       console.error('Update error:', error);
       let errorMessage = 'به‌روزرسانی انجام نشد. لطفاً دوباره تلاش کنید.';
@@ -223,17 +274,15 @@ const UserEditProfile = () => {
           <Box
             dir="rtl"
             sx={{
-              maxWidth: 500,
-              margin: 'auto',
-              mt: 4,
-              p: 3,
+              minHeight: '100vh',
+              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              height: '50vh',
+              p: 3,
             }}
           >
-            <CircularProgress />
+            <CircularProgress size={60} />
           </Box>
         </ThemeProvider>
       </CacheProvider>
@@ -246,181 +295,290 @@ const UserEditProfile = () => {
         <Box
           dir="rtl"
           sx={{
-            maxWidth: 500,
-            margin: 'auto',
-            mt: 4,
-            p: 3,
+            minHeight: '100vh',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+            backgroundSize: '400% 400%',
+            animation: 'gradient 15s ease infinite',
+            py: 4,
+            '@keyframes gradient': {
+              '0%': { backgroundPosition: '0% 50%' },
+              '50%': { backgroundPosition: '100% 50%' },
+              '100%': { backgroundPosition: '0% 50%' },
+            }
           }}
         >
-          <Paper elevation={3} sx={{ p: 4 }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center">
-              ویرایش پروفایل
-            </Typography>
-
-            <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-              در حال ویرایش پروفایل کاربر: {userId}
-            </Typography>
-
-            {/* دکمه تغییر رمز عبور */}
-            <Box sx={{ mb: 3, textAlign: 'center' }}>
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handleChangePassword}
-                disabled={loading}
-              >
-                تغییر رمز عبور
-              </Button>
-            </Box>
-
-            <form onSubmit={handleSubmit}>
-              {/* آپلود تصویر پروفایل */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
-                <Avatar 
-                  src={imagePreview} 
-                  sx={{ width: 100, height: 100, mb: 2 }}
-                />
-                <Button
-                  variant="outlined"
-                  component="label"
-                  startIcon={<PhotoCamera />}
-                  disabled={loading}
-                >
-                  تغییر تصویر پروفایل
-                  <input
-                    type="file"
-                    hidden
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    disabled={loading}
-                  />
-                </Button>
-                {errors.profileImage && (
-                  <Alert severity="error" sx={{ mt: 1, width: '100%' }}>
-                    {errors.profileImage}
-                  </Alert>
-                )}
-              </Box>
-
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="نام"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleInputChange}
-                    error={!!errors.firstName}
-                    helperText={errors.firstName}
-                    disabled={loading}
-                    required
-                  />
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="نام خانوادگی"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleInputChange}
-                    error={!!errors.lastName}
-                    helperText={errors.lastName}
-                    disabled={loading}
-                    required
-                  />
-                </Grid>
-              </Grid>
-
-              <TextField
-                fullWidth
-                label="نام کاربری"
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                error={!!errors.username}
-                helperText={errors.username}
-                margin="normal"
-                disabled={loading}
-                required
-              />
-
-              {/* بخش تیم */}
-              <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-                تیم‌ها
+          <Box
+            sx={{
+              maxWidth: 600,
+              margin: 'auto',
+              p: 3,
+            }}
+          >
+            <Paper 
+              elevation={8}
+              sx={{ 
+                p: 4, 
+                borderRadius: 4,
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.85) 100%)',
+                backdropFilter: 'blur(10px)',
+              }}
+            >
+              <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ mb: 1 }}>
+                ویرایش پروفایل
               </Typography>
 
-              <FormGroup>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="devOps"
-                      checked={formData.devOps}
-                      onChange={handleInputChange}
-                      disabled={loading}
-                    />
-                  }
-                  label="تیم DevOps"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="security"
-                      checked={formData.security}
-                      onChange={handleInputChange}
-                      disabled={loading}
-                    />
-                  }
-                  label="تیم امنیت"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="qualityAssurance"
-                      checked={formData.qualityAssurance}
-                      onChange={handleInputChange}
-                      disabled={loading}
-                    />
-                  }
-                  label="تیم کنترل کیفیت"
-                />
-              </FormGroup>
+              <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 4 }}>
+                در حال ویرایش پروفایل: {formData.firstName} {formData.lastName}
+              </Typography>
 
-              <Box sx={{ display: 'flex', gap: 2, mt: 3 }}>
+              {/* دکمه تغییر رمز عبور */}
+              <Box sx={{ mb: 4, textAlign: 'center' }}>
                 <Button
-                  type="button"
                   variant="outlined"
-                  fullWidth
-                  onClick={handleCancel}
+                  color="secondary"
+                  onClick={handleChangePassword}
                   disabled={loading}
-                  sx={{ py: 1.5 }}
+                  startIcon={<Edit />}
+                  sx={{ borderRadius: 3 }}
                 >
-                  انصراف
-                </Button>
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  sx={{ py: 1.5 }}
-                  size="large"
-                  disabled={loading}
-                >
-                  {loading ? <CircularProgress size={24} /> : 'ذخیره تغییرات'}
+                  تغییر رمز عبور
                 </Button>
               </Box>
-            </form>
-          </Paper>
 
-          <Snackbar
-            open={snackbar.open}
-            autoHideDuration={6000}
-            onClose={handleCloseSnackbar}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          >
-            <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-              {snackbar.message}
-            </Alert>
-          </Snackbar>
+              <form onSubmit={handleSubmit}>
+                {/* آپلود تصویر پروفایل */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 4 }}>
+                  <Box sx={{ position: 'relative', mb: 2 }}>
+                    <Avatar 
+                      src={imagePreview} 
+                      sx={{ 
+                        width: 120, 
+                        height: 120, 
+                        border: '4px solid',
+                        borderColor: 'primary.light',
+                        boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: 8,
+                        right: 8,
+                        background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+                        borderRadius: '50%',
+                        width: 32,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                      }}
+                    >
+                      <Edit sx={{ fontSize: 18 }} />
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                    <Button
+                      variant="outlined"
+                      component="label"
+                      startIcon={<PhotoCamera />}
+                      disabled={loading}
+                      sx={{ borderRadius: 3 }}
+                    >
+                      تغییر تصویر
+                      <input
+                        type="file"
+                        hidden
+                        name='profileImage'
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        disabled={loading}
+                      />
+                    </Button>
+
+                    {imagePreview && imagePreview !== currentImageUrl && (
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={handleRemoveImage}
+                        disabled={loading}
+                        sx={{ borderRadius: 3 }}
+                      >
+                        حذف تصویر جدید
+                      </Button>
+                    )}
+                  </Box>
+
+                  {currentImageUrl && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
+                      تصویر فعلی شما
+                    </Typography>
+                  )}
+
+                  {errors.profileImage && (
+                    <Alert severity="error" sx={{ mt: 2, width: '100%', borderRadius: 2 }}>
+                      {errors.profileImage}
+                    </Alert>
+                  )}
+                </Box>
+
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="نام"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      error={!!errors.firstName}
+                      helperText={errors.firstName}
+                      disabled={loading}
+                      required
+                      sx={{ 
+                        '& .MuiOutlinedInput-root': { borderRadius: 3 },
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="نام خانوادگی"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      error={!!errors.lastName}
+                      helperText={errors.lastName}
+                      disabled={loading}
+                      required
+                      sx={{ 
+                        '& .MuiOutlinedInput-root': { borderRadius: 3 },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+
+                <TextField
+                  fullWidth
+                  label="نام کاربری"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  error={!!errors.username}
+                  helperText={errors.username}
+                  margin="normal"
+                  disabled={loading}
+                  required
+                  sx={{ 
+                    mt: 3,
+                    '& .MuiOutlinedInput-root': { borderRadius: 3 },
+                  }}
+                />
+
+                {/* بخش تیم */}
+                <Typography variant="h6" sx={{ mt: 4, mb: 2, color: 'primary.main' }}>
+                  تیم‌های فعال
+                </Typography>
+
+                <Paper elevation={2} sx={{ p: 3, borderRadius: 3, bgcolor: 'grey.50' }}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          name="devOps"
+                          checked={formData.devOps}
+                          onChange={handleInputChange}
+                          disabled={loading}
+                          color="primary"
+                        />
+                      }
+                      label="تیم DevOps"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          name="security"
+                          checked={formData.security}
+                          onChange={handleInputChange}
+                          disabled={loading}
+                          color="primary"
+                        />
+                      }
+                      label="تیم امنیت"
+                    />
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          name="qualityAssurance"
+                          checked={formData.qualityAssurance}
+                          onChange={handleInputChange}
+                          disabled={loading}
+                          color="primary"
+                        />
+                      }
+                      label="تیم کنترل کیفیت"
+                    />
+                  </FormGroup>
+                </Paper>
+
+                <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    fullWidth
+                    onClick={handleCancel}
+                    disabled={loading}
+                    sx={{ 
+                      py: 1.5, 
+                      borderRadius: 3,
+                      fontSize: '1.1rem'
+                    }}
+                    size="large"
+                  >
+                    انصراف
+                  </Button>
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    sx={{ 
+                      py: 1.5, 
+                      borderRadius: 3,
+                      fontSize: '1.1rem',
+                      background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #5659e3 0%, #d63d87 100%)',
+                      }
+                    }}
+                    size="large"
+                    disabled={loading}
+                  >
+                    {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'ذخیره تغییرات'}
+                  </Button>
+                </Box>
+              </form>
+            </Paper>
+
+            <Snackbar
+              open={snackbar.open}
+              autoHideDuration={6000}
+              onClose={handleCloseSnackbar}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+              <Alert 
+                onClose={handleCloseSnackbar} 
+                severity={snackbar.severity} 
+                sx={{ 
+                  width: '100%',
+                  borderRadius: 3,
+                  '& .MuiAlert-message': { fontSize: '1rem' }
+                }}
+              >
+                {snackbar.message}
+              </Alert>
+            </Snackbar>
+          </Box>
         </Box>
       </ThemeProvider>
     </CacheProvider>
