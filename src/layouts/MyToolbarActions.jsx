@@ -25,6 +25,8 @@ import { formatDistanceToNow } from "date-fns";
 import { useSession } from "../SessionContext";
 import { userNotif } from "../api/notif/userNotif";
 import { setSeenNotif } from "../api/notif/setSeenNotif";
+import { Account, AccountPreview } from "@toolpad/core/Account";
+import { UserOrg } from "./UserOrg";
 
 const MyToolbarActions = () => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -134,7 +136,7 @@ const MyToolbarActions = () => {
 
   return (
     <div className="flex gap-2 items-center">
-      <ToolbarActions />
+     
       <IconButton
         size="large"
         color="inherit"
@@ -293,7 +295,13 @@ const MyToolbarActions = () => {
           </Box>
         )}
       </Menu>
-    
+
+     {/* <ToolbarActions  /> */}
+     <Account
+        slots={{
+          popoverContent: UserOrg,
+        }}
+      />
     
     </div>
   );
