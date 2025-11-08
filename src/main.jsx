@@ -38,6 +38,9 @@ import AddAsset from './pages/AddAsset.jsx';
 import Assets from './pages/Assets.jsx';
 import AssetDetails from './pages/AssetDetails.jsx';
 import UserRegistration from './pages/Register.jsx';
+import Profile from './pages/UserProfile.jsx';
+import UserEditProfile from './pages/EditProfile.jsx';
+import ChangePassword from './pages/ChangePassword.jsx';
 
 const router = createBrowserRouter([
   {
@@ -143,6 +146,18 @@ const router = createBrowserRouter([
           {
             path: "assets/edit/:assetId",
             Component: AddAsset
+          },
+           {
+            path: "/profile",
+            Component: Profile
+          },
+           {
+            path:"/edit-profile/:userId", 
+            Component: UserEditProfile
+          }, 
+          {
+            path:"/change-password/:userId" , 
+            Component:ChangePassword
           }
 
         ],
