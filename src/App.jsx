@@ -31,6 +31,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import LoginIcon from '@mui/icons-material/Login';
 import { WebAsset } from '@mui/icons-material';
+import { Account } from '@toolpad/core/Account';
 
 const BASE_NAVIGATION = [
   {
@@ -214,7 +215,10 @@ function AppContent() {
         navigation={navigation}
         session={session}
         authentication={{ signIn, signOut }}
+        
       >
+      
+        
         <Outlet />
       </ReactRouterAppProvider>
 
