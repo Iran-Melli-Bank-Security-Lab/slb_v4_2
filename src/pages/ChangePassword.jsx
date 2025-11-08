@@ -233,18 +233,20 @@ const ChangePasswordPage = () => {
       setErrors({});
       
     } catch (error) {
-      setErrors({ submit: `${error.message}` });
+  setErrors(prev => ({ ...prev, submit: error.message }));
     } finally {
       setLoading(false);
     }
   };
 
-  const isFormValid = () => {
-    return formData.currentPassword && 
-           formData.newPassword && 
-           formData.confirmPassword && 
-           Object.keys(errors).length === 0;
-  };
+const isFormValid = () => {
+  return formData.currentPassword && 
+         formData.newPassword && 
+         formData.confirmPassword && 
+         !errors.currentPassword && 
+         !errors.newPassword && 
+         !errors.confirmPassword;
+};
 
   return (
     <CacheProvider value={cacheRtl}>
