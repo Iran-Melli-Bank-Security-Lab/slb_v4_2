@@ -9,6 +9,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import ArticleIcon from "@mui/icons-material/Article";
 import { useNavigate } from "react-router";
 import PersianDateWithTooltip from "../components/dateTime/PersainDate";
+import { generateReportonServer } from "../api/projects/generateReportonServer";
 
 const DataTable = lazy(() => import("../components/projects/DataTable"));
 const AssignPentester = lazy(
@@ -40,7 +41,8 @@ const ManagerProjects = () => {
   const handleGenerateReport = (project) => {
 
     console.log("project row in line 39 : " , project)
-    navigate('/userreports', { state: { project } });
+   generateReportonServer("http://localhost:5173/users/reports/6873701345c1e884213c070b")
+    // navigate('/userreports', { state: { project } });
 
   };
 

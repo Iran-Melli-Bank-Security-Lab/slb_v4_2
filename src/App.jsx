@@ -150,7 +150,7 @@ function AppContent() {
 
   React.useEffect(() => {
     async function checkSession() {
-       const publicRoutes = ['/sign-in', '/register'];
+       const publicRoutes = ['/sign-in', '/register' , '/users/reports/:projectId'];
     if (publicRoutes.includes(window.location.pathname)) return; // skip redirect
 
       if (!loading && session) {
