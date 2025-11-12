@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import "./App.css";
+// import "./App.css";
 
 import "./styles/base.min.css";
 import "./styles/fancy.min.css";
@@ -84,7 +84,7 @@ const MainReport = () => {
       }
     };
 
-    downloadPocs()
+    // downloadPocs()
 
   }, [effectiveProjectId])
 
