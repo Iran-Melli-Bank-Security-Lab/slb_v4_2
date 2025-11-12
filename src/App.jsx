@@ -112,6 +112,9 @@ function AppContent() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+
+
+
   React.useEffect(() => {
     if (!loading && session?.token) {
       try {
@@ -150,7 +153,8 @@ function AppContent() {
 
   React.useEffect(() => {
     async function checkSession() {
-       const publicRoutes = ['/sign-in', '/register' , '/users/reports/:projectId'];
+       const publicRoutes = ['/sign-in', '/register' , '/users/reports/6873701345c1e884213c070b'];
+        // const publicRoutes = ['/sign-in', '/register' ];
     if (publicRoutes.includes(window.location.pathname)) return; // skip redirect
 
       if (!loading && session) {
@@ -165,6 +169,35 @@ function AppContent() {
     }
     checkSession();
   }, [loading, session, navigate, clearSession]);
+
+// React.useEffect(() => {
+//   async function checkSession() {
+//     const publicRoutePatterns = [
+//       /^\/sign-in$/,
+//       /^\/register$/,
+//       /^\/users\/reports\/[^/]+$/   // matches /users/reports/:projectId
+//     ];
+
+//     const isPublic = publicRoutePatterns.some((pattern) =>
+//       pattern.test(window.location.pathname)
+//     );
+
+//     if (isPublic) return; // skip redirect
+
+//     if (!loading && session) {
+//       const valid = await validateSession();
+//       if (!valid) {
+//         clearSession();
+//         navigate('/sign-in');
+//       }
+//     } else if (!loading && !session) {
+//       navigate('/sign-in');
+//     }
+//   }
+
+//   checkSession();
+// }, [loading, session, navigate, clearSession]);
+
 
   const signIn = React.useCallback(() => {
     navigate('/sign-in');
