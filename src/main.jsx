@@ -158,7 +158,7 @@ const router = createBrowserRouter([
           {
             path:"/change-password/:userId" , 
             Component:ChangePassword
-          }
+          } ,
 
         ],
       },
