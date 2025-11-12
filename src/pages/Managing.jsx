@@ -10,6 +10,7 @@ import ArticleIcon from "@mui/icons-material/Article";
 import { useNavigate } from "react-router";
 import PersianDateWithTooltip from "../components/dateTime/PersainDate";
 import { generateReportonServer } from "../api/projects/generateReportonServer";
+import { useBaseUrl } from "../hooks/useBaseUrl";
 
 const DataTable = lazy(() => import("../components/projects/DataTable"));
 const AssignPentester = lazy(
@@ -19,6 +20,8 @@ const AssignPentester = lazy(
 const ManagerProjects = () => {
   const [openModal, setOpenModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+
+  const base_url = useBaseUrl() 
 
   const navigate = useNavigate()
 
@@ -41,7 +44,7 @@ const ManagerProjects = () => {
   const handleGenerateReport = (project) => {
 
     console.log("project row in line 39 : " , project)
-   generateReportonServer("http://localhost:5173/users/reports/6873701345c1e884213c070b")
+   generateReportonServer(`${base_url}/users/reports/${project._id}` , project._id )
     // navigate('/userreports', { state: { project } });
 
   };
