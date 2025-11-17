@@ -6,7 +6,7 @@ import WebAssetIcon from '@mui/icons-material/WebAsset';
 import SettingsInputComponentIcon from '@mui/icons-material/SettingsInputComponent';
 import AddIcon from '@mui/icons-material/Add';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
-import { Outlet, useNavigate } from 'react-router';
+import { matchPath, Outlet, useNavigate } from 'react-router';
 import { useSession } from './SessionContext';
 import validateSession from './utils/validateSession';
 import { jwtDecode } from 'jwt-decode';
@@ -31,7 +31,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import LoginIcon from '@mui/icons-material/Login';
 import { WebAsset } from '@mui/icons-material';
-import { Account } from '@toolpad/core/Account';
 
 const BASE_NAVIGATION = [
   {
@@ -65,16 +64,16 @@ const BASE_NAVIGATION = [
     title: 'Ticket List',
     icon: <ManageAccountsIcon />,
   },
-    {
+  {
     kind: 'header',
     title: 'Assets',
   },
-   {
+  {
     segment: 'assets',
     title: 'Assets',
     icon: <AddIcon />,
   },
-   {
+  {
     segment: 'assets/add_asset',
     title: 'Add Asset',
     icon: <WebAsset />,
@@ -151,52 +150,58 @@ function AppContent() {
     setShowToast(false);
   };
 
-  React.useEffect(() => {
-    async function checkSession() {
-       const publicRoutes = ['/sign-in', '/register' , '/users/reports/6873701345c1e884213c070b'];
-        // const publicRoutes = ['/sign-in', '/register' ];
+  // React.useEffect(() => {
+  //   async function checkSession() {
+
+  //     const publicRoutes = ['/sign-in', '/register', '/users/reports/6873701345c1e884213c070b'];
+  //     // const publicRoutes = ['/sign-in', '/register' ];
+  //     if (publicRoutes.includes(window.location.pathname)) return; // skip redirect
+
+  //     if (!loading && session) {
+  //       const valid = await validateSession();
+  //       if (!valid) {
+  //         clearSession();
+  //         navigate('/sign-in');
+  //       }
+  //     } else if (!loading && !session) {
+  //       navigate('/sign-in');
+  //     }
+  //   }
+  //   checkSession();
+  // }, [loading, session, navigate, clearSession]);
+
+
+React.useEffect(() => {
+  async function checkSession() {
+    const path = window.location.pathname;
+
+    const reportMatch = matchPath(
+      { path: "/users/reports/:projectId", end: true },
+      path
+    );
+
+console.log("reportMatch.params.projectId : " , reportMatch.params.projectId);
+  const publicRoutes = ['/sign-in', '/register', `/users/reports/${reportMatch.params.projectId}`];
     if (publicRoutes.includes(window.location.pathname)) return; // skip redirect
 
-      if (!loading && session) {
-        const valid = await validateSession();
-        if (!valid) {
-          clearSession();
-          navigate('/sign-in');
-        }
-      } else if (!loading && !session) {
-        navigate('/sign-in');
+   
+
+    // normal session handling
+    if (!loading && session) {
+      const valid = await validateSession();
+      if (!valid) {
+        clearSession();
+        navigate("/sign-in");
       }
+    } else if (!loading && !session) {
+      navigate("/sign-in");
     }
-    checkSession();
-  }, [loading, session, navigate, clearSession]);
+  }
 
-// React.useEffect(() => {
-//   async function checkSession() {
-//     const publicRoutePatterns = [
-//       /^\/sign-in$/,
-//       /^\/register$/,
-//       /^\/users\/reports\/[^/]+$/   // matches /users/reports/:projectId
-//     ];
+  checkSession();
+}, [loading, session, navigate, clearSession]);
 
-//     const isPublic = publicRoutePatterns.some((pattern) =>
-//       pattern.test(window.location.pathname)
-//     );
 
-//     if (isPublic) return; // skip redirect
-
-//     if (!loading && session) {
-//       const valid = await validateSession();
-//       if (!valid) {
-//         clearSession();
-//         navigate('/sign-in');
-//       }
-//     } else if (!loading && !session) {
-//       navigate('/sign-in');
-//     }
-//   }
-
-//   checkSession();
-// }, [loading, session, navigate, clearSession]);
 
 
   const signIn = React.useCallback(() => {
@@ -248,10 +253,10 @@ function AppContent() {
         navigation={navigation}
         session={session}
         authentication={{ signIn, signOut }}
-        
+
       >
-      
-        
+
+
         <Outlet />
       </ReactRouterAppProvider>
 
@@ -298,7 +303,7 @@ function AppContent() {
               <WarningAmberIcon sx={{ fontSize: 40, color: 'white' }} />
             </Box>
           </Box>
-          
+
           <DialogTitle
             sx={{
               color: 'white',
@@ -310,7 +315,7 @@ function AppContent() {
           >
             Session Expired
           </DialogTitle>
-          
+
           <DialogContent sx={{ p: 0, mb: 3 }}>
             <Typography variant="body1" sx={{ color: 'white', mb: 2, fontSize: '1.1rem' }}>
               Your session has ended for security reasons.
@@ -319,7 +324,7 @@ function AppContent() {
               Please sign in again to continue using the application.
             </Typography>
           </DialogContent>
-          
+
           <DialogActions sx={{ justifyContent: 'center', p: 0 }}>
             <Button
               onClick={handleLoginAgain}
