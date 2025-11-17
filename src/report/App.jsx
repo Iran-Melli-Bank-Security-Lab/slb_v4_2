@@ -6,9 +6,6 @@ import "./index.css"
 import "./temp/webReport_files/document.css"
 import Report from './Report';
 
-
-
-
 function GenerateReport() {
   return (
     <div>
