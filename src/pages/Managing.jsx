@@ -46,7 +46,7 @@
 //     console.log("project row in line 39 : " , project)
 //    generateReportonServer(`${base_url}/users/reports/${project._id}` , project._id )
 //   //  generateReportonServer(`${base_url}/managing` , project._id )
-  
+
 //     // navigate('/userreports', { state: { project } });
 
 //   };
@@ -133,7 +133,7 @@
 //        render: (row) =>
 //       row?.created_date ? 
 //       <PersianDateWithTooltip tooltipFormat = 'jD jMMMM jYYYY' date={row?.created_date} /> : console.log(row.created_date),
-      
+
 
 //     },
 //   ]);
@@ -198,6 +198,7 @@ const ManagerProjects = () => {
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [reportLoading, setReportLoading] = useState(false);
 
   const base_url = useBaseUrl();
   const navigate = useNavigate();
@@ -229,15 +230,38 @@ const ManagerProjects = () => {
     setSelectedProject(null);
   };
 
-  const handleDownloadReport = () => {
-    if (selectedProject) {
-      generateReportonServer(
+  const handleDownloadReport = async () => {
+    if (!selectedProject) return;
+
+    try {
+      setReportLoading(true); // دکمه وارد حالت loading میشه
+
+      // فرض می‌کنیم generateReportonServer یک Promise برمی‌گردونه
+      await generateReportonServer(
         `${base_url}/users/reports/${selectedProject._id}`,
         selectedProject._id
       );
+
+      // بعد از اتمام دانلود مودال بسته میشه
       closeReportDialog();
+    } catch (error) {
+      console.error("Error downloading report:", error);
+    } finally {
+      setReportLoading(false);
     }
   };
+
+
+
+  // const handleDownloadReport = () => {
+  //   if (selectedProject) {
+  //     generateReportonServer(
+  //       `${base_url}/users/reports/${selectedProject._id}`,
+  //       selectedProject._id
+  //     );
+  //     closeReportDialog();
+  //   }
+  // };
 
   const handleViewReport = () => {
     if (selectedProject) {
@@ -305,20 +329,20 @@ const ManagerProjects = () => {
         </Tooltip>
       ),
     },
-    { 
-      id: "version", 
-      label: "Version", 
-      sortable: true 
+    {
+      id: "version",
+      label: "Version",
+      sortable: true
     },
-    { 
-      id: "created_date", 
-      label: "Created At", 
+    {
+      id: "created_date",
+      label: "Created At",
       sortable: true,
       render: (row) =>
         row?.created_date ? (
-          <PersianDateWithTooltip 
-            tooltipFormat='jD jMMMM jYYYY' 
-            date={row.created_date} 
+          <PersianDateWithTooltip
+            tooltipFormat='jD jMMMM jYYYY'
+            date={row.created_date}
           />
         ) : null,
     },
@@ -364,9 +388,9 @@ const ManagerProjects = () => {
             <strong>{selectedProject?.projectName}</strong>.
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ 
-          justifyContent: "center", 
-          gap: 2, 
+        <DialogActions sx={{
+          justifyContent: "center",
+          gap: 2,
           pb: 3,
           flexDirection: { xs: 'column', sm: 'row' }
         }}>
@@ -375,7 +399,7 @@ const ManagerProjects = () => {
             size="large"
             startIcon={<Visibility />}
             onClick={handleViewReport}
-            sx={{ 
+            sx={{
               textTransform: "none",
               minWidth: 160
             }}
@@ -385,15 +409,17 @@ const ManagerProjects = () => {
           <Button
             variant="contained"
             size="large"
-            startIcon={<Download />}
+            startIcon={reportLoading ? <CircularProgress size={20} /> : <Download />}
             onClick={handleDownloadReport}
-            sx={{ 
+            sx={{
               textTransform: "none",
               minWidth: 160
             }}
+            disabled={reportLoading} // دکمه هنگام لودینگ غیرفعال شود
           >
-            Download Report
+            {reportLoading ? "Downloading..." : "Download Report"}
           </Button>
+
         </DialogActions>
       </Dialog>
     </>
