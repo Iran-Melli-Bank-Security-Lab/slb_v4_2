@@ -92,6 +92,8 @@ const UserProjectReport = () => {
             <TableHead>
               <TableRow>
                 <TableCell>Bug Name</TableCell>
+                <TableCell>Pentester</TableCell>
+
                 <TableCell>Status</TableCell>
                 <TableCell>Date</TableCell>
                 <TableCell>Actions</TableCell>
@@ -106,9 +108,10 @@ const UserProjectReport = () => {
                     hover
                     onDoubleClick={() => handleRowDoubleClick(report._id)}
                     sx={{ cursor: "pointer" }}
-                  >
+                  >{console.log("line 109 : "  ,report)}
                     {/* <TableCell>{report.pentester.lastName }</TableCell> */}
-                    <TableCell>{report.label}</TableCell>
+                    <TableCell>{report.label} </TableCell>
+                    <TableCell>{report.pentester?.firstName || 'N/A'} {report.pentester?.lastName || ''}</TableCell>
                     <TableCell>
                       <Box
                         sx={{
