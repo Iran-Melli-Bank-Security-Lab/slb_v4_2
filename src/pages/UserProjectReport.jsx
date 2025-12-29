@@ -102,6 +102,10 @@ const UserProjectReport = () => {
     if (showOthers) return !isMe;
     return false;
   });
+  const paginatedReports = filteredReports.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   const getStatusPalette = (status) => {
     switch (status) {
@@ -259,11 +263,39 @@ const UserProjectReport = () => {
         </Box>
       </Box>
 {console.log("reports line 83 : " , reports)}
-      <Paper sx={{ mt: 3 }}>
+      <Paper
+        sx={(theme) => ({
+          mt: 3,
+          borderRadius: 4,
+          border: "1px solid",
+          borderColor: "divider",
+          overflow: "hidden",
+          background: `linear-gradient(180deg, ${alpha(
+            theme.palette.background.paper,
+            0.92
+          )} 0%, ${theme.palette.background.paper} 100%)`,
+          boxShadow: "0 20px 40px rgba(15, 23, 42, 0.08)",
+        })}
+      >
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow>
+              <TableRow
+                sx={(theme) => ({
+                  "& th": {
+                    fontWeight: 700,
+                    fontSize: "0.75rem",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: theme.palette.text.secondary,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                    borderBottom: `1px solid ${alpha(
+                      theme.palette.primary.main,
+                      0.1
+                    )}`,
+                  },
+                })}
+              >
                 <TableCell>Bug Name</TableCell>
                 <TableCell>Pentester</TableCell>
 
@@ -273,9 +305,19 @@ const UserProjectReport = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredReports
-                ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                ?.map((report) => (
+              {paginatedReports.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5}>
+                    <Typography
+                      color="text.secondary"
+                      sx={{ py: 4, textAlign: "center" }}
+                    >
+                      No reports found
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedReports?.map((report) => (
                   <TableRow
                     key={report._id}
                     hover
@@ -295,6 +337,13 @@ const UserProjectReport = () => {
                         transition: "background-color 150ms ease",
                         "&:hover": {
                           backgroundColor: alpha(tone, intensity + 0.06),
+                        },
+                        "& td": {
+                          borderBottom: `1px solid ${alpha(
+                            theme.palette.primary.main,
+                            0.08
+                          )}`,
+                          py: 1.75,
                         },
                       };
                     }}
@@ -581,7 +630,8 @@ const UserProjectReport = () => {
                       </Tooltip>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
