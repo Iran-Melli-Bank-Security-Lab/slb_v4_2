@@ -17,15 +17,32 @@ import {
   Checkbox,
   FormControlLabel,
   Stack,
+  Avatar,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import DescriptionIcon from "@mui/icons-material/Description";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
 import EventRoundedIcon from "@mui/icons-material/EventRounded";
+import BugReportRoundedIcon from "@mui/icons-material/BugReportRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import moment from "moment-jalaali";
 import { useUserId } from "../hooks/useUserId";
 import {  fetchAllUserReports } from "../api/bugs/fetchAllReports";
 import { fetchUserProjectById } from "../api/projects/fetchProjectById";
+
+moment.loadPersian({ dialect: "persian-modern", usePersianDigits: true });
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+const getProfileImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    return imagePath;
+  }
+  if (imagePath.startsWith("/")) {
+    return `${API_BASE_URL}${imagePath}`;
+  }
+  return `${API_BASE_URL}/${imagePath}`;
+};
 
 const UserProjectReport = () => {
   const { projectId } = useParams();
@@ -233,7 +250,7 @@ const UserProjectReport = () => {
                 <TableCell>Pentester</TableCell>
 
                 <TableCell>Status</TableCell>
-                <TableCell>Date</TableCell>
+                <TableCell>Created At</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -248,8 +265,104 @@ const UserProjectReport = () => {
                     sx={{ cursor: "pointer" }}
                   >{console.log("line 109 : "  ,report)}
                     {/* <TableCell>{report.pentester.lastName }</TableCell> */}
-                    <TableCell>{report.label} </TableCell>
-                    <TableCell>{report.pentester?.firstName || 'N/A'} {report.pentester?.lastName || ''}</TableCell>
+                    <TableCell>
+                      {(() => {
+                        const label = report.label || "—";
+                        const metaParts = [];
+                        if (report.id) metaParts.push(`ID: ${report.id}`);
+                        if (report.wstg) metaParts.push(report.wstg);
+                        const metaLine = metaParts.join(" • ");
+
+                        return (
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <Box
+                              sx={(theme) => ({
+                                width: 34,
+                                height: 34,
+                                borderRadius: 2,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                background: `linear-gradient(135deg, ${alpha(
+                                  theme.palette.primary.light,
+                                  0.2
+                                )} 0%, ${alpha(theme.palette.primary.main, 0.1)} 100%)`,
+                                border: "1px solid",
+                                borderColor: alpha(theme.palette.primary.main, 0.2),
+                                color: theme.palette.primary.main,
+                              })}
+                            >
+                              <BugReportRoundedIcon sx={{ fontSize: 18 }} />
+                            </Box>
+                            <Box>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontWeight: 700, color: "text.primary" }}
+                              >
+                                {label}
+                              </Typography>
+                              {metaLine && (
+                                <Typography variant="caption" color="text.secondary">
+                                  {metaLine}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                        );
+                      })()}
+                    </TableCell>
+                    <TableCell>
+                      {(() => {
+                        const pentester = report.pentester;
+                        const firstName = pentester?.firstName || "";
+                        const lastName = pentester?.lastName || "";
+                        const fullName = `${firstName} ${lastName}`.trim();
+                        const initials = `${firstName.trim().charAt(0)}${lastName
+                          .trim()
+                          .charAt(0)}`.trim();
+                        const profileUrl = getProfileImageUrl(
+                          pentester?.profileImageUrl
+                        );
+                        const shortId = pentester?._id
+                          ? `${pentester._id.slice(0, 6)}...${pentester._id.slice(-4)}`
+                          : null;
+                        const isMe = pentester?._id === userId;
+
+                        return (
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <Avatar
+                              src={profileUrl || undefined}
+                              sx={(theme) => ({
+                                width: 36,
+                                height: 36,
+                                border: "1px solid",
+                                borderColor: alpha(theme.palette.secondary.main, 0.3),
+                                bgcolor: alpha(theme.palette.secondary.main, 0.12),
+                                color: theme.palette.secondary.dark,
+                                fontWeight: 700,
+                                fontSize: "0.8rem",
+                              })}
+                            >
+                              {initials || <PersonRoundedIcon sx={{ fontSize: 18 }} />}
+                            </Avatar>
+                            <Box>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontWeight: 700, color: "text.primary" }}
+                              >
+                                {fullName || "N/A"}
+                              </Typography>
+                              {(shortId || isMe) && (
+                                <Typography variant="caption" color="text.secondary">
+                                  {isMe ? "Me" : "Pentester"}
+                                  {shortId ? ` • ${shortId}` : ""}
+                                </Typography>
+                              )}
+                            </Box>
+                          </Box>
+                        );
+                      })()}
+                    </TableCell>
                     <TableCell>
                       {(() => {
                         const statusPalette = getStatusPalette(report.state);
@@ -301,89 +414,94 @@ const UserProjectReport = () => {
                       })()}
                     </TableCell>
                     <TableCell>
-                      {report.created_at ? (
-                        <Box
-                          sx={(theme) => ({
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 1,
-                            px: 1.25,
-                            py: 0.6,
-                            borderRadius: 2,
-                            border: "1px solid",
-                            borderColor: alpha(theme.palette.primary.main, 0.2),
-                            background: `linear-gradient(135deg, ${alpha(
-                              theme.palette.primary.light,
-                              0.15
-                            )} 0%, ${alpha(
-                              theme.palette.background.paper,
-                              0.9
-                            )} 100%)`,
-                            boxShadow: `0 6px 16px ${alpha(
-                              theme.palette.primary.main,
-                              0.1
-                            )}`,
-                          })}
-                        >
+                      {(() => {
+                        if (!report.created_at) {
+                          return (
+                            <Typography variant="caption" color="text.secondary">
+                              N/A
+                            </Typography>
+                          );
+                        }
+
+                        const createdAt = moment(report.created_at);
+                        if (!createdAt.isValid()) {
+                          return (
+                            <Typography variant="caption" color="text.secondary">
+                              N/A
+                            </Typography>
+                          );
+                        }
+
+                        return (
                           <Box
                             sx={(theme) => ({
                               display: "inline-flex",
                               alignItems: "center",
-                              justifyContent: "center",
-                              width: 28,
-                              height: 28,
-                              borderRadius: "50%",
-                              backgroundColor: alpha(
+                              gap: 1,
+                              px: 1.25,
+                              py: 0.6,
+                              borderRadius: 2,
+                              border: "1px solid",
+                              borderColor: alpha(theme.palette.primary.main, 0.2),
+                              background: `linear-gradient(135deg, ${alpha(
+                                theme.palette.primary.light,
+                                0.15
+                              )} 0%, ${alpha(
+                                theme.palette.background.paper,
+                                0.9
+                              )} 100%)`,
+                              boxShadow: `0 6px 16px ${alpha(
                                 theme.palette.primary.main,
-                                0.12
-                              ),
-                              color: "primary.main",
+                                0.1
+                              )}`,
                             })}
+                            dir="rtl"
                           >
-                            <EventRoundedIcon sx={{ fontSize: 16 }} />
-                          </Box>
-                          <Box>
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                display: "block",
-                                fontWeight: 700,
-                                color: "text.primary",
-                                lineHeight: 1.2,
-                              }}
+                            <Box
+                              sx={(theme) => ({
+                                display: "inline-flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: 28,
+                                height: 28,
+                                borderRadius: "50%",
+                                backgroundColor: alpha(
+                                  theme.palette.primary.main,
+                                  0.12
+                                ),
+                                color: "primary.main",
+                              })}
                             >
-                              {new Date(report.created_at).toLocaleDateString(
-                                undefined,
-                                {
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "2-digit",
-                                }
-                              )}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                display: "block",
-                                color: "text.secondary",
-                                lineHeight: 1.2,
-                              }}
-                            >
-                              {new Date(report.created_at).toLocaleTimeString(
-                                undefined,
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                }
-                              )}
-                            </Typography>
+                              <EventRoundedIcon sx={{ fontSize: 16 }} />
+                            </Box>
+                            <Box>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  display: "block",
+                                  fontWeight: 700,
+                                  color: "text.primary",
+                                  lineHeight: 1.2,
+                                  textAlign: "right",
+                                }}
+                              >
+                                {createdAt.format("jD jMMMM jYYYY")}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  display: "block",
+                                  color: "text.secondary",
+                                  lineHeight: 1.2,
+                                  textAlign: "right",
+                                }}
+                              >
+                                {createdAt.format("HH:mm")}
+                              </Typography>
+                            </Box>
                           </Box>
-                        </Box>
-                      ) : (
-                        <Typography variant="caption" color="text.secondary">
-                          N/A
-                        </Typography>
-                      )}
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       <Tooltip title="View report details">
