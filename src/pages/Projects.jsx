@@ -3,6 +3,9 @@ import DataTable from '../components/projects/DataTable';
 import { Box, Button, Chip, LinearProgress, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import EventRoundedIcon from '@mui/icons-material/EventRounded';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
+import LanguageRoundedIcon from '@mui/icons-material/LanguageRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import moment from 'moment-jalaali';
 import { useSocket } from '../context/SocketContext';
 import { toast } from 'react-toastify';
@@ -147,32 +150,176 @@ const columns = useMemo(() => [
     id: 'projectName',
     label: 'Project Name',
     sortable: true,
-    render: (row) => row.project?.projectName || '—',
+    render: (row) => {
+      const name = row.project?.projectName || row.projectName;
+      const projectId = row.project?._id;
+      const shortId = projectId
+        ? `${projectId.slice(0, 6)}...${projectId.slice(-4)}`
+        : null;
+
+      if (!name) {
+        return (
+          <Typography variant="caption" color="text.secondary">
+            —
+          </Typography>
+        );
+      }
+
+      return (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box
+            sx={(theme) => ({
+              width: 34,
+              height: 34,
+              borderRadius: 2,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: `linear-gradient(135deg, ${alpha(
+                theme.palette.primary.light,
+                0.2
+              )} 0%, ${alpha(theme.palette.primary.main, 0.1)} 100%)`,
+              border: "1px solid",
+              borderColor: alpha(theme.palette.primary.main, 0.2),
+              color: theme.palette.primary.main,
+            })}
+          >
+            <LanguageRoundedIcon sx={{ fontSize: 18 }} />
+          </Box>
+          <Box>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 700, color: "text.primary" }}
+            >
+              {name}
+            </Typography>
+            {shortId && (
+              <Typography variant="caption" color="text.secondary">
+                ID: {shortId}
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      );
+    },
   },
   {
     id: 'manager',
     label: 'Manager',
     sortable: true,
-    render: (row) =>
-      row.manager ? `${row.manager.firstName} ${row.manager.lastName}` : '—',
+    render: (row) => {
+      const firstName = row.manager?.firstName || "";
+      const lastName = row.manager?.lastName || "";
+      const fullName = `${firstName} ${lastName}`.trim();
+      const initials = `${firstName.trim().charAt(0)}${lastName
+        .trim()
+        .charAt(0)}`.trim();
+
+      if (!fullName) {
+        return (
+          <Typography variant="caption" color="text.secondary">
+            —
+          </Typography>
+        );
+      }
+
+      return (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Box
+            sx={(theme) => ({
+              width: 34,
+              height: 34,
+              borderRadius: "50%",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 700,
+              fontSize: "0.75rem",
+              background: `linear-gradient(135deg, ${alpha(
+                theme.palette.secondary.light,
+                0.25
+              )} 0%, ${alpha(theme.palette.secondary.main, 0.12)} 100%)`,
+              border: "1px solid",
+              borderColor: alpha(theme.palette.secondary.main, 0.25),
+              color: theme.palette.secondary.dark,
+            })}
+          >
+            {initials || <PersonRoundedIcon sx={{ fontSize: 16 }} />}
+          </Box>
+          <Box>
+            <Typography
+              variant="body2"
+              sx={{ fontWeight: 700, color: "text.primary" }}
+            >
+              {fullName}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Project Manager
+            </Typography>
+          </Box>
+        </Box>
+      );
+    },
 
   },
   {
     id: 'status',
     label: 'Status',
     sortable: true,
-    render: (row) => (
-      <Chip
-        label={row.status || 'Unknown'}
-        color={
-          row.status === 'completed' ? 'success' :
-          row.status === 'in-progress' ? 'primary' :
-          row.status === 'pending' ? 'warning' :
-          'default'
-        }
-        size="small"
-      />
-    ),
+    render: (row) => {
+      const status = row.status || 'Open';
+      const statusKey = status.toLowerCase();
+      const palette =
+        statusKey === 'finish' || statusKey === 'completed'
+          ? 'success'
+          : statusKey === 'in progress' || statusKey === 'in-progress'
+          ? 'primary'
+          : statusKey === 'pending'
+          ? 'warning'
+          : 'info';
+
+      return (
+        <Box
+          sx={(theme) => ({
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 0.75,
+            px: 1.5,
+            py: 0.4,
+            borderRadius: 999,
+            fontSize: "0.75rem",
+            fontWeight: 700,
+            letterSpacing: "0.02em",
+            border: "1px solid",
+            borderColor: alpha(theme.palette[palette].main, 0.35),
+            color: theme.palette[palette].dark,
+            background: `linear-gradient(135deg, ${alpha(
+              theme.palette[palette].light,
+              0.45
+            )} 0%, ${alpha(theme.palette[palette].main, 0.12)} 100%)`,
+            boxShadow: `0 6px 14px ${alpha(
+              theme.palette[palette].main,
+              0.12
+            )}`,
+            textTransform: "capitalize",
+          })}
+        >
+          <Box
+            sx={(theme) => ({
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              backgroundColor: theme.palette[palette].main,
+              boxShadow: `0 0 0 3px ${alpha(
+                theme.palette[palette].main,
+                0.16
+              )}`,
+            })}
+          />
+          {status}
+        </Box>
+      );
+    },
   },
   {
     id: 'progress',
@@ -221,7 +368,11 @@ const columns = useMemo(() => [
                     : alpha(theme.palette.error.main, 0.12),
               })}
             >
-              {progress >= 80 ? "On Track" : progress >= 40 ? "In Progress" : "At Risk"}
+              {progress >= 80
+                ? "طبق برنامه"
+                : progress >= 40
+                ? "در حال پیشرفت"
+                : "نیاز به توجه"}
             </Box>
           </Box>
           <LinearProgress
@@ -248,8 +399,41 @@ const columns = useMemo(() => [
     render: (row) => (
       <Button
         size="small"
-        variant="outlined"
+        variant="contained"
+        endIcon={<OpenInNewRoundedIcon sx={{ fontSize: 18 }} />}
         onClick={() => window.open(`/reports/${row?.project?._id}`, '_blank')}
+        sx={(theme) => ({
+          position: "relative",
+          borderRadius: 999,
+          px: 2,
+          py: 0.75,
+          fontWeight: 700,
+          textTransform: "none",
+          letterSpacing: "0.02em",
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
+          border: "1px solid",
+          borderColor: alpha(theme.palette.primary.main, 0.3),
+          boxShadow: `0 8px 18px ${alpha(theme.palette.primary.main, 0.18)}`,
+          overflow: "hidden",
+          "&:hover": {
+            backgroundColor: theme.palette.primary.dark,
+            boxShadow: `0 10px 20px ${alpha(theme.palette.primary.main, 0.22)}`,
+            transform: "translateY(-1px)",
+          },
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.22) 35%, rgba(255,255,255,0) 70%)",
+            transform: "translateX(-120%)",
+            transition: "transform 450ms ease",
+          },
+          "&:hover::after": {
+            transform: "translateX(120%)",
+          },
+        })}
       >{console.log("row in line 105 : , " , row ) }
         View
       </Button>
