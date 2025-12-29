@@ -540,6 +540,8 @@ const columns = useMemo(() => [
       columns={columns}
       fetchUserType="user" // still needed for DataTable fallback
       title="My Projects"
+      subtitle="نمای کلی پروژه‌ها و وضعیت آن‌ها"
+      dense
       overrideRows={projects} // optional: allow injecting preloaded rows
       doubleClickable
       onRowDoubleClick={(row) => {
