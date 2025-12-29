@@ -4,6 +4,7 @@ import { Box, Button, Chip, LinearProgress, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import EventRoundedIcon from '@mui/icons-material/EventRounded';
 import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
+import PictureAsPdfRoundedIcon from '@mui/icons-material/PictureAsPdfRounded';
 import LanguageRoundedIcon from '@mui/icons-material/LanguageRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import moment from 'moment-jalaali';
@@ -60,6 +61,14 @@ export default function UserProjectsTable() {
     socket.off('newProjectForUser', handleAssigned);
     };
   }, [socket, user.id]);
+
+  const handleViewReport = useCallback(
+    (project) => {
+      if (!project) return;
+      navigate('/userreports', { state: { project } });
+    },
+    [navigate]
+  );
 
   const renderDatePill = useCallback((dateValue, { showTime = true } = {}) => {
     if (!dateValue) {
@@ -393,12 +402,6 @@ const columns = useMemo(() => [
     },
   },
   {
-    id: 'createdAt',
-    label: 'Created At',
-    sortable: true,
-    render: (row) => renderDatePill(row?.created_at, { showTime: false }),
-  },
-  {
     id: 'expireAt',
     label: 'Expire At',
     sortable: true,
@@ -452,7 +455,7 @@ const columns = useMemo(() => [
   },
   {
     id: 'report',
-    label: 'Report',
+    label: 'Findings',
     sortable: false,
     render: (row) => (
       <Button
@@ -493,11 +496,42 @@ const columns = useMemo(() => [
           },
         })}
       >{console.log("row in line 105 : , " , row ) }
-        View
+        مشاهده
       </Button>
     ),
   },
-], [renderDatePill]);
+  {
+    id: 'pdfReport',
+    label: 'PDF Report',
+    sortable: false,
+    render: (row) => (
+      <Button
+        size="small"
+        variant="outlined"
+        startIcon={<PictureAsPdfRoundedIcon sx={{ fontSize: 18 }} />}
+        onClick={() => handleViewReport(row?.project || row)}
+        sx={(theme) => ({
+          borderRadius: 999,
+          px: 1.75,
+          py: 0.65,
+          fontWeight: 700,
+          textTransform: "none",
+          letterSpacing: "0.02em",
+          color: theme.palette.secondary.dark,
+          borderColor: alpha(theme.palette.secondary.main, 0.35),
+          backgroundColor: alpha(theme.palette.secondary.main, 0.08),
+          "&:hover": {
+            borderColor: theme.palette.secondary.main,
+            backgroundColor: alpha(theme.palette.secondary.main, 0.14),
+            transform: "translateY(-1px)",
+          },
+        })}
+      >
+        دریافت
+      </Button>
+    ),
+  },
+], [handleViewReport, renderDatePill]);
     
 
 
