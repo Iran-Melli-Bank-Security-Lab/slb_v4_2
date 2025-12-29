@@ -393,53 +393,18 @@ const columns = useMemo(() => [
     },
   },
   {
-    id: 'report',
-    label: 'Report',
-    sortable: false,
-    render: (row) => (
-      <Button
-        size="small"
-        variant="contained"
-        endIcon={<OpenInNewRoundedIcon sx={{ fontSize: 18 }} />}
-        onClick={() => window.open(`/reports/${row?.project?._id}`, '_blank')}
-        sx={(theme) => ({
-          position: "relative",
-          borderRadius: 999,
-          px: 2,
-          py: 0.75,
-          fontWeight: 700,
-          textTransform: "none",
-          letterSpacing: "0.02em",
-          backgroundColor: theme.palette.primary.main,
-          color: theme.palette.primary.contrastText,
-          border: "1px solid",
-          borderColor: alpha(theme.palette.primary.main, 0.3),
-          boxShadow: `0 8px 18px ${alpha(theme.palette.primary.main, 0.18)}`,
-          overflow: "hidden",
-          "&:hover": {
-            backgroundColor: theme.palette.primary.dark,
-            boxShadow: `0 10px 20px ${alpha(theme.palette.primary.main, 0.22)}`,
-            transform: "translateY(-1px)",
-          },
-          "&::after": {
-            content: '""',
-            position: "absolute",
-            inset: 0,
-            background:
-              "linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.22) 35%, rgba(255,255,255,0) 70%)",
-            transform: "translateX(-120%)",
-            transition: "transform 450ms ease",
-          },
-          "&:hover::after": {
-            transform: "translateX(120%)",
-          },
-        })}
-      >{console.log("row in line 105 : , " , row ) }
-        View
-      </Button>
-    ),
+    id: 'createdAt',
+    label: 'Created At',
+    sortable: true,
+    render: (row) => renderDatePill(row?.created_at, { showTime: false }),
   },
-   {
+  {
+    id: 'expireAt',
+    label: 'Expire At',
+    sortable: true,
+    render: (row) => renderDatePill(row?.project?.expireDay, { showTime: false }),
+  },
+  {
     id: 'version',
     label: 'Version',
     sortable: true,
@@ -486,17 +451,51 @@ const columns = useMemo(() => [
     },
   },
   {
-    id: 'expireAt',
-    label: 'Expire At',
-    sortable: true,
-    render: (row) => renderDatePill(row?.project?.expireDay, { showTime: false }),
-  },
- 
-  {
-    id: 'createdAt',
-    label: 'Created At',
-    sortable: true,
-    render: (row) => renderDatePill(row?.created_at, { showTime: false }),
+    id: 'report',
+    label: 'Report',
+    sortable: false,
+    render: (row) => (
+      <Button
+        size="small"
+        variant="contained"
+        endIcon={<OpenInNewRoundedIcon sx={{ fontSize: 18 }} />}
+        onClick={() => window.open(`/reports/${row?.project?._id}`, '_blank')}
+        sx={(theme) => ({
+          position: "relative",
+          borderRadius: 999,
+          px: 2,
+          py: 0.75,
+          fontWeight: 700,
+          textTransform: "none",
+          letterSpacing: "0.02em",
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
+          border: "1px solid",
+          borderColor: alpha(theme.palette.primary.main, 0.3),
+          boxShadow: `0 8px 18px ${alpha(theme.palette.primary.main, 0.18)}`,
+          overflow: "hidden",
+          "&:hover": {
+            backgroundColor: theme.palette.primary.dark,
+            boxShadow: `0 10px 20px ${alpha(theme.palette.primary.main, 0.22)}`,
+            transform: "translateY(-1px)",
+          },
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.22) 35%, rgba(255,255,255,0) 70%)",
+            transform: "translateX(-120%)",
+            transition: "transform 450ms ease",
+          },
+          "&:hover::after": {
+            transform: "translateX(120%)",
+          },
+        })}
+      >{console.log("row in line 105 : , " , row ) }
+        View
+      </Button>
+    ),
   },
 ], [renderDatePill]);
     
