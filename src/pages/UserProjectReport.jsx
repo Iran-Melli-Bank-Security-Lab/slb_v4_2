@@ -14,8 +14,14 @@ import {
   TablePagination,
   CircularProgress,
   Tooltip,
+  Checkbox,
+  FormControlLabel,
+  Stack,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import DescriptionIcon from "@mui/icons-material/Description";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
 import { useUserId } from "../hooks/useUserId";
 import {  fetchAllUserReports } from "../api/bugs/fetchAllReports";
 import { fetchUserProjectById } from "../api/projects/fetchProjectById";
@@ -29,6 +35,8 @@ const UserProjectReport = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const userId  = useUserId()
+  const [showMe, setShowMe] = useState(true);
+  const [showOthers, setShowOthers] = useState(true);
   
   useEffect(() => {
     // Simulate API call to fetch project and reports
@@ -68,6 +76,14 @@ const UserProjectReport = () => {
     setPage(0);
   };
 
+  const filteredReports = reports.filter((report) => {
+    const isMe = report?.pentester?._id === userId;
+    if (showMe && showOthers) return true;
+    if (showMe) return isMe;
+    if (showOthers) return !isMe;
+    return false;
+  });
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -85,6 +101,106 @@ const UserProjectReport = () => {
       <Typography variant="subtitle1" color="text.secondary" gutterBottom>
         View all reports for this project
       </Typography>
+      <Box
+        sx={(theme) => ({
+          mt: 2,
+          mb: 3,
+          p: 1.5,
+          borderRadius: 2,
+          border: "1px solid",
+          borderColor: "divider",
+          background: `linear-gradient(135deg, ${alpha(
+            theme.palette.background.paper,
+            0.95
+          )} 0%, ${alpha(theme.palette.primary.light, 0.08)} 100%)`,
+          boxShadow: "0 12px 28px rgba(15, 23, 42, 0.08)",
+        })}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1.5,
+          }}
+        >
+          <Typography
+            variant="overline"
+            sx={{ letterSpacing: "0.18em", fontWeight: 600, color: "text.secondary" }}
+          >
+            Report Owner
+          </Typography>
+          <Stack direction="row" spacing={1}>
+            <FormControlLabel
+              sx={(theme) => ({
+                m: 0,
+                px: 1.25,
+                py: 0.5,
+                borderRadius: 999,
+                border: "1px solid",
+                borderColor: showMe ? "primary.main" : "divider",
+                bgcolor: showMe
+                  ? alpha(theme.palette.primary.main, 0.12)
+                  : alpha(theme.palette.background.paper, 0.6),
+                transition: "all 160ms ease",
+                "&:hover": {
+                  borderColor: "primary.main",
+                  bgcolor: alpha(theme.palette.primary.main, 0.08),
+                  transform: "translateY(-1px)",
+                },
+                "& .MuiCheckbox-root": { p: 0.5, mr: 0.75 },
+                "& .MuiFormControlLabel-label": { fontWeight: 600 },
+              })}
+              control={
+                <Checkbox
+                  checked={showMe}
+                  onChange={(event) => {
+                    setShowMe(event.target.checked);
+                    setPage(0);
+                  }}
+                  icon={<RadioButtonUncheckedRoundedIcon fontSize="small" />}
+                  checkedIcon={<CheckCircleRoundedIcon fontSize="small" />}
+                />
+              }
+              label="Me"
+            />
+            <FormControlLabel
+              sx={(theme) => ({
+                m: 0,
+                px: 1.25,
+                py: 0.5,
+                borderRadius: 999,
+                border: "1px solid",
+                borderColor: showOthers ? "secondary.main" : "divider",
+                bgcolor: showOthers
+                  ? alpha(theme.palette.secondary.main, 0.12)
+                  : alpha(theme.palette.background.paper, 0.6),
+                transition: "all 160ms ease",
+                "&:hover": {
+                  borderColor: "secondary.main",
+                  bgcolor: alpha(theme.palette.secondary.main, 0.08),
+                  transform: "translateY(-1px)",
+                },
+                "& .MuiCheckbox-root": { p: 0.5, mr: 0.75 },
+                "& .MuiFormControlLabel-label": { fontWeight: 600 },
+              })}
+              control={
+                <Checkbox
+                  checked={showOthers}
+                  onChange={(event) => {
+                    setShowOthers(event.target.checked);
+                    setPage(0);
+                  }}
+                  icon={<RadioButtonUncheckedRoundedIcon fontSize="small" />}
+                  checkedIcon={<CheckCircleRoundedIcon fontSize="small" />}
+                />
+              }
+              label="Others"
+            />
+          </Stack>
+        </Box>
+      </Box>
 {console.log("reports line 83 : " , reports)}
       <Paper sx={{ mt: 3 }}>
         <TableContainer>
@@ -100,7 +216,7 @@ const UserProjectReport = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {reports
+              {filteredReports
                 ?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 ?.map((report) => (
                   <TableRow
@@ -157,7 +273,7 @@ const UserProjectReport = () => {
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={reports.length}
+          count={filteredReports.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
