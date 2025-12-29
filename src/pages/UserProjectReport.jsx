@@ -22,6 +22,7 @@ import { alpha } from "@mui/material/styles";
 import DescriptionIcon from "@mui/icons-material/Description";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
+import EventRoundedIcon from "@mui/icons-material/EventRounded";
 import { useUserId } from "../hooks/useUserId";
 import {  fetchAllUserReports } from "../api/bugs/fetchAllReports";
 import { fetchUserProjectById } from "../api/projects/fetchProjectById";
@@ -300,7 +301,89 @@ const UserProjectReport = () => {
                       })()}
                     </TableCell>
                     <TableCell>
-                      {new Date(report.created_at).toLocaleDateString()}
+                      {report.created_at ? (
+                        <Box
+                          sx={(theme) => ({
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 1,
+                            px: 1.25,
+                            py: 0.6,
+                            borderRadius: 2,
+                            border: "1px solid",
+                            borderColor: alpha(theme.palette.primary.main, 0.2),
+                            background: `linear-gradient(135deg, ${alpha(
+                              theme.palette.primary.light,
+                              0.15
+                            )} 0%, ${alpha(
+                              theme.palette.background.paper,
+                              0.9
+                            )} 100%)`,
+                            boxShadow: `0 6px 16px ${alpha(
+                              theme.palette.primary.main,
+                              0.1
+                            )}`,
+                          })}
+                        >
+                          <Box
+                            sx={(theme) => ({
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              width: 28,
+                              height: 28,
+                              borderRadius: "50%",
+                              backgroundColor: alpha(
+                                theme.palette.primary.main,
+                                0.12
+                              ),
+                              color: "primary.main",
+                            })}
+                          >
+                            <EventRoundedIcon sx={{ fontSize: 16 }} />
+                          </Box>
+                          <Box>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                display: "block",
+                                fontWeight: 700,
+                                color: "text.primary",
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {new Date(report.created_at).toLocaleDateString(
+                                undefined,
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "2-digit",
+                                }
+                              )}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                display: "block",
+                                color: "text.secondary",
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {new Date(report.created_at).toLocaleTimeString(
+                                undefined,
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
+                          N/A
+                        </Typography>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Tooltip title="View report details">
