@@ -11,7 +11,7 @@ import InProgressContent from "../components/doProject/InProgressContent";
 import PendingStatusContent from "../components/doProject/PendingStatusContent";
 import FinishStatusContent from "../components/doProject/FinishStatusContent";
 import ProjectInfo from "../components/doProject/projectInfo";
-import ProjectStatus from "../components/doProject/projectStatus";
+// import ProjectStatus from "../components/doProject/projectStatus";
 import { fetchProjectByUserProjectManager } from "../api/projects/fetchProjectById";
 import { useUserId } from "../hooks/useUserId";
 import ProjcetStates from "../components/doProject/projectStatus/ProjectStates";
