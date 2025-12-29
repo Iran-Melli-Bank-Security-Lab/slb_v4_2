@@ -9,11 +9,17 @@ import ProjectProgress from './ProjectProgress';
 import { getProjects } from '../../api/projects/getProject';
 import { useSession  } from '../../SessionContext';
 
-export default function DataTable({ columns, fetchUserType = "manager", title = "Projects" , overrideRows ,
-    doubleClickable = false,
-    onRowDoubleClick,
-
- }) {
+export default function DataTable({
+  columns,
+  fetchUserType = "manager",
+  title = "Projects",
+  subtitle = "Overview of projects and key activity at a glance",
+  showSubtitle = true,
+  dense = false,
+  overrideRows,
+  doubleClickable = false,
+  onRowDoubleClick,
+}) {
 
   const {user} = useSession().session
   const [orderDirection, setOrderDirection] = useState('asc');
@@ -98,7 +104,7 @@ export default function DataTable({ columns, fetchUserType = "manager", title = 
           gap: 2,
           flexWrap: 'wrap',
           px: 3,
-          py: 2.5,
+          py: dense ? 1.5 : 2.5,
           borderBottom: '1px solid',
           borderColor: 'divider',
         }}
@@ -110,9 +116,11 @@ export default function DataTable({ columns, fetchUserType = "manager", title = 
           >
             {title}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Project overview and key activity at a glance
-          </Typography>
+          {showSubtitle && subtitle ? (
+            <Typography variant="body2" color="text.secondary">
+              {subtitle}
+            </Typography>
+          ) : null}
         </Box>
         <TextField
           variant="outlined"
@@ -128,7 +136,7 @@ export default function DataTable({ columns, fetchUserType = "manager", title = 
             ),
           }}
           sx={(theme) => ({
-            minWidth: 240,
+            minWidth: dense ? 200 : 240,
             '& .MuiOutlinedInput-root': {
               borderRadius: 999,
               backgroundColor: alpha(theme.palette.primary.main, 0.04),
@@ -153,6 +161,7 @@ export default function DataTable({ columns, fetchUserType = "manager", title = 
                   color: theme.palette.text.secondary,
                   backgroundColor: alpha(theme.palette.primary.main, 0.04),
                   borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+                  py: dense ? 1 : 1.5,
                 },
               })}
             >
@@ -211,7 +220,7 @@ export default function DataTable({ columns, fetchUserType = "manager", title = 
                   },
                   '& td': {
                     borderBottom: `1px solid ${alpha(theme.palette.primary.main, 0.08)}`,
-                    py: 1.75,
+                    py: dense ? 1.25 : 1.75,
                   },
                 })}
                 >
