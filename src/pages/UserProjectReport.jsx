@@ -26,6 +26,7 @@ import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUnch
 import EventRoundedIcon from "@mui/icons-material/EventRounded";
 import BugReportRoundedIcon from "@mui/icons-material/BugReportRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
+import VisibilityRoundedIcon from "@mui/icons-material/VisibilityRounded";
 import moment from "moment-jalaali";
 import { useUserId } from "../hooks/useUserId";
 import {  fetchAllUserReports } from "../api/bugs/fetchAllReports";
@@ -121,6 +122,23 @@ const UserProjectReport = () => {
       default:
         return "error";
     }
+  };
+
+  const getSeverityTone = (severity) => {
+    const key = severity?.toLowerCase();
+    if (key === "critical") {
+      return { palette: "error", intensity: 0.18, accent: 0.7 };
+    }
+    if (key === "high") {
+      return { palette: "error", intensity: 0.12, accent: 0.5 };
+    }
+    if (key === "medium") {
+      return { palette: "warning", intensity: 0.1, accent: 0.5 };
+    }
+    if (key === "low") {
+      return { palette: "success", intensity: 0.08, accent: 0.4 };
+    }
+    return { palette: "info", intensity: 0.06, accent: 0.35 };
   };
 
   if (loading) {
@@ -262,7 +280,24 @@ const UserProjectReport = () => {
                     key={report._id}
                     hover
                     onDoubleClick={() => handleRowDoubleClick(report._id)}
-                    sx={{ cursor: "pointer" }}
+                    sx={(theme) => {
+                      const { palette, intensity, accent } = getSeverityTone(
+                        report.severity
+                      );
+                      const tone = theme.palette[palette].main;
+                      return {
+                        cursor: "pointer",
+                        background: `linear-gradient(90deg, ${alpha(
+                          tone,
+                          intensity
+                        )} 0%, ${alpha(tone, 0)} 55%)`,
+                        boxShadow: `inset 4px 0 0 ${alpha(tone, accent)}`,
+                        transition: "background-color 150ms ease",
+                        "&:hover": {
+                          backgroundColor: alpha(tone, intensity + 0.06),
+                        },
+                      };
+                    }}
                   >{console.log("line 109 : "  ,report)}
                     {/* <TableCell>{report.pentester.lastName }</TableCell> */}
                     <TableCell>
@@ -505,11 +540,44 @@ const UserProjectReport = () => {
                     </TableCell>
                     <TableCell>
                       <Tooltip title="View report details">
-                        <DescriptionIcon
-                          color="action"
-                          onClick={() => handleRowDoubleClick(report._id)}
-                          sx={{ cursor: "pointer" }}
-                        />
+                        <Box sx={{ display: "inline-flex" }}>
+                          <Box
+                            component="button"
+                            type="button"
+                            onClick={() => handleRowDoubleClick(report._id)}
+                            sx={(theme) => ({
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 0.75,
+                              px: 1.5,
+                              py: 0.6,
+                              borderRadius: 999,
+                              border: "1px solid",
+                              borderColor: alpha(theme.palette.primary.main, 0.3),
+                              backgroundColor: alpha(
+                                theme.palette.primary.main,
+                                0.08
+                              ),
+                              color: theme.palette.primary.dark,
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                              letterSpacing: "0.02em",
+                              cursor: "pointer",
+                              transition: "all 150ms ease",
+                              "&:hover": {
+                                backgroundColor: alpha(
+                                  theme.palette.primary.main,
+                                  0.16
+                                ),
+                                borderColor: theme.palette.primary.main,
+                                transform: "translateY(-1px)",
+                              },
+                            })}
+                          >
+                            <VisibilityRoundedIcon sx={{ fontSize: 18 }} />
+                            View
+                          </Box>
+                        </Box>
                       </Tooltip>
                     </TableCell>
                   </TableRow>
