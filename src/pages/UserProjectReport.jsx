@@ -84,6 +84,27 @@ const UserProjectReport = () => {
     return false;
   });
 
+  const getStatusPalette = (status) => {
+    switch (status) {
+      case "Verified":
+      case "Completed":
+        return "success";
+      case "New":
+        return "info";
+      case "Verify":
+        return "success";
+      case "In Progress":
+      case "Pending":
+        return "warning";
+      case "Rejected":
+      case "Failed":
+      case "Error":
+        return "error";
+      default:
+        return "error";
+    }
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" mt={4}>
@@ -229,29 +250,54 @@ const UserProjectReport = () => {
                     <TableCell>{report.label} </TableCell>
                     <TableCell>{report.pentester?.firstName || 'N/A'} {report.pentester?.lastName || ''}</TableCell>
                     <TableCell>
+                      {(() => {
+                        const statusPalette = getStatusPalette(report.state);
+                        return (
                       <Box
-                        sx={{
+                        sx={(theme) => ({
                           display: "inline-flex",
                           alignItems: "center",
-                          px: 1,
-                          py: 0.5,
-                          borderRadius: 1,
-                          backgroundColor:
-                            report.state === "Verified"
-                              ? "success.light"
-                              : report.state === "New"
-                              ? "warning.light"
-                              : "error.light",
-                          color:
-                            report.state === "Completed"
-                              ? "success.contrastText"
-                              : report.state === "In Progress"
-                              ? "warning.contrastText"
-                              : "error.contrastText",
-                        }}
+                          gap: 0.75,
+                          px: 1.5,
+                          py: 0.6,
+                          borderRadius: 999,
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          letterSpacing: "0.02em",
+                          border: "1px solid",
+                          borderColor: alpha(
+                            theme.palette[statusPalette].main,
+                            0.4
+                          ),
+                          color: theme.palette[statusPalette].dark,
+                          background: `linear-gradient(135deg, ${alpha(
+                            theme.palette[statusPalette].light,
+                            0.6
+                          )} 0%, ${alpha(
+                            theme.palette[statusPalette].main,
+                            0.12
+                          )} 100%)`,
+                          boxShadow: `0 8px 18px ${alpha(
+                            theme.palette[statusPalette].main,
+                            0.16
+                          )}`,
+                          "&::before": {
+                            content: '""',
+                            width: 8,
+                            height: 8,
+                            borderRadius: "50%",
+                            backgroundColor: theme.palette[statusPalette].main,
+                            boxShadow: `0 0 0 3px ${alpha(
+                              theme.palette[statusPalette].main,
+                              0.18
+                            )}`,
+                          },
+                        })}
                       >
-                        {report.state}
+                        {report.state || "Unknown"}
                       </Box>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell>
                       {new Date(report.created_at).toLocaleDateString()}
