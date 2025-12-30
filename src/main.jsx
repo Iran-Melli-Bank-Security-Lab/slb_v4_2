@@ -11,6 +11,7 @@ const DashboardPage = lazy(() => import('./pages/index'));
 const Projects = lazy(() => import('./pages/Projects'));
 const Managing = lazy(() => import('./pages/Managing'));
 const SignInPage = lazy(() => import('./pages/signIn'));
+
 const MainReport = lazy(() => import("./report/MainReport.jsx"))
 import { Provider } from 'react-redux';
 import store from "./store"
