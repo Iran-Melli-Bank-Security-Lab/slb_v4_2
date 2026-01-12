@@ -28,7 +28,7 @@ export default function UserProjectsTable() {
     const fetchProjects = async () => {
       try {
         const res = await getProjects('user', user.id);
-        console.log("res in line 21 : "  , res )
+        console.log("res in line 21 : "  , res.projects )
         setProjects(res.projects);
       } catch (err) {
         console.error('Failed to fetch user projects:', err);
@@ -62,13 +62,12 @@ export default function UserProjectsTable() {
     };
   }, [socket, user.id]);
 
-  const handleViewReport = useCallback(
-    (project) => {
-      if (!project) return;
-      navigate('/userreports', { state: { project } });
-    },
-    [navigate]
-  );
+ const handleViewReport = (project) => {
+  if (!project) return;
+  console.log("project in line 67 : " , project)
+  navigate('/userreports', { state: { project } });
+};
+
 
   const renderDatePill = useCallback((dateValue, { showTime = true } = {}) => {
     if (!dateValue) {
@@ -159,6 +158,7 @@ const columns = useMemo(() => [
     id: 'projectName',
     label: 'Project Name',
     sortable: true,
+    width: 260,
     render: (row) => {
       const name = row.project?.projectName || row.projectName;
       const projectId = row.project?._id;
@@ -175,7 +175,7 @@ const columns = useMemo(() => [
       }
 
       return (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
           <Box
             sx={(theme) => ({
               width: 34,
@@ -195,15 +195,16 @@ const columns = useMemo(() => [
           >
             <LanguageRoundedIcon sx={{ fontSize: 18 }} />
           </Box>
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             <Typography
               variant="body2"
+              noWrap
               sx={{ fontWeight: 700, color: "text.primary" }}
             >
               {name}
             </Typography>
             {shortId && (
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" color="text.secondary" noWrap>
                 ID: {shortId}
               </Typography>
             )}
@@ -216,6 +217,7 @@ const columns = useMemo(() => [
     id: 'manager',
     label: 'Manager',
     sortable: true,
+    width: 210,
     render: (row) => {
       const firstName = row.manager?.firstName || "";
       const lastName = row.manager?.lastName || "";
@@ -233,7 +235,7 @@ const columns = useMemo(() => [
       }
 
       return (
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
           <Box
             sx={(theme) => ({
               width: 34,
@@ -255,14 +257,15 @@ const columns = useMemo(() => [
           >
             {initials || <PersonRoundedIcon sx={{ fontSize: 16 }} />}
           </Box>
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             <Typography
               variant="body2"
+              noWrap
               sx={{ fontWeight: 700, color: "text.primary" }}
             >
               {fullName}
             </Typography>
-            <Typography variant="caption" color="text.secondary">
+            <Typography variant="caption" color="text.secondary" noWrap>
               Project Manager
             </Typography>
           </Box>
@@ -275,6 +278,7 @@ const columns = useMemo(() => [
     id: 'status',
     label: 'Status',
     sortable: true,
+    width: 140,
     render: (row) => {
       const status = row.status || 'Open';
       const statusKey = status.toLowerCase();
@@ -334,6 +338,7 @@ const columns = useMemo(() => [
     id: 'progress',
     label: 'Progress',
     sortable: false,
+    width: 190,
     render: (row) => {
       const rawProgress = Number(row.progress ?? 0);
       const progress = Number.isFinite(rawProgress)
@@ -405,12 +410,14 @@ const columns = useMemo(() => [
     id: 'expireAt',
     label: 'Expire At',
     sortable: true,
+    width: 160,
     render: (row) => renderDatePill(row?.project?.expireDay, { showTime: false }),
   },
   {
     id: 'version',
     label: 'Version',
     sortable: true,
+    width: 110,
     render: (row) => {
       const version = row.version || row.project?.version;
       if (!version) {
@@ -457,6 +464,7 @@ const columns = useMemo(() => [
     id: 'report',
     label: 'Findings',
     sortable: false,
+    width: 140,
     render: (row) => (
       <Button
         size="small"
@@ -504,6 +512,7 @@ const columns = useMemo(() => [
     id: 'pdfReport',
     label: 'PDF Report',
     sortable: false,
+    width: 140,
     render: (row) => (
       <Button
         size="small"

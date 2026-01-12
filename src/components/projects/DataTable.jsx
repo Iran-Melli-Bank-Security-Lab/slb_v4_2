@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   TableContainer, Paper, Table, TableBody, TableCell, TableHead, TableRow,
   TablePagination, TableSortLabel, TextField, Toolbar, Typography, Box, InputAdornment
@@ -28,6 +28,7 @@ export default function DataTable({
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchQuery, setSearchQuery] = useState('');
   const [tableRows, setTableRows] = useState([]);
+  const baseColumnWidth = dense ? 140 : 160;
 
   useEffect(() => {
 
@@ -82,6 +83,35 @@ export default function DataTable({
   });
 
   const paginated = sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const normalizedColumns = useMemo(() => {
+    return columns.map((col) => {
+      const width = col?.width ?? col?.minWidth ?? baseColumnWidth;
+      const normalizedWidth =
+        typeof width === 'number' && Number.isFinite(width)
+          ? width
+          : baseColumnWidth;
+      return {
+        ...col,
+        __width: normalizedWidth,
+      };
+    });
+  }, [columns, baseColumnWidth]);
+  const tableMinWidth = useMemo(() => {
+    return normalizedColumns.reduce((total, col) => total + col.__width, 0);
+  }, [normalizedColumns]);
+
+  const getCellSx = (col, { isHeader = false } = {}) => {
+    const shouldTruncate = col?.truncate !== false || isHeader;
+    return {
+      width: col.__width,
+      minWidth: col.__width,
+      maxWidth: col.__width,
+      whiteSpace: shouldTruncate ? 'nowrap' : 'normal',
+      overflow: 'hidden',
+      textOverflow: shouldTruncate ? 'ellipsis' : 'clip',
+    };
+  };
+  const emptyRows = Math.max(0, rowsPerPage - paginated.length);
 
   return (
     <Paper
@@ -148,8 +178,27 @@ export default function DataTable({
         />
       </Toolbar>
 
-      <TableContainer>
-        <Table stickyHeader>
+      <TableContainer sx={{ overflowX: 'auto', scrollbarGutter: 'stable' }}>
+        <Table
+          stickyHeader
+          sx={{
+            tableLayout: 'fixed',
+            minWidth: tableMinWidth,
+            width: '100%',
+          }}
+        >
+          <colgroup>
+            {normalizedColumns.map((col) => (
+              <col
+                key={col.id}
+                style={
+                  col?.__width
+                    ? { width: col.__width }
+                    : { width: baseColumnWidth }
+                }
+              />
+            ))}
+          </colgroup>
           <TableHead>
             <TableRow
               sx={(theme) => ({
@@ -165,8 +214,8 @@ export default function DataTable({
                 },
               })}
             >
-              {columns.map(col => (
-                <TableCell key={col.id}>
+              {normalizedColumns.map(col => (
+                <TableCell key={col.id} sx={getCellSx(col, { isHeader: true })}>
                   {col.sortable !== false ? (
                     <TableSortLabel
                       active={orderBy === col.id}
@@ -192,7 +241,7 @@ export default function DataTable({
           <TableBody>
             {paginated.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length}>
+                <TableCell colSpan={normalizedColumns.length}>
                   <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
                     No projects found
                   </Typography>
@@ -224,8 +273,8 @@ export default function DataTable({
                   },
                 })}
                 >
-                  {columns.map(col => (
-                    <TableCell key={col.id}>
+                  {normalizedColumns.map(col => (
+                    <TableCell key={col.id} sx={getCellSx(col)}>
                       {col.render 
                         ? col.render(row) 
                         : col.id === 'progress' 
@@ -237,6 +286,11 @@ export default function DataTable({
                 </TableRow>
               ))
             )}
+            {emptyRows > 0 ? (
+              <TableRow style={{ height: (dense ? 56 : 72) * emptyRows }}>
+                <TableCell colSpan={normalizedColumns.length} />
+              </TableRow>
+            ) : null}
           </TableBody>
         </Table>
       </TableContainer>

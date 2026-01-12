@@ -252,17 +252,6 @@ const ManagerProjects = () => {
   };
 
 
-
-  // const handleDownloadReport = () => {
-  //   if (selectedProject) {
-  //     generateReportonServer(
-  //       `${base_url}/users/reports/${selectedProject._id}`,
-  //       selectedProject._id
-  //     );
-  //     closeReportDialog();
-  //   }
-  // };
-
   const handleViewReport = () => {
     if (selectedProject) {
       navigate('/userreports', { state: { project: selectedProject } });
@@ -270,7 +259,7 @@ const ManagerProjects = () => {
     }
   };
 
-  // Handler for viewing project reports
+  // Handler for viewing project reports (finding bugs)
   const handleViewReports = (project) => {
     window.open(`/project/${project._id}/reports`, "_blank");
   };

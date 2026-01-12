@@ -180,8 +180,7 @@ React.useEffect(() => {
       path
     );
 
-console.log("reportMatch.params.projectId : " , reportMatch.params.projectId);
-  const publicRoutes = ['/sign-in', '/register', `/users/reports/${reportMatch.params.projectId}`];
+  const publicRoutes = ['/sign-in', '/register', `/users/reports/${reportMatch?.params?.projectId}`];
     if (publicRoutes.includes(window.location.pathname)) return; // skip redirect
 
    

@@ -26,6 +26,8 @@ const MainReport = () => {
   // اگر از navigate با state آمده باشد:
   const initialProject = location.state?.project || null;
 
+  console.log("initial project line 29 : " , initialProject)
+
   const [project, setProject] = useState(initialProject);
   // const project = location.state?.project;
   console.log("project in main report : ", projectId, initialProject);
