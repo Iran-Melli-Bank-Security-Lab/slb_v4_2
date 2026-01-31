@@ -13,6 +13,8 @@ import { toast } from 'react-toastify';
 import { getProjects } from '../api/projects/getProject';
 import { useSession } from '../SessionContext';
 import { useNavigate } from 'react-router';
+import { fetchOriginalProject } from '../api/projects/fetchOriginalProject';
+import { set } from 'react-hook-form';
 
 moment.loadPersian({ dialect: 'persian-modern', usePersianDigits: true });
 
@@ -21,15 +23,35 @@ export default function UserProjectsTable() {
   const socket = useSocket();
   const navigate = useNavigate();
 
+  const [originalProject , setOriginalProject] = useState([]);
+
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
+    const getOriginalProject = async (projectId )=>{
+      try{
+
+        const res = await fetchOriginalProject(projectId)
+        console.log("res in line 35 : " , res )
+        
+        setOriginalProject(res)
+  
+      }catch(error){
+        console.error(error)
+      }
+    }
     // Initial fetch
+
     const fetchProjects = async () => {
       try {
         const res = await getProjects('user', user.id);
-        console.log("res in line 21 : "  , res.projects )
-        setProjects(res.projects);
+console.log("res in line 48 : " , res )
+        if (res?.projects[0]._id) {
+      await getOriginalProject(res.projects._id);
+    } else {
+      console.error("No valid project ID found");
+    }
+        setProjects(res?.projects);
       } catch (err) {
         console.error('Failed to fetch user projects:', err);
       }
@@ -64,8 +86,9 @@ export default function UserProjectsTable() {
 
  const handleViewReport = (project) => {
   if (!project) return;
-  console.log("project in line 67 : " , project)
-  navigate('/userreports', { state: { project } });
+  console.log("selected Project line 91 in project : " , originalProject) 
+
+  navigate('/userreports', { state: { project:project } });
 };
 
 

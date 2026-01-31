@@ -21,6 +21,7 @@ import { toast } from "react-toastify";
 
 const MainReport = () => {
   const location = useLocation();
+  console.log("location in main report : ", location);
   const { projectId } = useParams();
 
   // اگر از navigate با state آمده باشد:
@@ -30,11 +31,11 @@ const MainReport = () => {
 
   const [project, setProject] = useState(initialProject);
   // const project = location.state?.project;
+
   console.log("project in main report : ", projectId, initialProject);
+
   const [reports, setReports] = useState(null);
   const [counter, setCounter] = useState(1);
-
-
 
 
   // projectId نهایی که باید باهاش کار کنیم (یا از state یا از params)
@@ -66,29 +67,29 @@ const MainReport = () => {
   }, [projectId]);
 
 
-  useEffect(() => {
-    const downloadPocs = async () => {
-      if (!effectiveProjectId) return;
-      try {
-        const { blob, filename } = await getPocsArchive(effectiveProjectId);
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        toast.success("POCs downloaded successfully");
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to download POCs!");
-      }
-    };
+  // useEffect(() => {
+    // const downloadPocs = async () => {
+    //   if (!effectiveProjectId) return;
+    //   try {
+    //     const { blob, filename } = await getPocsArchive(effectiveProjectId);
+    //     const url = URL.createObjectURL(blob);
+    //     const a = document.createElement("a");
+    //     a.href = url;
+    //     a.download = filename;
+    //     document.body.appendChild(a);
+    //     a.click();
+    //     a.remove();
+    //     URL.revokeObjectURL(url);
+    //     toast.success("POCs downloaded successfully");
+    //   } catch (error) {
+    //     console.error(error);
+    //     toast.error("Failed to download POCs!");
+    //   }
+    // };
 
     // downloadPocs()
 
-  }, [effectiveProjectId])
+  // }, [effectiveProjectId])
 
   const [pf10, setPf10] = useState([]);
   const [pf11, setPf11] = useState([]);
