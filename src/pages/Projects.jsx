@@ -45,12 +45,12 @@ export default function UserProjectsTable() {
     const fetchProjects = async () => {
       try {
         const res = await getProjects('user', user.id);
-console.log("res in line 48 : " , res )
-        if (res?.projects[0]._id) {
-      await getOriginalProject(res.projects._id);
-    } else {
-      console.error("No valid project ID found");
-    }
+       
+    //     if (res?.projects[0]._id) {
+    //   await getOriginalProject(res.projects._id);
+    // } else {
+    //   console.error("No valid project ID found");
+    // }
         setProjects(res?.projects);
       } catch (err) {
         console.error('Failed to fetch user projects:', err);
@@ -84,12 +84,55 @@ console.log("res in line 48 : " , res )
     };
   }, [socket, user.id]);
 
- const handleViewReport = (project) => {
-  if (!project) return;
-  console.log("selected Project line 91 in project : " , originalProject) 
+//  const handleViewReport = (project) => {
+//   if (!project) return;
+//   console.log("selected Project line 91 in project : " , originalProject) 
 
-  navigate('/userreports', { state: { project:project } });
-};
+//   navigate('/userreports', { state: { project:project } });
+// };
+
+// تابع handleViewReport را به این صورت اصلاح کنید:
+const handleViewReport = useCallback(async (row) => {
+
+  if (!row) return;
+  
+
+  console.log("line 100 : " , row )
+
+
+  try {
+    // استخراج آیدی پروژه از ردیف
+    const projectId = row?.project?._id;
+    
+    if (!projectId) {
+      toast.error('Project ID not found');
+      return;
+    }
+    
+    console.log("Fetching original project for ID:", projectId);
+    
+    // فراخوانی API برای دریافت پروژه اصلی
+    const originalProject = await fetchOriginalProject(projectId);
+    console.log("Original project received:", originalProject);
+    
+    // ذخیره در state (اگر نیاز باشد)
+    setOriginalProject(originalProject);
+    
+    // هدایت به صفحه گزارشات همراه با پروژه اصلی
+    navigate('/userreports', { 
+      state: { 
+        project: originalProject,
+        projectId: projectId 
+      } 
+    });
+    
+  } catch (error) {
+    console.error('Failed to fetch original project:', error);
+    toast.error('Failed to fetch project details');
+  }
+}, [navigate]);
+
+
 
 
   const renderDatePill = useCallback((dateValue, { showTime = true } = {}) => {
@@ -541,7 +584,7 @@ const columns = useMemo(() => [
         size="small"
         variant="outlined"
         startIcon={<PictureAsPdfRoundedIcon sx={{ fontSize: 18 }} />}
-        onClick={() => handleViewReport(row?.project || row)}
+        onClick={() => handleViewReport(row)}
         sx={(theme) => ({
           borderRadius: 999,
           px: 1.75,
