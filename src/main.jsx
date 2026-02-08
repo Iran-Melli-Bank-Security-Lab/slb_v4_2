@@ -42,6 +42,7 @@ import UserRegistration from './pages/Register.jsx';
 import Profile from './pages/UserProfile.jsx';
 import UserEditProfile from './pages/EditProfile.jsx';
 import ChangePassword from './pages/ChangePassword.jsx';
+import ManagementReport from './pages/AdminReport.jsx';
 
 const router = createBrowserRouter([
   {
@@ -185,7 +186,13 @@ const router = createBrowserRouter([
         path: "/users/reports/:projectId",
         Component: MainReport
 
+      }, 
+      {
+        path: "/adminReport",
+        Component: ManagementReport
+
       }
+
     ],
   },
 ]);
