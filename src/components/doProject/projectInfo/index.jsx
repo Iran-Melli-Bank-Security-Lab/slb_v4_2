@@ -54,6 +54,7 @@ const PageShell = styled(Box)(({ theme }) => ({
   border: `1px solid ${alpha(colors.ink, 0.06)}`,
   boxShadow: `0 24px 60px ${alpha(colors.ink, 0.12)}`,
   overflow: "hidden",
+  fontFamily: '"Vazirmatn", "IRANSans", "Tahoma", sans-serif',
   "&:before": {
     content: '""',
     position: "absolute",
@@ -867,37 +868,43 @@ const DevOpsInfoDisplay = ({ }) => {
     const { web } = devOpsInfo.technologyStack;
 
     return (
-      <SectionCard sx={{ mt: 3 }}>
-        <SectionHeader onClick={() => toggleSection('technology')}>
-          <Avatar sx={{
-            bgcolor: alpha(colors.secondary, 0.1),
-            color: colors.secondary,
-            mr: 2
-          }}>
-            <CodeIcon />
-          </Avatar>
+      <SectionCard accent={colors.secondary} sx={{ mt: 3 }}>
+        <SectionHeader accent={colors.secondary} onClick={() => toggleSection('technology')}>
+          <IconOrb accent={colors.secondary}>
+            <FrameworkIcon />
+          </IconOrb>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" fontWeight={700}>
+            <Typography variant="h6" fontWeight={800} sx={{ color: colors.ink }}>
               Technology Stack
             </Typography>
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="body2" sx={{ color: alpha(colors.slate, 0.7) }}>
               Platform architecture and components
             </Typography>
           </Box>
-          <IconButton size="small">
-            {expandedSections.technology ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          <IconButton
+            size="small"
+            sx={{
+              borderRadius: "10px",
+              border: `1px solid ${alpha(colors.secondary, 0.3)}`,
+              color: colors.secondary,
+              transform: expandedSections.technology ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s ease"
+            }}
+          >
+            <ExpandMoreIcon fontSize="small" />
           </IconButton>
         </SectionHeader>
 
         <Collapse in={expandedSections.technology}>
-          <Box sx={{ p: 3 }}>
-            <Grid container spacing={3}>
+          <SectionBody>
+            <Grid container spacing={2}>
               {web.frontendLanguage && (
                 <Grid item xs={12} sm={6} md={4}>
                   <DetailRow
                     icon={<CodeIcon />}
                     label="Frontend Language"
                     value={web.frontendLanguage}
+                    tone={colors.secondary}
                   />
                 </Grid>
               )}
@@ -907,6 +914,7 @@ const DevOpsInfoDisplay = ({ }) => {
                     icon={<CodeIcon />}
                     label="Backend Language"
                     value={web.backendLanguage}
+                    tone={colors.secondary}
                   />
                 </Grid>
               )}
@@ -916,6 +924,7 @@ const DevOpsInfoDisplay = ({ }) => {
                     icon={<StorageIcon />}
                     label="Databases"
                     value={web.databases.join(', ')}
+                    tone={colors.secondary}
                   />
                 </Grid>
               )}
@@ -924,6 +933,7 @@ const DevOpsInfoDisplay = ({ }) => {
                   <DetailRow
                     icon={<FrameworkIcon />}
                     label="Frameworks"
+                    tone={colors.secondary}
                     value={
                       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                         {web.frameworks.map((fw, i) => (
@@ -932,8 +942,10 @@ const DevOpsInfoDisplay = ({ }) => {
                             label={fw}
                             size="small"
                             sx={{
-                              bgcolor: alpha(colors.secondary, 0.1),
-                              color: colors.secondary
+                              bgcolor: alpha(colors.secondary, 0.12),
+                              color: colors.secondary,
+                              border: `1px solid ${alpha(colors.secondary, 0.3)}`,
+                              fontWeight: 600
                             }}
                           />
                         ))}
@@ -948,11 +960,12 @@ const DevOpsInfoDisplay = ({ }) => {
                     icon={<ComputerIcon />}
                     label="Web Server"
                     value={web.webServer}
+                    tone={colors.secondary}
                   />
                 </Grid>
               )}
             </Grid>
-          </Box>
+          </SectionBody>
         </Collapse>
       </SectionCard>
     );
@@ -961,24 +974,124 @@ const DevOpsInfoDisplay = ({ }) => {
   if (!devOpsInfo) {
     return (
       <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
-        <Typography variant="h4" fontWeight={800} sx={{ mb: 4 }}>
-          DevOps Configuration
-        </Typography>
-        <Typography>Loading DevOps information...</Typography>
+        <HeroCard>
+          <Typography variant="overline" sx={{ color: alpha(colors.slate, 0.7), letterSpacing: "0.2em" }}>
+            DEVOPS CONSOLE
+          </Typography>
+          <Typography variant="h4" fontWeight={800} sx={{ mt: 1, color: colors.ink }}>
+            DevOps Configuration
+          </Typography>
+          <Typography variant="body1" sx={{ mt: 1, color: alpha(colors.slate, 0.7) }}>
+            Loading DevOps information...
+          </Typography>
+        </HeroCard>
       </Box>
     );
   }
 
-  return (
-    <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
-      <Typography variant="h4" fontWeight={800} sx={{ mb: 4 }}>
-        DevOps Configuration
-      </Typography>
+  const endpointCount = devOpsInfo?.endpoints?.length || 0;
+  const hasPlatform = Boolean(devOpsInfo?.platformData?.web);
+  const hasTech = Boolean(devOpsInfo?.technologyStack?.web);
+  const credentialCount = devOpsInfo?.endpoints?.reduce(
+    (sum, endpoint) => sum + (endpoint.credentials?.length || 0),
+    0
+  );
+  const ipCount = devOpsInfo?.endpoints?.filter((endpoint) => endpoint.ip).length || 0;
 
-      {renderPlatformInfo()}
-      {renderEndpoints()}
-      {renderTechnologyStack()}
-    </Box>
+  return (
+    <PageShell sx={{ maxWidth: 1200, mx: "auto" }}>
+      <Box sx={{ position: "relative", zIndex: 1, display: "grid", gap: 3 }}>
+        <HeroCard>
+          <Grid container spacing={3} alignItems="center">
+            <Grid item xs={12} md={7}>
+              <Typography
+                variant="overline"
+                sx={{ color: alpha(colors.slate, 0.7), letterSpacing: "0.25em", fontWeight: 700 }}
+              >
+                DEVOPS CONSOLE
+              </Typography>
+              <Typography
+                variant="h3"
+                sx={{
+                  mt: 1,
+                  fontWeight: 800,
+                  color: colors.ink,
+                  fontSize: { xs: "1.8rem", sm: "2.2rem", md: "2.6rem" },
+                  lineHeight: 1.2,
+                  letterSpacing: "-0.02em"
+                }}
+              >
+                DevOps Configuration
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  mt: 1.5,
+                  color: alpha(colors.slate, 0.72),
+                  fontSize: { xs: "0.95rem", md: "1.05rem" },
+                  lineHeight: 1.7,
+                  maxWidth: 560
+                }}
+              >
+                Everything you need to operate the platform. Secure access, infrastructure context, and runtime stack in
+                one premium surface.
+              </Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 2 }}>
+                {hasPlatform && (
+                  <InfoBadge label="Platform Ready" size="small" tone={colors.success} />
+                )}
+                {hasTech && (
+                  <InfoBadge label="Stack Mapped" size="small" tone={colors.secondary} />
+                )}
+                {credentialCount > 0 && (
+                  <InfoBadge label="Credentials Secured" size="small" tone={colors.accent} />
+                )}
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={5}>
+              <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(2, 1fr)" }, gap: 2 }}>
+                <StatPill>
+                  <Typography variant="caption" sx={{ color: alpha(colors.slate, 0.7), fontWeight: 700 }}>
+                    Endpoints
+                  </Typography>
+                  <Typography variant="h5" fontWeight={800} sx={{ color: colors.ink }}>
+                    {endpointCount}
+                  </Typography>
+                </StatPill>
+                <StatPill>
+                  <Typography variant="caption" sx={{ color: alpha(colors.slate, 0.7), fontWeight: 700 }}>
+                    IP Addresses
+                  </Typography>
+                  <Typography variant="h5" fontWeight={800} sx={{ color: colors.ink }}>
+                    {ipCount}
+                  </Typography>
+                </StatPill>
+                <StatPill>
+                  <Typography variant="caption" sx={{ color: alpha(colors.slate, 0.7), fontWeight: 700 }}>
+                    Credentials
+                  </Typography>
+                  <Typography variant="h5" fontWeight={800} sx={{ color: colors.ink }}>
+                    {credentialCount}
+                  </Typography>
+                </StatPill>
+                <StatPill>
+                  <Typography variant="caption" sx={{ color: alpha(colors.slate, 0.7), fontWeight: 700 }}>
+                    Sections Ready
+                  </Typography>
+                  <Typography variant="h5" fontWeight={800} sx={{ color: colors.ink }}>
+                    {[hasPlatform, endpointCount > 0, hasTech].filter(Boolean).length}/3
+                  </Typography>
+                </StatPill>
+              </Box>
+            </Grid>
+          </Grid>
+        </HeroCard>
+
+        {renderPlatformInfo()}
+        {renderEndpoints()}
+        {renderTechnologyStack()}
+      </Box>
+    </PageShell>
   );
 };
 
