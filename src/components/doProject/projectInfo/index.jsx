@@ -25,15 +25,16 @@ import { styled, alpha } from "@mui/material/styles";
 import { getDevOpsInfo } from "../../../api/devops/getDevOpsInfo";
 import { useParams } from "react-router";
 import { useUserId } from "../../../hooks/useUserId";
+import "./endpoints.css";
 
 // Elevated palette and gradients
 const colors = {
   ink: "#0B1020",
   slate: "#1E2333",
-  primary: "#1B6EF3",
-  secondary: "#00B2FF",
-  accent: "#7B2FF7",
-  success: "#12C48B",
+  primary: "#0A84FF",
+  secondary: "#5E5CE6",
+  accent: "#BF5AF2",
+  success: "#34C759",
   warning: "#FFB020",
   error: "#FF4D6D",
   surface: "#FFFFFF",
@@ -205,67 +206,6 @@ const ClickableText = styled(Typography)(({ theme }) => ({
   }
 }));
 
-const EndpointCard = styled(Box, {
-  shouldForwardProp: (prop) => prop !== "accent"
-})(({ theme, accent }) => ({
-  position: "relative",
-  borderRadius: 22,
-  padding: theme.spacing(3),
-  border: `1px solid ${alpha(accent || colors.primary, 0.2)}`,
-  background: `linear-gradient(140deg, ${alpha(colors.surface, 0.92)} 0%, ${alpha(accent || colors.primary, 0.08)} 100%)`,
-  boxShadow: `0 18px 40px ${alpha(colors.ink, 0.12)}`,
-  overflow: "hidden",
-  transition: "transform 0.35s ease, box-shadow 0.35s ease",
-  "&:before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: 4,
-    background: `linear-gradient(90deg, ${alpha(accent || colors.primary, 0.9)}, transparent)`
-  },
-  "&:after": {
-    content: '""',
-    position: "absolute",
-    right: -60,
-    top: -40,
-    width: 160,
-    height: 160,
-    borderRadius: "50%",
-    background: `radial-gradient(circle, ${alpha(accent || colors.primary, 0.25)} 0%, transparent 70%)`,
-    opacity: 0.8,
-    pointerEvents: "none"
-  },
-  "&:hover": {
-    transform: "translateY(-6px)",
-    boxShadow: `0 26px 55px ${alpha(colors.ink, 0.16)}`
-  }
-}));
-
-const EndpointMeta = styled(Box)(({ theme }) => ({
-  display: "grid",
-  gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-  gap: theme.spacing(1.5)
-}));
-
-const EndpointStat = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(1.2, 1.4),
-  borderRadius: 16,
-  background: alpha(colors.ink, 0.04),
-  border: `1px solid ${alpha(colors.ink, 0.08)}`,
-  display: "flex",
-  flexDirection: "column",
-  gap: 4
-}));
-
-const CredentialCard = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(2),
-  borderRadius: 16,
-  border: `1px solid ${alpha(colors.ink, 0.08)}`,
-  background: `linear-gradient(180deg, ${alpha(colors.ink, 0.02)} 0%, ${alpha(colors.surface, 0.98)} 60%)`,
-  boxShadow: "none"
-}));
 
 const CopyButton = ({ value, tooltip = "Copy to clipboard" }) => {
   const [copied, setCopied] = useState(false);
@@ -751,6 +691,7 @@ const DevOpsInfoDisplay = ({ }) => {
 
   const renderEndpoints = () => {
     if (!devOpsInfo?.endpoints?.length) return null;
+    const ultraClean = true;
 
     return (
       <SectionCard accent={colors.accent} sx={{ mt: 3 }}>
@@ -787,249 +728,140 @@ const DevOpsInfoDisplay = ({ }) => {
 
         <Collapse in={expandedSections.endpoints}>
           <SectionBody>
-            <Box sx={{ display: "grid", gap: 3 }}>
+            <Box className={ultraClean ? "endpoints-grid endpoints-ultra" : "endpoints-grid"}>
               {devOpsInfo.endpoints.map((endpoint, index) => {
-                const hasTechStack = hasTechnologyStack(endpoint.technologyStack);
                 const endpointUrl = endpoint.url || "";
                 const fullUrl = endpointUrl.startsWith('http') ? endpointUrl : `https://${endpointUrl}`;
                 const endpointTone = endpoint.isDns ? colors.success : colors.primary;
                 const credentialsCount = endpoint.credentials?.length || 0;
-                const stackCount = [
-                  endpoint.technologyStack?.frontendLanguage,
-                  endpoint.technologyStack?.backendLanguage,
-                  endpoint.technologyStack?.webServer,
-                  ...(endpoint.technologyStack?.databases || []),
-                  ...(endpoint.technologyStack?.frameworks || [])
-                ].filter(Boolean).length;
+                const endpointGlow = alpha(endpointTone, 0.2);
+                const stackItems = [];
+
+                if (endpoint.technologyStack?.frontendLanguage) {
+                  stackItems.push(`Frontend • ${endpoint.technologyStack.frontendLanguage}`);
+                }
+                if (endpoint.technologyStack?.backendLanguage) {
+                  stackItems.push(`Backend • ${endpoint.technologyStack.backendLanguage}`);
+                }
+                if (endpoint.technologyStack?.webServer) {
+                  stackItems.push(`Server • ${endpoint.technologyStack.webServer}`);
+                }
+                (endpoint.technologyStack?.databases || []).forEach((db) => {
+                  stackItems.push(`DB • ${db}`);
+                });
+                (endpoint.technologyStack?.frameworks || []).forEach((fw) => {
+                  stackItems.push(`FW • ${fw}`);
+                });
 
                 return (
-                  <EndpointCard key={index} accent={endpointTone}>
-                    <Box sx={{ display: "grid", gap: 2.5, position: "relative", zIndex: 1 }}>
-                      <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, justifyContent: "space-between" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                          <IconOrb accent={endpointTone} sx={{ width: 46, height: 46 }}>
-                            {endpoint.isDns ? <DnsIcon /> : <PublicIcon />}
-                          </IconOrb>
-                          <Box>
-                          <SectionKicker variant="caption">Endpoint</SectionKicker>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                              <ClickableText
-                                variant="subtitle1"
-                                onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
-                              >
-                                {endpoint.url}
-                              </ClickableText>
-                              <CopyButton value={fullUrl} tooltip="Copy URL" />
-                            </Box>
-                          <SectionSubtitle variant="body2">
-                            {endpoint.isDns ? "DNS record" : "Public address"}
-                          </SectionSubtitle>
-                          </Box>
+                  <Box
+                    key={index}
+                    className="endpoint-card"
+                    style={{
+                      "--accent": endpointTone,
+                      "--accentGlow": endpointGlow,
+                      "--delay": `${index * 0.07}s`
+                    }}
+                  >
+                    <Box className="endpoint-top">
+                      <Box className="endpoint-icon">
+                        {endpoint.isDns ? <DnsIcon /> : <PublicIcon />}
+                      </Box>
+                      <Box className="endpoint-title">
+                        <span className="endpoint-kicker">Endpoint</span>
+                        <Box className="endpoint-url-row">
+                          <Typography
+                            className="endpoint-url"
+                            onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
+                          >
+                            {endpoint.url}
+                          </Typography>
+                          <CopyButton value={fullUrl} tooltip="Copy URL" />
                         </Box>
-                        <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1 }}>
-                          <InfoBadge
-                            label={endpoint.isDns ? "DNS" : "Public"}
+                        <span className="endpoint-subtitle">
+                          {endpoint.isDns ? "DNS record" : "Public address"}
+                        </span>
+                      </Box>
+                      <Box className="endpoint-actions">
+                        <span className="endpoint-badge" style={{ borderColor: endpointTone, color: endpointTone }}>
+                          {endpoint.isDns ? "DNS" : "Public"}
+                        </span>
+                        {credentialsCount > 0 && (
+                          <span className="endpoint-badge endpoint-badge-accent">Secured</span>
+                        )}
+                        <Tooltip title="Open endpoint" arrow>
+                          <IconButton
                             size="small"
-                            tone={endpointTone}
-                          />
-                          {credentialsCount > 0 && (
-                            <InfoBadge label="Secured" size="small" tone={colors.accent} />
-                          )}
-                          <Tooltip title="Open endpoint" arrow>
-                            <IconButton
-                              size="small"
-                              onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
-                              sx={{
-                                borderRadius: "10px",
-                                border: `1px solid ${alpha(endpointTone, 0.3)}`,
-                                color: endpointTone,
-                                bgcolor: alpha(colors.surface, 0.9)
-                              }}
-                            >
-                              <OpenInNewIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                            onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
+                            className="endpoint-open"
+                          >
+                            <OpenInNewIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </Box>
+
+                    <Box className="endpoint-metrics">
+                      <Box className="endpoint-metric">
+                        <span className="metric-label">IP Address</span>
+                        <Box className="metric-value">
+                          <Typography component="span">{endpoint.ip || "—"}</Typography>
+                          {endpoint.ip && <CopyButton value={endpoint.ip} tooltip="Copy IP" />}
                         </Box>
                       </Box>
-
-                      <EndpointMeta>
-                        <EndpointStat>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: textColors.tertiary,
-                              fontWeight: 700,
-                              letterSpacing: "0.22em",
-                              textTransform: "uppercase",
-                              fontSize: "0.58rem"
-                            }}
-                          >
-                            IP Address
-                          </Typography>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                            <Typography
-                              variant="body1"
-                              fontWeight={700}
-                              sx={{ color: textColors.primary, letterSpacing: "-0.01em", fontSize: "0.98rem" }}
-                            >
-                              {endpoint.ip || "—"}
-                            </Typography>
-                            {endpoint.ip && <CopyButton value={endpoint.ip} tooltip="Copy IP" />}
-                          </Box>
-                        </EndpointStat>
-                        <EndpointStat>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: textColors.tertiary,
-                              fontWeight: 700,
-                              letterSpacing: "0.22em",
-                              textTransform: "uppercase",
-                              fontSize: "0.58rem"
-                            }}
-                          >
-                            Credentials
-                          </Typography>
-                          <Typography
-                            variant="body1"
-                            fontWeight={700}
-                            sx={{ color: textColors.primary, letterSpacing: "-0.01em", fontSize: "0.98rem" }}
-                          >
-                            {credentialsCount}
-                          </Typography>
-                        </EndpointStat>
-                        <EndpointStat>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: textColors.tertiary,
-                              fontWeight: 700,
-                              letterSpacing: "0.22em",
-                              textTransform: "uppercase",
-                              fontSize: "0.58rem"
-                            }}
-                          >
-                            Stack Items
-                          </Typography>
-                          <Typography
-                            variant="body1"
-                            fontWeight={700}
-                            sx={{ color: textColors.primary, letterSpacing: "-0.01em", fontSize: "0.98rem" }}
-                          >
-                            {stackCount}
-                          </Typography>
-                        </EndpointStat>
-                      </EndpointMeta>
-
-                      {hasTechStack && (
-                        <Box>
-                          <SectionKicker variant="overline" sx={{ mb: 1.5 }}>
-                            Technology Stack
-                          </SectionKicker>
-                          <Grid container spacing={1.5} sx={{ mb: 1 }}>
-                            {endpoint.technologyStack.frontendLanguage && (
-                              <Grid item xs={12} sm={6} md={3}>
-                                <DetailRow
-                                  icon={<CodeIcon />}
-                                  label="Frontend"
-                                  value={endpoint.technologyStack.frontendLanguage}
-                                  tone={colors.primary}
-                                />
-                              </Grid>
-                            )}
-                            {endpoint.technologyStack.backendLanguage && (
-                              <Grid item xs={12} sm={6} md={3}>
-                                <DetailRow
-                                  icon={<CodeIcon />}
-                                  label="Backend"
-                                  value={endpoint.technologyStack.backendLanguage}
-                                  tone={colors.primary}
-                                />
-                              </Grid>
-                            )}
-                            {endpoint.technologyStack.databases?.length > 0 && (
-                              <Grid item xs={12} sm={6} md={3}>
-                                <DetailRow
-                                  icon={<StorageIcon />}
-                                  label="Databases"
-                                  value={endpoint.technologyStack.databases.join(', ')}
-                                  tone={colors.primary}
-                                />
-                              </Grid>
-                            )}
-                            {endpoint.technologyStack.webServer && (
-                              <Grid item xs={12} sm={6} md={3}>
-                                <DetailRow
-                                  icon={<ComputerIcon />}
-                                  label="Web Server"
-                                  value={endpoint.technologyStack.webServer}
-                                  tone={colors.primary}
-                                />
-                              </Grid>
-                            )}
-                          </Grid>
-                        </Box>
-                      )}
-
-                      {endpoint.credentials?.length > 0 && (
-                        <Box>
-                          <SectionKicker variant="overline" sx={{ mb: 1.5 }}>
-                            Access Credentials
-                          </SectionKicker>
-                          <Grid container spacing={2}>
-                            {endpoint.credentials.map((cred, i) => (
-                              <Grid item xs={12} sm={6} key={i}>
-                                <CredentialCard>
-                                  {cred.description && (
-                                    <DetailRow
-                                      icon={<InfoIcon />}
-                                      label="Description"
-                                      tone={colors.secondary}
-                                      size="compact"
-                                      children={
-                                        <Typography
-                                          variant="body2"
-                                          sx={{
-                                            bgcolor: alpha(colors.secondary, 0.08),
-                                            p: 1,
-                                            borderRadius: "10px",
-                                            border: `1px solid ${alpha(colors.secondary, 0.2)}`,
-                                            fontStyle: "italic",
-                                            fontSize: "0.9rem",
-                                            lineHeight: 1.6,
-                                            color: textColors.primary
-                                          }}
-                                        >
-                                          {cred.description}
-                                        </Typography>
-                                      }
-                                    />
-                                  )}
-                                  <Box sx={{ mt: cred.description ? 2 : 0, display: "grid", gap: 1.5 }}>
-                                    <DetailRow
-                                      icon={<KeyIcon />}
-                                      label="Username"
-                                      value={cred.username}
-                                      tone={colors.secondary}
-                                      size="compact"
-                                      copyable
-                                    />
-                                    <DetailRow
-                                      icon={<LockIcon />}
-                                      label="Password"
-                                      tone={colors.secondary}
-                                      size="compact"
-                                      children={<PasswordField value={cred.password} size="compact" />}
-                                    />
-                                  </Box>
-                                </CredentialCard>
-                              </Grid>
-                            ))}
-                          </Grid>
-                        </Box>
-                      )}
+                      <Box className="endpoint-metric">
+                        <span className="metric-label">Credentials</span>
+                        <Typography component="span">{credentialsCount}</Typography>
+                      </Box>
+                      <Box className="endpoint-metric">
+                        <span className="metric-label">Stack Items</span>
+                        <Typography component="span">{stackItems.length}</Typography>
+                      </Box>
                     </Box>
-                  </EndpointCard>
+
+                    {stackItems.length > 0 && (
+                      <Box className="endpoint-section">
+                        <span className="endpoint-section-title">Technology Stack</span>
+                        <Box className="stack-tags">
+                          {stackItems.map((item, i) => (
+                            <span key={`${item}-${i}`} className="stack-tag">
+                              {item}
+                            </span>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+
+                    {endpoint.credentials?.length > 0 && (
+                      <Box className="endpoint-section">
+                        <span className="endpoint-section-title">Access Credentials</span>
+                        <Box className="credential-grid">
+                          {endpoint.credentials.map((cred, i) => (
+                            <Box className="credential-card" key={i}>
+                              {cred.description && (
+                                <Box className="credential-desc">
+                                  {cred.description}
+                                </Box>
+                              )}
+                              <Box className="credential-row">
+                                <span className="credential-label">Username</span>
+                                <Box className="credential-value">
+                                  <Typography component="span">{cred.username}</Typography>
+                                  <CopyButton value={cred.username} tooltip="Copy username" />
+                                </Box>
+                              </Box>
+                              <Box className="credential-row">
+                                <span className="credential-label">Password</span>
+                                <Box className="credential-value">
+                                  <PasswordField value={cred.password} size="compact" />
+                                </Box>
+                              </Box>
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
                 );
               })}
             </Box>
