@@ -84,12 +84,6 @@ export default function UserProjectsTable() {
     };
   }, [socket, user.id]);
 
-//  const handleViewReport = (project) => {
-//   if (!project) return;
-//   console.log("selected Project line 91 in project : " , originalProject) 
-
-//   navigate('/userreports', { state: { project:project } });
-// };
 
 // تابع handleViewReport را به این صورت اصلاح کنید:
 const handleViewReport = useCallback(async (row) => {
