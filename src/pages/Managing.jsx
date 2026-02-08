@@ -12,7 +12,6 @@ import {
   DialogContentText,
   DialogTitle
 } from "@mui/material";
-
 import {
   Description,
   People,
@@ -21,6 +20,7 @@ import {
   Visibility
 } from "@mui/icons-material";
 import { useNavigate } from "react-router";
+
 import PersianDateWithTooltip from "../components/dateTime/PersainDate";
 import { generateReportonServer } from "../api/projects/generateReportonServer";
 import { useBaseUrl } from "../hooks/useBaseUrl";
@@ -238,6 +238,9 @@ const ManagerProjects = () => {
             startIcon={reportLoading ? <CircularProgress size={20} /> : <Download />}
             onClick={handleDownloadReport}
             sx={{
+
+
+              
               textTransform: "none",
               minWidth: 160
             }}
