@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Box,
   CircularProgress,
@@ -56,11 +56,7 @@ const DoProject = () => {
     <Container maxWidth="xl" className="py-8 px-4 sm:px-6 lg:px-8">
 
       <ProjectInfo />
-
-
       <ProjcetStates statusComponents={statusComponents} />
-
-
 
     </Container>
   );
