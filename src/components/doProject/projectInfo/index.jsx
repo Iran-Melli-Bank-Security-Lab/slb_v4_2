@@ -15,6 +15,7 @@ import {
   DeveloperBoard as FrameworkIcon,
   Cloud as CloudIcon,
   Lock as LockIcon,
+  OpenInNew as OpenInNewIcon,
   Visibility as VisibilityIcon,
   VisibilityOff as VisibilityOffIcon,
   Info as InfoIcon,
@@ -37,6 +38,14 @@ const colors = {
   error: "#FF4D6D",
   surface: "#FFFFFF",
   surfaceMuted: "#F6F8FC"
+};
+
+// Apple-like text palette
+const textColors = {
+  primary: "#1D1D1F",
+  secondary: "#6E6E73",
+  tertiary: "#86868B",
+  muted: "#A1A1A6"
 };
 
 const gradients = {
@@ -136,6 +145,28 @@ const SectionBody = styled(Box)(({ theme }) => ({
   backgroundColor: alpha(colors.surface, 0.92)
 }));
 
+const SectionKicker = styled(Typography)(({ theme }) => ({
+  textTransform: "uppercase",
+  letterSpacing: "0.26em",
+  fontWeight: 700,
+  color: textColors.tertiary,
+  fontSize: "0.6rem"
+}));
+
+const SectionTitle = styled(Typography)(({ theme }) => ({
+  fontWeight: 700,
+  color: textColors.primary,
+  letterSpacing: "-0.01em",
+  lineHeight: 1.3
+}));
+
+const SectionSubtitle = styled(Typography)(({ theme }) => ({
+  color: textColors.secondary,
+  fontWeight: 500,
+  lineHeight: 1.7,
+  fontSize: "0.95rem"
+}));
+
 const IconOrb = styled(Avatar, {
   shouldForwardProp: (prop) => prop !== "accent"
 })(({ accent }) => ({
@@ -162,20 +193,70 @@ const InfoBadge = styled(Chip, {
 
 const ClickableText = styled(Typography)(({ theme }) => ({
   cursor: "pointer",
-  fontWeight: 700,
-  color: colors.ink,
+  fontWeight: 600,
+  color: textColors.primary,
+  letterSpacing: "-0.01em",
   "&:hover": {
     color: colors.primary,
-    textDecoration: "underline"
+    textDecoration: "underline",
+    textDecorationThickness: "1.5px",
+    textUnderlineOffset: "3px",
+    textDecorationColor: alpha(colors.primary, 0.4)
   }
 }));
 
-const EndpointCard = styled(Box)(({ theme }) => ({
-  borderRadius: 18,
-  padding: theme.spacing(2.5),
-  border: `1px solid ${alpha(colors.primary, 0.16)}`,
-  background: `linear-gradient(180deg, ${alpha(colors.primary, 0.06)} 0%, ${alpha(colors.surface, 0.98)} 60%)`,
-  boxShadow: `inset 0 1px 0 ${alpha(colors.surface, 0.9)}`
+const EndpointCard = styled(Box, {
+  shouldForwardProp: (prop) => prop !== "accent"
+})(({ theme, accent }) => ({
+  position: "relative",
+  borderRadius: 22,
+  padding: theme.spacing(3),
+  border: `1px solid ${alpha(accent || colors.primary, 0.2)}`,
+  background: `linear-gradient(140deg, ${alpha(colors.surface, 0.92)} 0%, ${alpha(accent || colors.primary, 0.08)} 100%)`,
+  boxShadow: `0 18px 40px ${alpha(colors.ink, 0.12)}`,
+  overflow: "hidden",
+  transition: "transform 0.35s ease, box-shadow 0.35s ease",
+  "&:before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: 4,
+    background: `linear-gradient(90deg, ${alpha(accent || colors.primary, 0.9)}, transparent)`
+  },
+  "&:after": {
+    content: '""',
+    position: "absolute",
+    right: -60,
+    top: -40,
+    width: 160,
+    height: 160,
+    borderRadius: "50%",
+    background: `radial-gradient(circle, ${alpha(accent || colors.primary, 0.25)} 0%, transparent 70%)`,
+    opacity: 0.8,
+    pointerEvents: "none"
+  },
+  "&:hover": {
+    transform: "translateY(-6px)",
+    boxShadow: `0 26px 55px ${alpha(colors.ink, 0.16)}`
+  }
+}));
+
+const EndpointMeta = styled(Box)(({ theme }) => ({
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+  gap: theme.spacing(1.5)
+}));
+
+const EndpointStat = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(1.2, 1.4),
+  borderRadius: 16,
+  background: alpha(colors.ink, 0.04),
+  border: `1px solid ${alpha(colors.ink, 0.08)}`,
+  display: "flex",
+  flexDirection: "column",
+  gap: 4
 }));
 
 const CredentialCard = styled(Paper)(({ theme }) => ({
@@ -244,15 +325,20 @@ const CopyButton = ({ value, tooltip = "Copy to clipboard" }) => {
 
 
 
-const PasswordField = ({ value }) => {
+const PasswordField = ({ value, size = "default" }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const isCompact = size === "compact";
 
   return (
     <Box sx={{ display: "flex", alignItems: "center" }}>
       <Typography
         variant="body1"
         fontWeight={600}
-        sx={{ fontFamily: '"IBM Plex Mono", "SFMono-Regular", Menlo, monospace' }}
+        sx={{
+          fontFamily: '"IBM Plex Mono", "SFMono-Regular", Menlo, monospace',
+          fontSize: isCompact ? "0.95rem" : "1rem",
+          color: textColors.primary
+        }}
       >
         {showPassword ? value : "••••••••"}
       </Typography>
@@ -270,9 +356,10 @@ const PasswordField = ({ value }) => {
   );
 };
 
-const DetailRow = ({ icon, label, value, children, copyable = false, tone = colors.primary }) => {
+const DetailRow = ({ icon, label, value, children, copyable = false, tone = colors.primary, size = "default" }) => {
   const hasValue = value !== undefined && value !== null && value !== "";
   const isPrimitive = typeof value === "string" || typeof value === "number";
+  const isCompact = size === "compact";
 
   return (
     <Box
@@ -280,7 +367,7 @@ const DetailRow = ({ icon, label, value, children, copyable = false, tone = colo
         display: "flex",
         gap: 2,
         alignItems: "flex-start",
-        p: 1.5,
+        p: isCompact ? 1.2 : 1.5,
         borderRadius: 16,
         backgroundColor: alpha(tone, 0.06),
         border: `1px solid ${alpha(tone, 0.18)}`
@@ -291,8 +378,8 @@ const DetailRow = ({ icon, label, value, children, copyable = false, tone = colo
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: 38,
-          height: 38,
+          width: isCompact ? 34 : 38,
+          height: isCompact ? 34 : 38,
           borderRadius: 12,
           bgcolor: alpha(tone, 0.18),
           color: tone,
@@ -302,24 +389,29 @@ const DetailRow = ({ icon, label, value, children, copyable = false, tone = colo
         {icon}
       </Box>
       <Box sx={{ flex: 1 }}>
-        <Typography
-          variant="caption"
-          sx={{
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            color: alpha(colors.slate, 0.7),
-            fontWeight: 700,
-            display: "block",
-            mb: 0.5
-          }}
-        >
-          {label}
-        </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              textTransform: "uppercase",
+              letterSpacing: "0.18em",
+              color: textColors.tertiary,
+              fontWeight: 700,
+              display: "block",
+              mb: 0.5,
+              fontSize: isCompact ? "0.58rem" : "0.62rem"
+            }}
+          >
+            {label}
+          </Typography>
         {children}
         {!children && hasValue && (
           <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
             {isPrimitive ? (
-              <Typography variant="body1" fontWeight={600} sx={{ color: colors.ink }}>
+              <Typography
+                variant="body1"
+                fontWeight={600}
+                sx={{ color: textColors.primary, fontSize: isCompact ? "0.92rem" : "0.98rem", lineHeight: 1.6 }}
+              >
                 {value}
               </Typography>
             ) : (
@@ -393,12 +485,8 @@ const DevOpsInfoDisplay = ({ }) => {
             <WebIcon />
           </IconOrb>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" fontWeight={800} sx={{ color: colors.ink }}>
-              Web Platform Configuration
-            </Typography>
-            <Typography variant="body2" sx={{ color: alpha(colors.slate, 0.7) }}>
-              Environment, access, and runtime topology
-            </Typography>
+            <SectionTitle variant="h6">Web Platform Configuration</SectionTitle>
+            <SectionSubtitle variant="body2">Environment, access, and runtime topology</SectionSubtitle>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             {data.environmentType && (
@@ -671,12 +759,10 @@ const DevOpsInfoDisplay = ({ }) => {
             <DnsIcon />
           </IconOrb>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" fontWeight={800} sx={{ color: colors.ink }}>
-              Endpoints
-            </Typography>
-            <Typography variant="body2" sx={{ color: alpha(colors.slate, 0.7) }}>
+            <SectionTitle variant="h6">Endpoints</SectionTitle>
+            <SectionSubtitle variant="body2">
               {devOpsInfo.endpoints.length} configured access points
-            </Typography>
+            </SectionSubtitle>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <InfoBadge
@@ -707,151 +793,242 @@ const DevOpsInfoDisplay = ({ }) => {
                 const endpointUrl = endpoint.url || "";
                 const fullUrl = endpointUrl.startsWith('http') ? endpointUrl : `https://${endpointUrl}`;
                 const endpointTone = endpoint.isDns ? colors.success : colors.primary;
+                const credentialsCount = endpoint.credentials?.length || 0;
+                const stackCount = [
+                  endpoint.technologyStack?.frontendLanguage,
+                  endpoint.technologyStack?.backendLanguage,
+                  endpoint.technologyStack?.webServer,
+                  ...(endpoint.technologyStack?.databases || []),
+                  ...(endpoint.technologyStack?.frameworks || [])
+                ].filter(Boolean).length;
 
                 return (
-                  <EndpointCard key={index}>
-                    <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, justifyContent: "space-between" }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                        <IconOrb accent={endpointTone} sx={{ width: 42, height: 42 }}>
-                          {endpoint.isDns ? <DnsIcon /> : <PublicIcon />}
-                        </IconOrb>
-                        <Box>
-                          <ClickableText
-                            variant="subtitle1"
-                            onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
-                          >
-                            {endpoint.url}
-                          </ClickableText>
-                          <Typography variant="body2" sx={{ color: alpha(colors.slate, 0.7) }}>
+                  <EndpointCard key={index} accent={endpointTone}>
+                    <Box sx={{ display: "grid", gap: 2.5, position: "relative", zIndex: 1 }}>
+                      <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 2, justifyContent: "space-between" }}>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                          <IconOrb accent={endpointTone} sx={{ width: 46, height: 46 }}>
+                            {endpoint.isDns ? <DnsIcon /> : <PublicIcon />}
+                          </IconOrb>
+                          <Box>
+                          <SectionKicker variant="caption">Endpoint</SectionKicker>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                              <ClickableText
+                                variant="subtitle1"
+                                onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
+                              >
+                                {endpoint.url}
+                              </ClickableText>
+                              <CopyButton value={fullUrl} tooltip="Copy URL" />
+                            </Box>
+                          <SectionSubtitle variant="body2">
                             {endpoint.isDns ? "DNS record" : "Public address"}
-                          </Typography>
+                          </SectionSubtitle>
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1 }}>
+                          <InfoBadge
+                            label={endpoint.isDns ? "DNS" : "Public"}
+                            size="small"
+                            tone={endpointTone}
+                          />
+                          {credentialsCount > 0 && (
+                            <InfoBadge label="Secured" size="small" tone={colors.accent} />
+                          )}
+                          <Tooltip title="Open endpoint" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
+                              sx={{
+                                borderRadius: "10px",
+                                border: `1px solid ${alpha(endpointTone, 0.3)}`,
+                                color: endpointTone,
+                                bgcolor: alpha(colors.surface, 0.9)
+                              }}
+                            >
+                              <OpenInNewIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </Box>
                       </Box>
-                      <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1 }}>
-                        <InfoBadge
-                          label={endpoint.isDns ? "DNS" : "Public"}
-                          size="small"
-                          tone={endpointTone}
-                        />
-                        {endpoint.ip && (
-                          <>
-                            <InfoBadge
-                              label={endpoint.ip}
-                              size="small"
-                              tone={colors.slate}
-                              sx={{ cursor: "pointer" }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigator.clipboard.writeText(endpoint.ip);
-                              }}
-                            />
-                            <CopyButton value={endpoint.ip} tooltip="Copy IP" />
-                          </>
-                        )}
-                      </Box>
+
+                      <EndpointMeta>
+                        <EndpointStat>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: textColors.tertiary,
+                              fontWeight: 700,
+                              letterSpacing: "0.22em",
+                              textTransform: "uppercase",
+                              fontSize: "0.58rem"
+                            }}
+                          >
+                            IP Address
+                          </Typography>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                            <Typography
+                              variant="body1"
+                              fontWeight={700}
+                              sx={{ color: textColors.primary, letterSpacing: "-0.01em", fontSize: "0.98rem" }}
+                            >
+                              {endpoint.ip || "—"}
+                            </Typography>
+                            {endpoint.ip && <CopyButton value={endpoint.ip} tooltip="Copy IP" />}
+                          </Box>
+                        </EndpointStat>
+                        <EndpointStat>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: textColors.tertiary,
+                              fontWeight: 700,
+                              letterSpacing: "0.22em",
+                              textTransform: "uppercase",
+                              fontSize: "0.58rem"
+                            }}
+                          >
+                            Credentials
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            fontWeight={700}
+                            sx={{ color: textColors.primary, letterSpacing: "-0.01em", fontSize: "0.98rem" }}
+                          >
+                            {credentialsCount}
+                          </Typography>
+                        </EndpointStat>
+                        <EndpointStat>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: textColors.tertiary,
+                              fontWeight: 700,
+                              letterSpacing: "0.22em",
+                              textTransform: "uppercase",
+                              fontSize: "0.58rem"
+                            }}
+                          >
+                            Stack Items
+                          </Typography>
+                          <Typography
+                            variant="body1"
+                            fontWeight={700}
+                            sx={{ color: textColors.primary, letterSpacing: "-0.01em", fontSize: "0.98rem" }}
+                          >
+                            {stackCount}
+                          </Typography>
+                        </EndpointStat>
+                      </EndpointMeta>
+
+                      {hasTechStack && (
+                        <Box>
+                          <SectionKicker variant="overline" sx={{ mb: 1.5 }}>
+                            Technology Stack
+                          </SectionKicker>
+                          <Grid container spacing={1.5} sx={{ mb: 1 }}>
+                            {endpoint.technologyStack.frontendLanguage && (
+                              <Grid item xs={12} sm={6} md={3}>
+                                <DetailRow
+                                  icon={<CodeIcon />}
+                                  label="Frontend"
+                                  value={endpoint.technologyStack.frontendLanguage}
+                                  tone={colors.primary}
+                                />
+                              </Grid>
+                            )}
+                            {endpoint.technologyStack.backendLanguage && (
+                              <Grid item xs={12} sm={6} md={3}>
+                                <DetailRow
+                                  icon={<CodeIcon />}
+                                  label="Backend"
+                                  value={endpoint.technologyStack.backendLanguage}
+                                  tone={colors.primary}
+                                />
+                              </Grid>
+                            )}
+                            {endpoint.technologyStack.databases?.length > 0 && (
+                              <Grid item xs={12} sm={6} md={3}>
+                                <DetailRow
+                                  icon={<StorageIcon />}
+                                  label="Databases"
+                                  value={endpoint.technologyStack.databases.join(', ')}
+                                  tone={colors.primary}
+                                />
+                              </Grid>
+                            )}
+                            {endpoint.technologyStack.webServer && (
+                              <Grid item xs={12} sm={6} md={3}>
+                                <DetailRow
+                                  icon={<ComputerIcon />}
+                                  label="Web Server"
+                                  value={endpoint.technologyStack.webServer}
+                                  tone={colors.primary}
+                                />
+                              </Grid>
+                            )}
+                          </Grid>
+                        </Box>
+                      )}
+
+                      {endpoint.credentials?.length > 0 && (
+                        <Box>
+                          <SectionKicker variant="overline" sx={{ mb: 1.5 }}>
+                            Access Credentials
+                          </SectionKicker>
+                          <Grid container spacing={2}>
+                            {endpoint.credentials.map((cred, i) => (
+                              <Grid item xs={12} sm={6} key={i}>
+                                <CredentialCard>
+                                  {cred.description && (
+                                    <DetailRow
+                                      icon={<InfoIcon />}
+                                      label="Description"
+                                      tone={colors.secondary}
+                                      size="compact"
+                                      children={
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            bgcolor: alpha(colors.secondary, 0.08),
+                                            p: 1,
+                                            borderRadius: "10px",
+                                            border: `1px solid ${alpha(colors.secondary, 0.2)}`,
+                                            fontStyle: "italic",
+                                            fontSize: "0.9rem",
+                                            lineHeight: 1.6,
+                                            color: textColors.primary
+                                          }}
+                                        >
+                                          {cred.description}
+                                        </Typography>
+                                      }
+                                    />
+                                  )}
+                                  <Box sx={{ mt: cred.description ? 2 : 0, display: "grid", gap: 1.5 }}>
+                                    <DetailRow
+                                      icon={<KeyIcon />}
+                                      label="Username"
+                                      value={cred.username}
+                                      tone={colors.secondary}
+                                      size="compact"
+                                      copyable
+                                    />
+                                    <DetailRow
+                                      icon={<LockIcon />}
+                                      label="Password"
+                                      tone={colors.secondary}
+                                      size="compact"
+                                      children={<PasswordField value={cred.password} size="compact" />}
+                                    />
+                                  </Box>
+                                </CredentialCard>
+                              </Grid>
+                            ))}
+                          </Grid>
+                        </Box>
+                      )}
                     </Box>
-
-                    {hasTechStack && (
-                      <Box sx={{ mt: 2.5 }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1.5, color: colors.slate, fontWeight: 700 }}>
-                          Technology Stack
-                        </Typography>
-                        <Grid container spacing={1.5} sx={{ mb: 1 }}>
-                          {endpoint.technologyStack.frontendLanguage && (
-                            <Grid item xs={12} sm={6} md={3}>
-                              <DetailRow
-                                icon={<CodeIcon />}
-                                label="Frontend"
-                                value={endpoint.technologyStack.frontendLanguage}
-                                tone={colors.primary}
-                              />
-                            </Grid>
-                          )}
-                          {endpoint.technologyStack.backendLanguage && (
-                            <Grid item xs={12} sm={6} md={3}>
-                              <DetailRow
-                                icon={<CodeIcon />}
-                                label="Backend"
-                                value={endpoint.technologyStack.backendLanguage}
-                                tone={colors.primary}
-                              />
-                            </Grid>
-                          )}
-                          {endpoint.technologyStack.databases?.length > 0 && (
-                            <Grid item xs={12} sm={6} md={3}>
-                              <DetailRow
-                                icon={<StorageIcon />}
-                                label="Databases"
-                                value={endpoint.technologyStack.databases.join(', ')}
-                                tone={colors.primary}
-                              />
-                            </Grid>
-                          )}
-                          {endpoint.technologyStack.webServer && (
-                            <Grid item xs={12} sm={6} md={3}>
-                              <DetailRow
-                                icon={<ComputerIcon />}
-                                label="Web Server"
-                                value={endpoint.technologyStack.webServer}
-                                tone={colors.primary}
-                              />
-                            </Grid>
-                          )}
-                        </Grid>
-                      </Box>
-                    )}
-
-                    {endpoint.credentials?.length > 0 && (
-                      <Box sx={{ mt: 2.5 }}>
-                        <Typography variant="subtitle2" sx={{ mb: 1.5, color: colors.slate, fontWeight: 700 }}>
-                          Access Credentials
-                        </Typography>
-                        <Grid container spacing={2}>
-                          {endpoint.credentials.map((cred, i) => (
-                            <Grid item xs={12} sm={6} key={i}>
-                              <CredentialCard>
-                                {cred.description && (
-                                  <DetailRow
-                                    icon={<InfoIcon />}
-                                    label="Description"
-                                    tone={colors.secondary}
-                                    children={
-                                      <Typography
-                                        variant="body1"
-                                        sx={{
-                                          bgcolor: alpha(colors.secondary, 0.08),
-                                          p: 1,
-                                          borderRadius: "10px",
-                                          border: `1px solid ${alpha(colors.secondary, 0.2)}`,
-                                          fontStyle: "italic"
-                                        }}
-                                      >
-                                        {cred.description}
-                                      </Typography>
-                                    }
-                                  />
-                                )}
-                                <Box sx={{ mt: cred.description ? 2 : 0, display: "grid", gap: 1.5 }}>
-                                  <DetailRow
-                                    icon={<KeyIcon />}
-                                    label="Username"
-                                    value={cred.username}
-                                    tone={colors.secondary}
-                                    copyable
-                                  />
-                                  <DetailRow
-                                    icon={<LockIcon />}
-                                    label="Password"
-                                    tone={colors.secondary}
-                                    children={<PasswordField value={cred.password} />}
-                                  />
-                                </Box>
-                              </CredentialCard>
-                            </Grid>
-                          ))}
-                        </Grid>
-                      </Box>
-                    )}
                   </EndpointCard>
                 );
               })}
@@ -874,12 +1051,8 @@ const DevOpsInfoDisplay = ({ }) => {
             <FrameworkIcon />
           </IconOrb>
           <Box sx={{ flex: 1 }}>
-            <Typography variant="h6" fontWeight={800} sx={{ color: colors.ink }}>
-              Technology Stack
-            </Typography>
-            <Typography variant="body2" sx={{ color: alpha(colors.slate, 0.7) }}>
-              Platform architecture and components
-            </Typography>
+            <SectionTitle variant="h6">Technology Stack</SectionTitle>
+            <SectionSubtitle variant="body2">Platform architecture and components</SectionSubtitle>
           </Box>
           <IconButton
             size="small"
@@ -975,13 +1148,13 @@ const DevOpsInfoDisplay = ({ }) => {
     return (
       <Box sx={{ maxWidth: 1200, mx: "auto", p: 3 }}>
         <HeroCard>
-          <Typography variant="overline" sx={{ color: alpha(colors.slate, 0.7), letterSpacing: "0.2em" }}>
+          <Typography variant="overline" sx={{ color: textColors.tertiary, letterSpacing: "0.3em", fontSize: "0.6rem" }}>
             DEVOPS CONSOLE
           </Typography>
-          <Typography variant="h4" fontWeight={800} sx={{ mt: 1, color: colors.ink }}>
+          <Typography variant="h4" fontWeight={700} sx={{ mt: 1, color: textColors.primary }}>
             DevOps Configuration
           </Typography>
-          <Typography variant="body1" sx={{ mt: 1, color: alpha(colors.slate, 0.7) }}>
+          <Typography variant="body1" sx={{ mt: 1, color: textColors.secondary }}>
             Loading DevOps information...
           </Typography>
         </HeroCard>
@@ -1006,7 +1179,7 @@ const DevOpsInfoDisplay = ({ }) => {
             <Grid item xs={12} md={7}>
               <Typography
                 variant="overline"
-                sx={{ color: alpha(colors.slate, 0.7), letterSpacing: "0.25em", fontWeight: 700 }}
+                sx={{ color: textColors.tertiary, letterSpacing: "0.3em", fontWeight: 700, fontSize: "0.6rem" }}
               >
                 DEVOPS CONSOLE
               </Typography>
@@ -1014,11 +1187,11 @@ const DevOpsInfoDisplay = ({ }) => {
                 variant="h3"
                 sx={{
                   mt: 1,
-                  fontWeight: 800,
-                  color: colors.ink,
+                  fontWeight: 700,
+                  color: textColors.primary,
                   fontSize: { xs: "1.8rem", sm: "2.2rem", md: "2.6rem" },
-                  lineHeight: 1.2,
-                  letterSpacing: "-0.02em"
+                  lineHeight: 1.25,
+                  letterSpacing: "-0.015em"
                 }}
               >
                 DevOps Configuration
@@ -1027,8 +1200,8 @@ const DevOpsInfoDisplay = ({ }) => {
                 variant="body1"
                 sx={{
                   mt: 1.5,
-                  color: alpha(colors.slate, 0.72),
-                  fontSize: { xs: "0.95rem", md: "1.05rem" },
+                  color: textColors.secondary,
+                  fontSize: { xs: "0.95rem", md: "1rem" },
                   lineHeight: 1.7,
                   maxWidth: 560
                 }}
@@ -1051,34 +1224,70 @@ const DevOpsInfoDisplay = ({ }) => {
             <Grid item xs={12} md={5}>
               <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(2, 1fr)" }, gap: 2 }}>
                 <StatPill>
-                  <Typography variant="caption" sx={{ color: alpha(colors.slate, 0.7), fontWeight: 700 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: textColors.tertiary,
+                      fontWeight: 700,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      fontSize: "0.6rem"
+                    }}
+                  >
                     Endpoints
                   </Typography>
-                  <Typography variant="h5" fontWeight={800} sx={{ color: colors.ink }}>
+                  <Typography variant="h5" fontWeight={700} sx={{ color: textColors.primary }}>
                     {endpointCount}
                   </Typography>
                 </StatPill>
                 <StatPill>
-                  <Typography variant="caption" sx={{ color: alpha(colors.slate, 0.7), fontWeight: 700 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: textColors.tertiary,
+                      fontWeight: 700,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      fontSize: "0.6rem"
+                    }}
+                  >
                     IP Addresses
                   </Typography>
-                  <Typography variant="h5" fontWeight={800} sx={{ color: colors.ink }}>
+                  <Typography variant="h5" fontWeight={700} sx={{ color: textColors.primary }}>
                     {ipCount}
                   </Typography>
                 </StatPill>
                 <StatPill>
-                  <Typography variant="caption" sx={{ color: alpha(colors.slate, 0.7), fontWeight: 700 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: textColors.tertiary,
+                      fontWeight: 700,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      fontSize: "0.6rem"
+                    }}
+                  >
                     Credentials
                   </Typography>
-                  <Typography variant="h5" fontWeight={800} sx={{ color: colors.ink }}>
+                  <Typography variant="h5" fontWeight={700} sx={{ color: textColors.primary }}>
                     {credentialCount}
                   </Typography>
                 </StatPill>
                 <StatPill>
-                  <Typography variant="caption" sx={{ color: alpha(colors.slate, 0.7), fontWeight: 700 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: textColors.tertiary,
+                      fontWeight: 700,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      fontSize: "0.6rem"
+                    }}
+                  >
                     Sections Ready
                   </Typography>
-                  <Typography variant="h5" fontWeight={800} sx={{ color: colors.ink }}>
+                  <Typography variant="h5" fontWeight={700} sx={{ color: textColors.primary }}>
                     {[hasPlatform, endpointCount > 0, hasTech].filter(Boolean).length}/3
                   </Typography>
                 </StatPill>
