@@ -11,8 +11,6 @@ import {
     InputAdornment,
     IconButton,
     Tooltip,
-    Alert,
-    Fade,
     Grid,
     Avatar,
     FormControlLabel,
@@ -24,7 +22,6 @@ import {
 } from '@mui/material';
 import {
     Info as InfoIcon,
-    CheckCircle as CheckCircleIcon,
     Add as AddIcon,
     Remove as RemoveIcon,
     Code as CodeIcon,
@@ -32,7 +29,6 @@ import {
     Science as ScienceIcon,
     Tag as TagIcon,
     Numbers as NumbersIcon,
-    Error as ErrorIcon,
     Security as SecurityIcon,
     VerifiedUser as QualityIcon,
     Public as WebIcon,
@@ -41,6 +37,8 @@ import {
     Memory as HardwareIcon,
     AccountTree as BlockchainIcon
 } from '@mui/icons-material';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 import { createTheme, ThemeProvider, alpha } from '@mui/material/styles';
 import { createProject } from '../api/projects/createProject';
 import { useSocket } from '../context/SocketContext';
@@ -49,31 +47,49 @@ import { useUserId } from '../hooks/useUserId';
 const theme = createTheme({
     palette: {
         primary: {
-            main: '#6366f1',
-            light: '#818cf8',
-            dark: '#4f46e5',
+            main: '#2563eb',
+            light: '#60a5fa',
+            dark: '#1e40af',
         },
         secondary: {
-            main: '#8b5cf6',
-            light: '#a78bfa',
-            dark: '#7c3aed',
+            main: '#0f766e',
+            light: '#2dd4bf',
+            dark: '#115e59',
         },
         background: {
-            default: '#f8fafc',
+            default: '#f7f8fb',
             paper: '#ffffff',
         },
+        text: {
+            primary: '#0f172a',
+            secondary: '#475569',
+        }
     },
     shape: {
-        borderRadius: 12,
+        borderRadius: 14,
     },
+    typography: {
+        fontFamily: '"Manrope", "Segoe UI", sans-serif',
+        h4: {
+            fontWeight: 700,
+            letterSpacing: '-0.01em',
+        },
+        subtitle1: {
+            fontWeight: 500,
+        },
+        button: {
+            textTransform: 'none',
+            fontWeight: 600,
+        }
+    }
 });
 
 const platformColors = {
-    web: '#3b82f6',
-    mobile: '#ec4899',
+    web: '#2563eb',
+    mobile: '#0ea5e9',
     desktop: '#10b981',
     hardware: '#f59e0b',
-    blockchain: '#8b5cf6'
+    blockchain: '#0f172a'
 };
 
 const ProjectForm = () => {
@@ -103,8 +119,6 @@ const ProjectForm = () => {
         platform: false
     });
 
-    const [submitSuccess, setSubmitSuccess] = useState(false);
-    const [submitError, setSubmitError] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const user = useSession().session
    const userId = useUserId() 
@@ -172,9 +186,6 @@ const ProjectForm = () => {
             ...prev,
             [name]: name === 'letterNumber' ? value.replace(/[^0-9]/g, '') : value
         }));
-
-        // Clear any submit errors when user starts typing
-        if (submitError) setSubmitError(null);
 
         // Validation
         if (name === 'projectName') {
@@ -245,7 +256,7 @@ const ProjectForm = () => {
     const resetForm = () => {
         setFormData({
             projectName: '',
-            projectVersion: '',
+            projectVersion: '1.0.0',
             letterNumber: '',
             numberOfTests: 1,
             projectType: {
@@ -272,7 +283,6 @@ const ProjectForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        setSubmitError(null);
 
         // Check if at least one project type is selected
         const isProjectTypeSelected = formData.projectType.security || formData.projectType.quality;
@@ -296,6 +306,13 @@ const ProjectForm = () => {
                 projectType: !isProjectTypeSelected,
                 platform: !isPlatformSelected
             });
+            Swal.fire({
+                icon: 'warning',
+                title: 'Please review the form',
+                text: 'Some required fields are missing or invalid.',
+                confirmButtonText: 'Got it',
+                confirmButtonColor: theme.palette.primary.main
+            });
             setIsSubmitting(false);
             return;
         }
@@ -318,87 +335,74 @@ const ProjectForm = () => {
                 projectName : project.projectName
             } )
         
-            setSubmitSuccess(true);
             resetForm();
-
-            // Reset success message after 3 seconds
-            setTimeout(() => setSubmitSuccess(false), 3000);
+            Swal.fire({
+                icon: 'success',
+                title: 'Project created',
+                text: 'Your project has been created successfully.',
+                confirmButtonText: 'Continue',
+                confirmButtonColor: theme.palette.primary.main
+            });
         } catch (error) {
             console.error('Error creating project:', error);
-            setSubmitError(error.message || 'An error occurred while creating the project');
+            Swal.fire({
+                icon: 'error',
+                title: 'Create failed',
+                text: error.message || 'An error occurred while creating the project',
+                confirmButtonText: 'Ok',
+                confirmButtonColor: theme.palette.primary.main
+            });
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const textFieldSx = {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: 3,
+            bgcolor: '#f8fafc',
+            transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+            '& fieldset': {
+                borderColor: '#e2e8f0',
+            },
+            '&:hover fieldset': {
+                borderColor: '#cbd5f5',
+            },
+            '&.Mui-focused fieldset': {
+                borderColor: theme.palette.primary.main,
+                boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.12)}`
+            }
+        },
+        '& .MuiFormHelperText-root': {
+            marginLeft: 0
+        }
+    };
+
+    const sectionSx = {
+        p: 3,
+        borderRadius: 3,
+        bgcolor: '#f8fafc',
+        border: '1px solid',
+        borderColor: 'divider',
+        boxShadow: '0 2px 10px rgba(15, 23, 42, 0.06)'
     };
 
     return (
         <ThemeProvider theme={theme}>
             <Box sx={{
                 minHeight: '100vh',
-                background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #fae8ff 100%)',
+                background: 'linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)',
                 py: 8,
                 px: { xs: 2, sm: 4, md: 6 }
             }}>
                 <Container maxWidth="sm" sx={{ position: 'relative' }}>
-                    {/* Success Alert */}
-                    <Fade in={submitSuccess}>
-                        <Box sx={{
-                            mb: 4,
-                            position: 'absolute',
-                            top: -60,
-                            left: 0,
-                            right: 0,
-                            zIndex: 1
-                        }}>
-                            <Alert
-                                icon={<CheckCircleIcon fontSize="inherit" />}
-                                severity="success"
-                                onClose={() => setSubmitSuccess(false)}
-                                sx={{
-                                    boxShadow: 3,
-                                    borderRadius: 2,
-                                    borderLeft: '4px solid',
-                                    borderColor: 'success.main'
-                                }}
-                            >
-                                Project created successfully!
-                            </Alert>
-                        </Box>
-                    </Fade>
-
-                    {/* Error Alert */}
-                    <Fade in={!!submitError}>
-                        <Box sx={{
-                            mb: 4,
-                            position: 'absolute',
-                            top: -60,
-                            left: 0,
-                            right: 0,
-                            zIndex: 1
-                        }}>
-                            <Alert
-                                icon={<ErrorIcon fontSize="inherit" />}
-                                severity="error"
-                                onClose={() => setSubmitError(null)}
-                                sx={{
-                                    boxShadow: 3,
-                                    borderRadius: 2,
-                                    borderLeft: '4px solid',
-                                    borderColor: 'error.main'
-                                }}
-                            >
-                                {submitError}
-                            </Alert>
-                        </Box>
-                    </Fade>
-
-                    <Paper elevation={8} sx={{
+                    <Paper elevation={0} sx={{
                         p: { xs: 3, sm: 4, md: 5 },
                         borderRadius: 4,
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        backdropFilter: 'blur(8px)',
+                        background: '#ffffff',
+                        boxShadow: '0 20px 40px rgba(15, 23, 42, 0.08)',
                         border: '1px solid',
-                        borderColor: alpha(theme.palette.primary.light, 0.3),
+                        borderColor: '#e2e8f0',
                         position: 'relative',
                         overflow: 'hidden',
                         '&:before': {
@@ -408,7 +412,7 @@ const ProjectForm = () => {
                             left: 0,
                             right: 0,
                             height: 6,
-                            background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)'
+                            background: 'linear-gradient(90deg, #2563eb 0%, #0f766e 100%)'
                         }
                     }}>
                         <Box sx={{ textAlign: 'center', mb: 4 }}>
@@ -427,8 +431,8 @@ const ProjectForm = () => {
                                 component="h1"
                                 sx={{
                                     fontWeight: 700,
-                                    letterSpacing: '0.5px',
-                                    background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)',
+                                    letterSpacing: '0.2px',
+                                    background: 'linear-gradient(90deg, #1e40af 0%, #0f766e 100%)',
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
                                     mb: 1
@@ -466,12 +470,9 @@ const ProjectForm = () => {
                                                 <InputAdornment position="start">
                                                     <PaletteIcon color={errors.projectName ? 'error' : 'action'} />
                                                 </InputAdornment>
-                                            ),
-                                            sx: {
-                                                borderRadius: 3,
-                                                bgcolor: 'background.paper'
-                                            }
+                                            )
                                         }}
+                                        sx={textFieldSx}
                                     />
                                 </Grid>
 
@@ -490,12 +491,9 @@ const ProjectForm = () => {
                                                 <InputAdornment position="start">
                                                     <TagIcon color={errors.projectVersion ? 'error' : 'action'} />
                                                 </InputAdornment>
-                                            ),
-                                            sx: {
-                                                borderRadius: 3,
-                                                bgcolor: 'background.paper'
-                                            }
+                                            )
                                         }}
+                                        sx={textFieldSx}
                                     />
                                 </Grid>
 
@@ -514,24 +512,17 @@ const ProjectForm = () => {
                                                 <InputAdornment position="start">
                                                     <NumbersIcon color={errors.letterNumber ? 'error' : 'action'} />
                                                 </InputAdornment>
-                                            ),
-                                            sx: {
-                                                borderRadius: 3,
-                                                bgcolor: 'background.paper',
-                                            }
+                                            )
                                         }}
+                                        sx={textFieldSx}
                                     />
                                 </Grid>
 
                                 {/* Project Type Selection */}
                                 <Grid item xs={12}>
                                     <Box sx={{
-                                        p: 3,
-                                        borderRadius: 3,
-                                        bgcolor: 'background.paper',
-                                        border: '1px solid',
-                                        borderColor: errors.projectType ? 'error.main' : 'divider',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                                        ...sectionSx,
+                                        borderColor: errors.projectType ? 'error.main' : 'divider'
                                     }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                                             <SecurityIcon color={errors.projectType ? 'error' : 'primary'} sx={{ mr: 1 }} />
@@ -544,7 +535,7 @@ const ProjectForm = () => {
                                         </Box>
 
                                         <FormControl error={errors.projectType} component="fieldset" variant="standard">
-                                            <FormGroup row sx={{ gap: { xs: 1, sm: 3 } }}>
+                                            <FormGroup row sx={{ gap: { xs: 1, sm: 2 } }}>
                                                 <FormControlLabel
                                                     control={
                                                         <Checkbox
@@ -573,7 +564,7 @@ const ProjectForm = () => {
                                                         borderRadius: 2,
                                                         border: '1px solid',
                                                         borderColor: formData.projectType.security ? 'primary.main' : 'divider',
-                                                        bgcolor: formData.projectType.security ? alpha(theme.palette.primary.light, 0.1) : 'background.paper',
+                                                        bgcolor: formData.projectType.security ? alpha(theme.palette.primary.light, 0.12) : '#ffffff',
                                                         transition: 'all 0.2s ease',
                                                         '&:hover': {
                                                             borderColor: formData.projectType.security ? 'primary.dark' : 'text.secondary'
@@ -609,7 +600,7 @@ const ProjectForm = () => {
                                                         borderRadius: 2,
                                                         border: '1px solid',
                                                         borderColor: formData.projectType.quality ? 'secondary.main' : 'divider',
-                                                        bgcolor: formData.projectType.quality ? alpha(theme.palette.secondary.light, 0.1) : 'background.paper',
+                                                        bgcolor: formData.projectType.quality ? alpha(theme.palette.secondary.light, 0.12) : '#ffffff',
                                                         transition: 'all 0.2s ease',
                                                         '&:hover': {
                                                             borderColor: formData.projectType.quality ? 'secondary.dark' : 'text.secondary'
@@ -629,12 +620,8 @@ const ProjectForm = () => {
                                 {/* Platform Selection */}
                                 <Grid item xs={12}>
                                     <Box sx={{
-                                        p: 3,
-                                        borderRadius: 3,
-                                        bgcolor: 'background.paper',
-                                        border: '1px solid',
-                                        borderColor: errors.platform ? 'error.main' : 'divider',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                                        ...sectionSx,
+                                        borderColor: errors.platform ? 'error.main' : 'divider'
                                     }}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                                             <WebIcon color={errors.platform ? 'error' : 'primary'} sx={{ mr: 1 }} />
@@ -680,7 +667,7 @@ const ProjectForm = () => {
                                                                 label={label}
                                                                 sx={{
                                                                     ml: 1,
-                                                                    bgcolor: formData.platform[platform] ? alpha(platformColors[platform], 0.1) : 'transparent',
+                                                                    bgcolor: formData.platform[platform] ? alpha(platformColors[platform], 0.1) : '#ffffff',
                                                                     color: formData.platform[platform] ? platformColors[platform] : 'text.primary',
                                                                     border: '1px solid',
                                                                     borderColor: formData.platform[platform] ? platformColors[platform] : 'divider',
@@ -695,7 +682,7 @@ const ProjectForm = () => {
                                                             borderRadius: 2,
                                                             border: '1px solid',
                                                             borderColor: formData.platform[platform] ? platformColors[platform] : 'divider',
-                                                            bgcolor: formData.platform[platform] ? alpha(platformColors[platform], 0.05) : 'background.paper',
+                                                            bgcolor: formData.platform[platform] ? alpha(platformColors[platform], 0.06) : '#ffffff',
                                                             transition: 'all 0.2s ease',
                                                             '&:hover': {
                                                                 borderColor: formData.platform[platform] ? platformColors[platform] : 'text.secondary',
@@ -715,14 +702,7 @@ const ProjectForm = () => {
                                 </Grid>
 
                                 <Grid item xs={12}>
-                                    <Box sx={{
-                                        p: 3,
-                                        borderRadius: 3,
-                                        bgcolor: 'background.paper',
-                                        border: '1px solid',
-                                        borderColor: 'divider',
-                                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
-                                    }}>
+                                    <Box sx={sectionSx}>
                                         <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                                             <ScienceIcon color="primary" sx={{ mr: 1 }} />
                                             <Typography variant="subtitle2" color="text.primary" sx={{ fontWeight: 600 }}>
@@ -739,10 +719,10 @@ const ProjectForm = () => {
                                                 onClick={decrementTests}
                                                 disabled={isSubmitting}
                                                 sx={{
-                                                    bgcolor: 'primary.light',
-                                                    color: 'primary.contrastText',
+                                                    bgcolor: alpha(theme.palette.primary.main, 0.12),
+                                                    color: 'primary.main',
                                                     '&:hover': {
-                                                        bgcolor: 'primary.main',
+                                                        bgcolor: alpha(theme.palette.primary.main, 0.2),
                                                     }
                                                 }}
                                             >
@@ -759,6 +739,9 @@ const ProjectForm = () => {
                                                 sx={{
                                                     flexGrow: 1,
                                                     color: 'primary.main',
+                                                    '& .MuiSlider-rail': {
+                                                        opacity: 0.25
+                                                    }
                                                 }}
                                             />
 
@@ -767,10 +750,10 @@ const ProjectForm = () => {
                                                 onClick={incrementTests}
                                                 disabled={isSubmitting}
                                                 sx={{
-                                                    bgcolor: 'primary.light',
-                                                    color: 'primary.contrastText',
+                                                    bgcolor: alpha(theme.palette.primary.main, 0.12),
+                                                    color: 'primary.main',
                                                     '&:hover': {
-                                                        bgcolor: 'primary.main',
+                                                        bgcolor: alpha(theme.palette.primary.main, 0.2),
                                                     }
                                                 }}
                                             >
@@ -794,10 +777,10 @@ const ProjectForm = () => {
                                                     }
                                                 }}
                                                 sx={{
+                                                    ...textFieldSx,
                                                     width: 180,
                                                     '& .MuiOutlinedInput-root': {
-                                                        borderRadius: 3,
-                                                        fontSize: '1rem',
+                                                        ...textFieldSx['& .MuiOutlinedInput-root'],
                                                         height: '48px'
                                                     }
                                                 }}
@@ -817,19 +800,19 @@ const ProjectForm = () => {
                                     size="large"
                                     disabled={isSubmitting}
                                     sx={{
-                                        py: 2,
+                                        py: 1.8,
                                         borderRadius: 3,
-                                        background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)',
-                                        boxShadow: '0 4px 6px rgba(99, 102, 241, 0.3)',
-                                        transition: 'all 0.3s ease',
+                                        background: 'primary.main',
+                                        boxShadow: '0 10px 20px rgba(37, 99, 235, 0.2)',
+                                        transition: 'all 0.25s ease',
                                         '&:hover': {
                                             transform: 'translateY(-2px)',
-                                            boxShadow: '0 6px 12px rgba(99, 102, 241, 0.4)',
-                                            background: 'linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%)',
+                                            boxShadow: '0 14px 26px rgba(37, 99, 235, 0.25)',
+                                            background: 'primary.dark',
                                         },
                                         '&:disabled': {
                                             opacity: 0.7,
-                                            background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)',
+                                            background: 'primary.main',
                                         }
                                     }}
                                     startIcon={<AddIcon />}
