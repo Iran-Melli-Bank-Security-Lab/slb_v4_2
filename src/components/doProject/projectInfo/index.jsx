@@ -26,6 +26,7 @@ import { getDevOpsInfo } from "../../../api/devops/getDevOpsInfo";
 import { useParams } from "react-router";
 import { useUserId } from "../../../hooks/useUserId";
 import "./endpoints.css";
+import "./platform.css";
 
 // Elevated palette and gradients
 const colors = {
@@ -412,14 +413,208 @@ const DevOpsInfoDisplay = ({ }) => {
     if (!devOpsInfo?.platformData?.web) return null;
 
     const data = devOpsInfo.platformData.web;
-    const hasAccessInfo = hasValue(data.accessInfo);
-    const hasVmInfo = hasValue(data.vmInfo);
-    const hasDockerInfo = hasValue(data.dockerInfo);
+    const accessItems = [];
+    const vmItems = [];
+    const dockerItems = [];
+
+    if (data.accessInfo?.address) {
+      accessItems.push({
+        label: "Address",
+        value: data.accessInfo.address,
+        icon: <PublicIcon />,
+        copyable: true
+      });
+    }
+    if (data.accessInfo?.port) {
+      accessItems.push({
+        label: "Port",
+        value: data.accessInfo.port,
+        icon: <SettingsIcon />
+      });
+    }
+    if (data.accessInfo?.username) {
+      accessItems.push({
+        label: "Username",
+        value: data.accessInfo.username,
+        icon: <KeyIcon />,
+        copyable: true
+      });
+    }
+    if (data.accessInfo?.password) {
+      accessItems.push({
+        label: "Password",
+        icon: <LockIcon />,
+        children: <PasswordField value={data.accessInfo.password} />
+      });
+    }
+    if (data.accessInfo?.notes) {
+      accessItems.push({
+        label: "Notes",
+        value: data.accessInfo.notes,
+        icon: <InfoIcon />
+      });
+    }
+
+    if (data.vmInfo?.vmName) {
+      vmItems.push({
+        label: "VM Name",
+        value: data.vmInfo.vmName,
+        icon: <ComputerIcon />,
+        copyable: true
+      });
+    }
+    if (data.vmInfo?.osType) {
+      vmItems.push({
+        label: "OS Type",
+        value: data.vmInfo.osType,
+        icon: <StorageIcon />
+      });
+    }
+    if (data.vmInfo?.hypervisor) {
+      vmItems.push({
+        label: "Hypervisor",
+        value: data.vmInfo.hypervisor,
+        icon: <SettingsIcon />
+      });
+    }
+    if (data.vmInfo?.sshKey) {
+      vmItems.push({
+        label: "SSH Key",
+        icon: <KeyIcon />,
+        children: <PasswordField value={data.vmInfo.sshKey} />
+      });
+    }
+    if (data.vmInfo?.snapshot) {
+      vmItems.push({
+        label: "Snapshot",
+        value: data.vmInfo.snapshot,
+        icon: <StorageIcon />
+      });
+    }
+
+    if (data.dockerInfo?.imageName) {
+      dockerItems.push({
+        label: "Image Name",
+        value: data.dockerInfo.imageName,
+        icon: <CloudIcon />,
+        copyable: true
+      });
+    }
+    if (data.dockerInfo?.containerName) {
+      dockerItems.push({
+        label: "Container Name",
+        value: data.dockerInfo.containerName,
+        icon: <SettingsIcon />,
+        copyable: true
+      });
+    }
+    if (data.dockerInfo?.ports?.length > 0) {
+      dockerItems.push({
+        label: "Ports",
+        value: data.dockerInfo.ports.join(", "),
+        icon: <StorageIcon />
+      });
+    }
+    if (data.dockerInfo?.volumes?.length > 0) {
+      dockerItems.push({
+        label: "Volumes",
+        value: data.dockerInfo.volumes.join(", "),
+        icon: <StorageIcon />
+      });
+    }
+    if (data.dockerInfo?.envVariables?.length > 0) {
+      dockerItems.push({
+        label: "Environment Variables",
+        icon: <CodeIcon />,
+        value: (
+          <Box className="platform-chip-list">
+            {data.dockerInfo.envVariables.map((env, i) => (
+              <span className="platform-chip" key={`${env}-${i}`}>
+                {env}
+              </span>
+            ))}
+          </Box>
+        )
+      });
+    }
+    if (data.dockerInfo?.network) {
+      dockerItems.push({
+        label: "Network",
+        value: data.dockerInfo.network,
+        icon: <PublicIcon />
+      });
+    }
+    if (data.dockerInfo?.dockerHost) {
+      dockerItems.push({
+        label: "Docker Host",
+        value: data.dockerInfo.dockerHost,
+        icon: <ComputerIcon />,
+        copyable: true
+      });
+    }
+
+    const hasAccessInfo = accessItems.length > 0;
+    const hasVmInfo = vmItems.length > 0;
+    const hasDockerInfo = dockerItems.length > 0;
 
     if (!hasAccessInfo && !hasVmInfo && !hasDockerInfo) return null;
 
+    const platformSections = [];
+    if (hasAccessInfo) {
+      platformSections.push({
+        key: "access",
+        title: "Access Layer",
+        subtitle: "Ingress & credentials",
+        tone: colors.secondary,
+        items: accessItems
+      });
+    }
+    if (hasVmInfo) {
+      platformSections.push({
+        key: "vm",
+        title: "Virtual Machine",
+        subtitle: "Host & virtualization details",
+        tone: colors.accent,
+        items: vmItems
+      });
+    }
+    if (hasDockerInfo) {
+      platformSections.push({
+        key: "docker",
+        title: "Docker Runtime",
+        subtitle: "Images, containers & network",
+        tone: colors.primary,
+        items: dockerItems
+      });
+    }
+
+    const PlatformField = ({ icon, label, value, children, copyable, tone }) => {
+      const isPrimitive = typeof value === "string" || typeof value === "number";
+
+      return (
+        <Box className="platform-field" style={{ "--tone": tone, "--toneSoft": alpha(tone, 0.12) }}>
+          <Box className="platform-field-icon">{icon}</Box>
+          <Box className="platform-field-body">
+            <span className="platform-field-label">{label}</span>
+            <Box className="platform-field-value">
+              {children ? (
+                children
+              ) : isPrimitive ? (
+                <Typography component="span" className="platform-field-text">
+                  {value}
+                </Typography>
+              ) : (
+                value
+              )}
+              {copyable && isPrimitive && <CopyButton value={value} />}
+            </Box>
+          </Box>
+        </Box>
+      );
+    };
+
     return (
-      <SectionCard accent={colors.primary}>
+      <SectionCard accent={colors.primary} className="platform-card">
         <SectionHeader accent={colors.primary} onClick={() => toggleSection('platform')}>
           <IconOrb accent={colors.primary}>
             <WebIcon />
@@ -452,236 +647,73 @@ const DevOpsInfoDisplay = ({ }) => {
         </SectionHeader>
 
         <Collapse in={expandedSections.platform}>
-          <SectionBody>
-            <Box sx={{ display: "grid", gap: 2 }}>
-              <DetailRow
-                icon={<SettingsIcon />}
-                label="Environment Type"
-                value={data.environmentType}
-                tone={colors.primary}
-              />
+          <SectionBody className="platform-body">
+            <Box className="platform-layout">
+              <Box className="platform-banner">
+                <Box className="platform-banner-main">
+                  <span className="platform-banner-kicker">Web Platform</span>
+                  <span className="platform-banner-title">
+                    {data.environmentType || "Environment not set"}
+                  </span>
+                  <span className="platform-banner-subtitle">Environment Type</span>
+                </Box>
+                <Box className="platform-banner-side">
+                  <Box className="platform-banner-metrics">
+                    <Box className="platform-metric">
+                      <span className="platform-metric-label">Access</span>
+                      <span className="platform-metric-value">{accessItems.length}</span>
+                    </Box>
+                    <Box className="platform-metric">
+                      <span className="platform-metric-label">VM</span>
+                      <span className="platform-metric-value">{vmItems.length}</span>
+                    </Box>
+                    <Box className="platform-metric">
+                      <span className="platform-metric-label">Docker</span>
+                      <span className="platform-metric-value">{dockerItems.length}</span>
+                    </Box>
+                  </Box>
+                  <Box className="platform-banner-tags">
+                    {hasAccessInfo && <span className="platform-tag platform-tag-success">Access Ready</span>}
+                    {hasVmInfo && <span className="platform-tag platform-tag-accent">VM Ready</span>}
+                    {hasDockerInfo && <span className="platform-tag platform-tag-primary">Docker Ready</span>}
+                  </Box>
+                </Box>
+              </Box>
 
-            {hasAccessInfo && (
-              <>
-                <Typography variant="subtitle2" sx={{ mt: 3, mb: 2, color: colors.secondary, fontWeight: 700 }}>
-                  Access Information
-                </Typography>
-                <Grid container spacing={2}>
-                  {data.accessInfo.address && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<PublicIcon />}
-                        label="Address"
-                        value={data.accessInfo.address}
-                        tone={colors.secondary}
-                        copyable
-                      />
-                    </Grid>
-                  )}
-                  {data.accessInfo.port && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<SettingsIcon />}
-                        label="Port"
-                        value={data.accessInfo.port}
-                        tone={colors.secondary}
-                      />
-                    </Grid>
-                  )}
-                  {data.accessInfo.username && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<KeyIcon />}
-                        label="Username"
-                        value={data.accessInfo.username}
-                        tone={colors.secondary}
-                        copyable
-                      />
-                    </Grid>
-                  )}
-                  {data.accessInfo.password && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<LockIcon />}
-                        label="Password"
-                        tone={colors.secondary}
-                        children={<PasswordField value={data.accessInfo.password} />}
-                      />
-                    </Grid>
-                  )}
-                  {data.accessInfo.notes && (
-                    <Grid item xs={12}>
-                      <DetailRow
-                        icon={<InfoIcon />}
-                        label="Notes"
-                        value={data.accessInfo.notes}
-                        tone={colors.secondary}
-                      />
-                    </Grid>
-                  )}
-                </Grid>
-              </>
-            )}
-
-            {hasVmInfo && (
-              <>
-                <Typography variant="subtitle2" sx={{ mt: 3, mb: 2, color: colors.accent, fontWeight: 700 }}>
-                  Virtual Machine Details
-                </Typography>
-                <Grid container spacing={2}>
-                  {data.vmInfo.vmName && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<ComputerIcon />}
-                        label="VM Name"
-                        value={data.vmInfo.vmName}
-                        tone={colors.accent}
-                        copyable
-                      />
-                    </Grid>
-                  )}
-                  {data.vmInfo.osType && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<StorageIcon />}
-                        label="OS Type"
-                        value={data.vmInfo.osType}
-                        tone={colors.accent}
-                      />
-                    </Grid>
-                  )}
-                  {data.vmInfo.hypervisor && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<SettingsIcon />}
-                        label="Hypervisor"
-                        value={data.vmInfo.hypervisor}
-                        tone={colors.accent}
-                      />
-                    </Grid>
-                  )}
-                  {data.vmInfo.sshKey && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<KeyIcon />}
-                        label="SSH Key"
-                        tone={colors.accent}
-                        children={<PasswordField value={data.vmInfo.sshKey} />}
-                      />
-                    </Grid>
-                  )}
-                  {data.vmInfo.snapshot && (
-                    <Grid item xs={12}>
-                      <DetailRow
-                        icon={<StorageIcon />}
-                        label="Snapshot"
-                        value={data.vmInfo.snapshot}
-                        tone={colors.accent}
-                      />
-                    </Grid>
-                  )}
-                </Grid>
-              </>
-            )}
-
-            {hasDockerInfo && (
-              <>
-                <Typography variant="subtitle2" sx={{ mt: 3, mb: 2, color: colors.primary, fontWeight: 700 }}>
-                  Docker Configuration
-                </Typography>
-                <Grid container spacing={2}>
-                  {data.dockerInfo.imageName && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<CloudIcon />}
-                        label="Image Name"
-                        value={data.dockerInfo.imageName}
-                        tone={colors.primary}
-                        copyable
-                      />
-                    </Grid>
-                  )}
-                  {data.dockerInfo.containerName && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<SettingsIcon />}
-                        label="Container Name"
-                        value={data.dockerInfo.containerName}
-                        tone={colors.primary}
-                        copyable
-                      />
-                    </Grid>
-                  )}
-                  {data.dockerInfo.ports?.length > 0 && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<StorageIcon />}
-                        label="Ports"
-                        value={data.dockerInfo.ports.join(', ')}
-                        tone={colors.primary}
-                      />
-                    </Grid>
-                  )}
-                  {data.dockerInfo.volumes?.length > 0 && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<StorageIcon />}
-                        label="Volumes"
-                        value={data.dockerInfo.volumes.join(', ')}
-                        tone={colors.primary}
-                      />
-                    </Grid>
-                  )}
-                  {data.dockerInfo.envVariables?.length > 0 && (
-                    <Grid item xs={12}>
-                      <DetailRow
-                        icon={<CodeIcon />}
-                        label="Environment Variables"
-                        tone={colors.primary}
-                        value={
-                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                            {data.dockerInfo.envVariables.map((env, i) => (
-                              <Chip
-                                key={i}
-                                label={env}
-                                size="small"
-                                sx={{
-                                  bgcolor: alpha(colors.secondary, 0.12),
-                                  color: colors.secondary,
-                                  border: `1px solid ${alpha(colors.secondary, 0.3)}`,
-                                  fontWeight: 600
-                                }}
-                              />
-                            ))}
-                          </Box>
-                        }
-                      />
-                    </Grid>
-                  )}
-                  {data.dockerInfo.network && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<PublicIcon />}
-                        label="Network"
-                        value={data.dockerInfo.network}
-                        tone={colors.primary}
-                      />
-                    </Grid>
-                  )}
-                  {data.dockerInfo.dockerHost && (
-                    <Grid item xs={12} sm={6}>
-                      <DetailRow
-                        icon={<ComputerIcon />}
-                        label="Docker Host"
-                        value={data.dockerInfo.dockerHost}
-                        tone={colors.primary}
-                        copyable
-                      />
-                    </Grid>
-                  )}
-                </Grid>
-              </>
-            )}
+              <Box className="platform-panels">
+                {platformSections.map((section, index) => (
+                  <Box
+                    key={section.key}
+                    className="platform-panel"
+                    style={{
+                      "--tone": section.tone,
+                      "--toneSoft": alpha(section.tone, 0.16),
+                      "--delay": `${index * 0.08}s`
+                    }}
+                  >
+                    <Box className="platform-panel-head">
+                      <Box className="platform-panel-title">
+                        <span className="platform-panel-kicker">{section.title}</span>
+                        <span className="platform-panel-subtitle">{section.subtitle}</span>
+                      </Box>
+                      <span className="platform-panel-count">{section.items.length}</span>
+                    </Box>
+                    <Box className="platform-fields">
+                      {section.items.map((item, i) => (
+                        <PlatformField
+                          key={`${section.key}-${item.label}-${i}`}
+                          icon={item.icon}
+                          label={item.label}
+                          value={item.value}
+                          children={item.children}
+                          copyable={item.copyable}
+                          tone={section.tone}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
             </Box>
           </SectionBody>
         </Collapse>
