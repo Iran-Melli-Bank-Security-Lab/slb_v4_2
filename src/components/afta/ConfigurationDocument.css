@@ -1,0 +1,156 @@
+/* استایل‌های اصلی سند */
+.document-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Vazir', 'Tahoma', 'Arial', sans-serif;
+  background-color: #fff;
+  direction: rtl;
+}
+
+/* استایل‌های هدر */
+.document-header {
+  text-align: center;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #333;
+  padding-bottom: 20px;
+}
+
+.title-bismillah {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #2c3e50;
+}
+
+.title-main {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #34495e;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.app-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 16px;
+  color: #555;
+}
+
+/* استایل‌های عنوان بخش‌ها */
+.section-title {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 25px 0 15px 0;
+  color: #2980b9;
+  border-right: 5px solid #3498db;
+  padding-right: 10px;
+}
+
+/* استایل‌های جداول */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.company-header {
+  background-color: #e9ecef;
+  font-size: 18px;
+  text-align: right;
+  padding: 10px 15px;
+}
+
+.product-row {
+  background-color: #f1f3f5;
+  font-weight: 500;
+}
+
+.product-data-row td {
+  background-color: #fff;
+  color: #666;
+}
+
+.tagging-description {
+  text-align: right;
+  padding: 15px;
+  background-color: #f8f9fa;
+}
+
+.tagging-placeholder {
+  min-height: 50px;
+  margin-top: 10px;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+}
+
+/* استایل بخش EAL */
+.eal-description {
+  font-size: 16px;
+  color: #555;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #f1f8ff;
+  border-radius: 5px;
+  border-right: 3px solid #3498db;
+}
+
+/* استایل‌های فوتر */
+.document-footer {
+  margin-top: 30px;
+  padding: 20px 0;
+}
+
+.empty-space {
+  height: 20px;
+  margin: 5px 0;
+  border-bottom: 1px dashed #aaa;
+}
+
+/* استایل‌های واکنش‌گرا */
+@media (max-width: 768px) {
+  .document-container {
+    padding: 10px;
+  }
+  
+  table {
+    font-size: 14px;
+  }
+  
+  th, td {
+    padding: 8px;
+  }
+  
+  .product-table, .configuration-table {
+    overflow-x: auto;
+    display: block;
+  }
+}
+
+@media print {
+  .document-container {
+    padding: 0;
+    max-width: 100%;
+  }
+  
+  .empty-space {
+    border-bottom: 1px solid #000;
+  }
+}
