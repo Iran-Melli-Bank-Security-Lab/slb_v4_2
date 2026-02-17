@@ -723,7 +723,14 @@ const DevOpsInfoDisplay = ({ }) => {
 
   const renderEndpoints = () => {
     if (!devOpsInfo?.endpoints?.length) return null;
-    const ultraClean = true;
+    const endpointCount = devOpsInfo.endpoints.length;
+    const credentialCount = devOpsInfo.endpoints.reduce(
+      (sum, endpoint) => sum + (endpoint.credentials?.length || 0),
+      0
+    );
+    const ipCount = devOpsInfo.endpoints.filter((endpoint) => endpoint.ip).length;
+    const dnsCount = devOpsInfo.endpoints.filter((endpoint) => endpoint.isDns).length;
+    const publicCount = endpointCount - dnsCount;
 
     return (
       <SectionCard accent={colors.accent} sx={{ mt: 3 }}>
@@ -759,143 +766,177 @@ const DevOpsInfoDisplay = ({ }) => {
         </SectionHeader>
 
         <Collapse in={expandedSections.endpoints}>
-          <SectionBody>
-            <Box className={ultraClean ? "endpoints-grid endpoints-ultra" : "endpoints-grid"}>
-              {devOpsInfo.endpoints.map((endpoint, index) => {
-                const endpointUrl = endpoint.url || "";
-                const fullUrl = endpointUrl.startsWith('http') ? endpointUrl : `https://${endpointUrl}`;
-                const endpointTone = endpoint.isDns ? colors.success : colors.primary;
-                const credentialsCount = endpoint.credentials?.length || 0;
-                const endpointGlow = alpha(endpointTone, 0.2);
-                const stackItems = [];
-
-                if (endpoint.technologyStack?.frontendLanguage) {
-                  stackItems.push(`Frontend • ${endpoint.technologyStack.frontendLanguage}`);
-                }
-                if (endpoint.technologyStack?.backendLanguage) {
-                  stackItems.push(`Backend • ${endpoint.technologyStack.backendLanguage}`);
-                }
-                if (endpoint.technologyStack?.webServer) {
-                  stackItems.push(`Server • ${endpoint.technologyStack.webServer}`);
-                }
-                (endpoint.technologyStack?.databases || []).forEach((db) => {
-                  stackItems.push(`DB • ${db}`);
-                });
-                (endpoint.technologyStack?.frameworks || []).forEach((fw) => {
-                  stackItems.push(`FW • ${fw}`);
-                });
-
-                return (
-                  <Box
-                    key={index}
-                    className="endpoint-card"
-                    style={{
-                      "--accent": endpointTone,
-                      "--accentGlow": endpointGlow,
-                      "--delay": `${index * 0.07}s`
-                    }}
-                  >
-                    <Box className="endpoint-top">
-                      <Box className="endpoint-icon">
-                        {endpoint.isDns ? <DnsIcon /> : <PublicIcon />}
-                      </Box>
-                      <Box className="endpoint-title">
-                        <span className="endpoint-kicker">Endpoint</span>
-                        <Box className="endpoint-url-row">
-                          <Typography
-                            className="endpoint-url"
-                            onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
-                          >
-                            {endpoint.url}
-                          </Typography>
-                          <CopyButton value={fullUrl} tooltip="Copy URL" />
-                        </Box>
-                        <span className="endpoint-subtitle">
-                          {endpoint.isDns ? "DNS record" : "Public address"}
-                        </span>
-                      </Box>
-                      <Box className="endpoint-actions">
-                        <span className="endpoint-badge" style={{ borderColor: endpointTone, color: endpointTone }}>
-                          {endpoint.isDns ? "DNS" : "Public"}
-                        </span>
-                        {credentialsCount > 0 && (
-                          <span className="endpoint-badge endpoint-badge-accent">Secured</span>
-                        )}
-                        <Tooltip title="Open endpoint" arrow>
-                          <IconButton
-                            size="small"
-                            onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
-                            className="endpoint-open"
-                          >
-                            <OpenInNewIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </Box>
-
-                    <Box className="endpoint-metrics">
-                      <Box className="endpoint-metric">
-                        <span className="metric-label">IP Address</span>
-                        <Box className="metric-value">
-                          <Typography component="span">{endpoint.ip || "—"}</Typography>
-                          {endpoint.ip && <CopyButton value={endpoint.ip} tooltip="Copy IP" />}
-                        </Box>
-                      </Box>
-                      <Box className="endpoint-metric">
-                        <span className="metric-label">Credentials</span>
-                        <Typography component="span">{credentialsCount}</Typography>
-                      </Box>
-                      <Box className="endpoint-metric">
-                        <span className="metric-label">Stack Items</span>
-                        <Typography component="span">{stackItems.length}</Typography>
-                      </Box>
-                    </Box>
-
-                    {stackItems.length > 0 && (
-                      <Box className="endpoint-section">
-                        <span className="endpoint-section-title">Technology Stack</span>
-                        <Box className="stack-tags">
-                          {stackItems.map((item, i) => (
-                            <span key={`${item}-${i}`} className="stack-tag">
-                              {item}
-                            </span>
-                          ))}
-                        </Box>
-                      </Box>
-                    )}
-
-                    {endpoint.credentials?.length > 0 && (
-                      <Box className="endpoint-section">
-                        <span className="endpoint-section-title">Access Credentials</span>
-                        <Box className="credential-grid">
-                          {endpoint.credentials.map((cred, i) => (
-                            <Box className="credential-card" key={i}>
-                              {cred.description && (
-                                <Box className="credential-desc">
-                                  {cred.description}
-                                </Box>
-                              )}
-                              <Box className="credential-row">
-                                <span className="credential-label">Username</span>
-                                <Box className="credential-value">
-                                  <Typography component="span">{cred.username}</Typography>
-                                  <CopyButton value={cred.username} tooltip="Copy username" />
-                                </Box>
-                              </Box>
-                              <Box className="credential-row">
-                                <span className="credential-label">Password</span>
-                                <Box className="credential-value">
-                                  <PasswordField value={cred.password} size="compact" />
-                                </Box>
-                              </Box>
-                            </Box>
-                          ))}
-                        </Box>
-                      </Box>
-                    )}
+          <SectionBody className="endpoints-body">
+            <Box className="endpoints-shell">
+              <Box className="endpoints-banner">
+                <Box className="endpoints-banner-main">
+                  <span className="endpoints-kicker">Network Surface</span>
+                  <span className="endpoints-title">Endpoints</span>
+                  <span className="endpoints-subtitle">
+                    {endpointCount} access points tracked across DNS and public gateways.
+                  </span>
+                </Box>
+                <Box className="endpoints-banner-stats">
+                  <Box className="endpoints-stat">
+                    <span className="endpoints-stat-label">Total</span>
+                    <span className="endpoints-stat-value">{endpointCount}</span>
                   </Box>
-                );
-              })}
+                  <Box className="endpoints-stat">
+                    <span className="endpoints-stat-label">IP Records</span>
+                    <span className="endpoints-stat-value">{ipCount}</span>
+                  </Box>
+                  <Box className="endpoints-stat">
+                    <span className="endpoints-stat-label">Credentials</span>
+                    <span className="endpoints-stat-value">{credentialCount}</span>
+                  </Box>
+                </Box>
+                <Box className="endpoints-banner-tags">
+                  <span className="endpoints-tag">DNS {dnsCount}</span>
+                  <span className="endpoints-tag">Public {publicCount}</span>
+                </Box>
+              </Box>
+
+              <Box className="endpoint-deck">
+                {devOpsInfo.endpoints.map((endpoint, index) => {
+                  const endpointUrl = endpoint.url || "";
+                  const fullUrl = endpointUrl.startsWith('http') ? endpointUrl : `https://${endpointUrl}`;
+                  const endpointTone = endpoint.isDns ? colors.success : colors.primary;
+                  const credentialsCount = endpoint.credentials?.length || 0;
+                  const endpointGlow = alpha(endpointTone, 0.2);
+                  const stackItems = [];
+
+                  if (endpoint.technologyStack?.frontendLanguage) {
+                    stackItems.push(`Frontend • ${endpoint.technologyStack.frontendLanguage}`);
+                  }
+                  if (endpoint.technologyStack?.backendLanguage) {
+                    stackItems.push(`Backend • ${endpoint.technologyStack.backendLanguage}`);
+                  }
+                  if (endpoint.technologyStack?.webServer) {
+                    stackItems.push(`Server • ${endpoint.technologyStack.webServer}`);
+                  }
+                  (endpoint.technologyStack?.databases || []).forEach((db) => {
+                    stackItems.push(`DB • ${db}`);
+                  });
+                  (endpoint.technologyStack?.frameworks || []).forEach((fw) => {
+                    stackItems.push(`FW • ${fw}`);
+                  });
+
+                  return (
+                    <Box
+                      key={index}
+                      className="endpoint-card"
+                      style={{
+                        "--accent": endpointTone,
+                        "--accentGlow": endpointGlow,
+                        "--delay": `${index * 0.07}s`
+                      }}
+                    >
+                      <Box className="endpoint-card-head">
+                        <Box className="endpoint-card-icon">
+                          {endpoint.isDns ? <DnsIcon /> : <PublicIcon />}
+                        </Box>
+                        <Box className="endpoint-card-title">
+                          <span className="endpoint-card-kicker">Endpoint</span>
+                          <Box className="endpoint-card-url-row">
+                            <Typography
+                              className="endpoint-card-url"
+                              onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
+                            >
+                              {endpoint.url}
+                            </Typography>
+                            <CopyButton value={fullUrl} tooltip="Copy URL" />
+                          </Box>
+                          <span className="endpoint-card-subtitle">
+                            {endpoint.isDns ? "DNS record" : "Public address"}
+                          </span>
+                        </Box>
+                        <Box className="endpoint-card-actions">
+                          <span className="endpoint-pill" style={{ borderColor: endpointTone, color: endpointTone }}>
+                            {endpoint.isDns ? "DNS" : "Public"}
+                          </span>
+                          {credentialsCount > 0 && (
+                            <span className="endpoint-pill endpoint-pill-secure">Secured</span>
+                          )}
+                          <Tooltip title="Open endpoint" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => window.open(fullUrl, '_blank', 'noopener,noreferrer')}
+                              className="endpoint-open"
+                            >
+                              <OpenInNewIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Box>
+
+                      <Box className="endpoint-quick">
+                        <Box className="endpoint-quick-item">
+                          <span className="endpoint-quick-label">IP Address</span>
+                          <Box className="endpoint-quick-value">
+                            <Typography component="span">{endpoint.ip || "—"}</Typography>
+                            {endpoint.ip && <CopyButton value={endpoint.ip} tooltip="Copy IP" />}
+                          </Box>
+                        </Box>
+                        <Box className="endpoint-quick-item">
+                          <span className="endpoint-quick-label">Credentials</span>
+                          <span className="endpoint-quick-value">{credentialsCount}</span>
+                        </Box>
+                        <Box className="endpoint-quick-item">
+                          <span className="endpoint-quick-label">Stack Items</span>
+                          <span className="endpoint-quick-value">{stackItems.length}</span>
+                        </Box>
+                      </Box>
+
+                      <Box className="endpoint-panel">
+                        <span className="endpoint-panel-title">Technology Stack</span>
+                        {stackItems.length > 0 ? (
+                          <Box className="endpoint-stack-list">
+                            {stackItems.map((item, i) => (
+                              <span key={`${item}-${i}`} className="endpoint-stack-pill">
+                                {item}
+                              </span>
+                            ))}
+                          </Box>
+                        ) : (
+                          <span className="endpoint-empty">No stack data provided.</span>
+                        )}
+                      </Box>
+
+                      <Box className="endpoint-panel">
+                        <span className="endpoint-panel-title">Access Credentials</span>
+                        {endpoint.credentials?.length > 0 ? (
+                          <Box className="endpoint-credentials">
+                            {endpoint.credentials.map((cred, i) => (
+                              <Box className="endpoint-credential" key={i}>
+                                {cred.description && (
+                                  <Box className="endpoint-credential-desc">
+                                    {cred.description}
+                                  </Box>
+                                )}
+                                <Box className="endpoint-credential-row">
+                                  <span className="endpoint-credential-label">Username</span>
+                                  <Box className="endpoint-credential-value">
+                                    <Typography component="span">{cred.username}</Typography>
+                                    <CopyButton value={cred.username} tooltip="Copy username" />
+                                  </Box>
+                                </Box>
+                                <Box className="endpoint-credential-row">
+                                  <span className="endpoint-credential-label">Password</span>
+                                  <Box className="endpoint-credential-value">
+                                    <PasswordField value={cred.password} size="compact" />
+                                  </Box>
+                                </Box>
+                              </Box>
+                            ))}
+                          </Box>
+                        ) : (
+                          <span className="endpoint-empty">No credentials stored.</span>
+                        )}
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Box>
             </Box>
           </SectionBody>
         </Collapse>
