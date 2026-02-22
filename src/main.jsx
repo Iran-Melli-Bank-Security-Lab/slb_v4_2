@@ -43,8 +43,8 @@ import Profile from './pages/UserProfile.jsx';
 import UserEditProfile from './pages/EditProfile.jsx';
 import ChangePassword from './pages/ChangePassword.jsx';
 import ManagementReport from './pages/AdminReport.jsx';
-import ConfigurationDocument from './pages/AftaConfig.jsx';
-import InterfaceDocument from './pages/InterfaceDocument.jsx';
+// import ConfigurationDocument from './pages/AftaConfig.jsx';
+// import InterfaceDocument from './pages/InterfaceDocument.jsx';
 
 const router = createBrowserRouter([
   {
@@ -163,14 +163,14 @@ const router = createBrowserRouter([
             path:"/change-password/:userId" , 
             Component:ChangePassword
           } ,
-          {
-            path:"/afta/config" , 
-            Component:ConfigurationDocument
-          }, 
-           {
-            path:"/afta/interface" , 
-            Component:InterfaceDocument
-          }
+          // {
+          //   path:"/afta/config" , 
+          //   Component:ConfigurationDocument
+          // }, 
+          //  {
+          //   path:"/afta/interface" , 
+          //   Component:InterfaceDocument
+          // }
       //     {
       //   path: "/users/reports/:projectId",
       //   Component: MainReport
