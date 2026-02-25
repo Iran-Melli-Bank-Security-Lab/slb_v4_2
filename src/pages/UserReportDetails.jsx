@@ -14,7 +14,6 @@ import {
   Error as ErrorIcon,
   Info as InfoIcon,
 } from "@mui/icons-material";
-import { format } from "date-fns";
 import { toast } from "react-toastify";
 import { deleteReportById } from "../api/bugs/deleteReportById";
 
@@ -79,6 +78,18 @@ const UserReportDetails = () => {
    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [reportToDelete, setReportToDelete] = useState(null);
   const navigate = useNavigate() 
+
+  const formatShamsiDate = (dateValue) => {
+    if (!dateValue) return "-";
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return "-";
+
+    return new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
+      year: "numeric",
+      month: "long",
+      day: "2-digit",
+    }).format(date);
+  };
 
   const handleDeleteClick =async (report) => {
     setReportToDelete(report);
@@ -387,16 +398,11 @@ const UserReportDetails = () => {
                             d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                           />
                         </svg>
-                        <div>
+                        <div dir="rtl" className="text-right">
                           <span className="font-medium text-gray-700">
-                            Created:{" "}
+                            ایجاد شده:{" "}
                           </span>
-                          <span>
-                            {format(
-                              new Date(reports.created_at),
-                              "MMM dd, yyyy HH:mm"
-                            )}
-                          </span>
+                          <span>{formatShamsiDate(reports.created_at)}</span>
                         </div>
                       </div>
                     )}
@@ -416,16 +422,11 @@ const UserReportDetails = () => {
                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                           />
                         </svg>
-                        <div>
+                        <div dir="rtl" className="text-right">
                           <span className="font-medium text-gray-700">
-                            Updated:{" "}
+                            به‌روزرسانی شده:{" "}
                           </span>
-                          <span>
-                            {format(
-                              new Date(reports.updated_at),
-                              "MMM dd, yyyy HH:mm"
-                            )}
-                          </span>
+                          <span>{formatShamsiDate(reports.updated_at)}</span>
                         </div>
                       </div>
                     )}
