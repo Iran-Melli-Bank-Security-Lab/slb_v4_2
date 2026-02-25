@@ -91,6 +91,24 @@ const UserReportDetails = () => {
     }).format(date);
   };
 
+  const backendURL = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+  const getPocFileUrl = (poc) => {
+    const rawPath = poc?.path || poc?.url;
+    if (!rawPath || typeof rawPath !== "string") return null;
+    if (/^https?:\/\//i.test(rawPath)) return rawPath;
+    return `${backendURL}/${rawPath.replace(/^\/+/, "")}`;
+  };
+
+  const handlePocPreview = (poc) => {
+    const fileUrl = getPocFileUrl(poc);
+    if (!fileUrl) {
+      toast.error("مسیر فایل پیدا نشد");
+      return;
+    }
+    window.open(fileUrl, "_blank", "noopener,noreferrer");
+  };
+
   const handleDeleteClick =async (report) => {
     setReportToDelete(report);
     setDeleteModalOpen(true);
@@ -288,12 +306,9 @@ const UserReportDetails = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                         {reports.pocs.map((poc, index) => (
                           <button
+                            type="button"
                             key={index}
-                            onClick={() => {
-                              toast.info(
-                                `File ${poc.originalname} cannot be displayed in demo mode`
-                              );
-                            }}
+                            onClick={() => handlePocPreview(poc)}
                             className="flex items-center px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200 transition-colors"
                           >
                             <CloudUploadIcon className="text-gray-500 mr-2" />
