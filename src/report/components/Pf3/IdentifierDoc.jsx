@@ -44,7 +44,7 @@ const IdentifierDoc = ({ project  }) => {
                 textAlign: 'center',
               }}
             >
-              <span className="s2identifier" >SLB-W-0309222900110603</span>
+              <span className="s2identifier" >{project?.identifier?.docId}</span>
             </p>
           </td>
           
