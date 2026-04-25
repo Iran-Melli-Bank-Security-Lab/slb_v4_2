@@ -16,6 +16,7 @@ const faDate = (v) => {
 const IdentifierDoc = ({ project  }) => {
 
 
+  console.log("project in line 19 : " , project.identifier.docId )
   return (
 
     <table style={{ backgroundColor:"white",borderCollapse: 'collapse', marginLeft: '3pt' }} cellSpacing="0">

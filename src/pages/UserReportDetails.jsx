@@ -263,18 +263,18 @@ const UserReportDetails = () => {
 
                 <div className="space-y-4">
                   {reports.impact && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-800 mb-2">
-                        Impact
+                    <div dir="rtl" className="text-right">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">
+                        تاثیر
                       </h3>
                       {renderRtlText(reports.impact)}
                     </div>
                   )}
 
                   {reports.solutions && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-800 mb-2">
-                        Solutions
+                    <div dir="rtl" className="text-right">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">
+                        راهکارها
                       </h3>
                       {renderRtlText(reports.solutions)}
                     </div>
@@ -326,9 +326,9 @@ const UserReportDetails = () => {
                   )}
 
                   {reports.exploits && (
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-800 mb-2">
-                        Exploit
+                    <div dir="rtl" className="text-right">
+                      <h3 className="text-xl font-bold text-gray-800 mb-2">
+                        بهره‌برداری
                       </h3>
                       {renderRtlText(reports.exploits)}
                     </div>

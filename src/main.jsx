@@ -12,6 +12,9 @@ const Projects = lazy(() => import('./pages/Projects'));
 const Managing = lazy(() => import('./pages/Managing'));
 const SignInPage = lazy(() => import('./pages/signIn'));
 
+import AuditTable from './pages/Table.jsx';
+
+
 const MainReport = lazy(() => import("./report/MainReport.jsx"))
 import { Provider } from 'react-redux';
 import store from "./store"
@@ -162,6 +165,10 @@ const router = createBrowserRouter([
           {
             path:"/change-password/:userId" , 
             Component:ChangePassword
+          } ,
+           {
+            path:"/table" , 
+            Component:AuditTable
           } ,
           // {
           //   path:"/afta/config" , 
