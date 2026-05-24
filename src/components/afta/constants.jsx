@@ -8,16 +8,27 @@ export const COLUMN_CONTENTS = {
     ),
     USER_INFO: (
         <p style={{ fontSize: '12pt', margin: 0, lineHeight: '1.5' }}>
-            اطلاعات کاربری سیستم
+            مشخصاتی که در رکوردهای ممیزی وجود دارد مشخص شود
             <span style={{ fontSize: '11pt' }}>.</span>
         </p>
     ),
-    SYSTEM_STATUS: (
+    FOUR: (
         <p style={{ fontSize: '12pt', margin: 0, lineHeight: '1.5' }}>
-            وضعیت سلامت سرور
-            <span style={{ fontSize: '11pt' }}>.</span>
+            مواردی كه در ركوردهای ممیزی وجود دارند، مشخص شوند            
+            
+             <span style={{ fontSize: '11pt' }}>.</span>
         </p>
     ),
+FIVE:(
+ <p style={{ fontSize: '12pt', margin: 0, lineHeight: '1.5' }}>
+
+مواردی كه بر اساس آنها مرتب‌سازی وجود دارد، مشخص شود 
+
+             <span style={{ fontSize: '11pt' }}>.</span>
+        </p>
+), 
+
+
 };
 
 
@@ -49,3 +60,34 @@ export const TABLE_ROWS_DATA = [
     { id: 'row_24', text: 'خاتمه به نشست غیرفعال توسط مدیر سیستم' },
     { id: 'row_25', text: 'سایر موارد' }
 ];
+export const TABLE_ROWS_DATA2 = [
+    { id: 'row_1', text: 'تاریخ و زمان رویداد' },
+    { id: 'row_2', text: 'نوع رویداد' },
+    { id: 'row_3', text: 'هویت ایجاد کننده رویداد' },
+    { id: 'row_4', text: 'نتیجه رویداد' },
+    { id: 'row_5', text: 'آدرس IP ایجاد کننده رویداد' },
+    { id: 'row_6', text: 'سایر موارد' },
+
+];
+
+export const TABLE_ROWS_DATA4 = [
+    { id: 'row_1', text: 'عدم وجود داده نامفهوم در ركوردها' },
+    { id: 'row_2', text: 'عدم وجود فیلدهای نامرتبط' },
+    { id: 'row_3', text: 'وجود داده معتبر و مناسب در هر فیلد' },
+    
+
+];
+export const TABLE_ROWS_DATA5 = [
+   { id: 'row_1', text: 'هویت موجودیت فعال' },
+    { id: 'row_2', text: 'نوع حساب كاربری' },
+    { id: 'row_3', text: 'تاریخ / زمان' },
+    { id: 'row_4', text:  'روش اتصال كاربر'},
+    { id: 'row_5', text: 'نوع رخداد' },
+    { id: 'row_6', text: 'مکان رویداد'},
+    { id: 'row_7', text: 'سایر موارد' },
+
+
+];
+
+
+

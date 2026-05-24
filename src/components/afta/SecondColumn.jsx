@@ -1,6 +1,6 @@
 import React from 'react';
 
-const SecondColumn = ({children}) => {
+const SecondColumn = ({children , rowSpan=26}) => {
   // We define the styles once to keep the JSX clean
   const styles = {
     tdBase: {
@@ -13,7 +13,7 @@ const SecondColumn = ({children}) => {
 
    return (
     <tr>
-      <td rowSpan={26} style={{ ...styles.tdBase, width: '109px' }}>
+      <td rowSpan={rowSpan} style={{ ...styles.tdBase, width: '109px' }}>
         {children} 
       </td>
     </tr>

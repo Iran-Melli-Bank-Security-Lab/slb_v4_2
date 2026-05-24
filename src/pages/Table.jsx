@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import TableRowHeader from '../components/afta/TableRowHeader';
 import SecondColumn from '../components/afta/SecondColumn';
 import SecondTable from '../components/afta/SecondTable';
-import { COLUMN_CONTENTS, TABLE_ROWS_DATA } from '../components/afta/constants';
+import { COLUMN_CONTENTS, TABLE_ROWS_DATA, TABLE_ROWS_DATA2, TABLE_ROWS_DATA4, TABLE_ROWS_DATA5 } from '../components/afta/constants';
 
 
 
@@ -52,7 +52,7 @@ const AuditTable = () => {
                     </td>
                 </tr>
 
-                <TableRowHeader>
+                <TableRowHeader rowSpan={27} number={1} colSpan={3}>
                     <p className="western" style={{ orphans: 2, widows: 2, textIndent: '0in', marginLeft: '0in' }}>
                         <font face="B Nazanin" size="3" style={{ fontSize: '12pt' }}>
                             <span lang="ar-SA"><b>محصول باید برای موارد مشخص شده كه در ذیل آمده است، ركورد ممیزی تولید كند </b></span>
@@ -78,7 +78,120 @@ const AuditTable = () => {
                         onToggle={() => handleCheckboxChange(row.id)}
                     />
                 ))}
-                
+
+
+                <TableRowHeader rowSpan={8} number={2} colSpan={3}>
+                    <p className="western" style={{ orphans: 2, widows: 2, textIndent: '0in', marginLeft: '0in' }}>
+                        <font face="B Nazanin" size="3" style={{ fontSize: '12pt' }}>
+                            <span lang="ar-SA"><b>محصول باید برای هر ركورد ممیزی تولید شده، مشخصاتی كه درذیل آمده است را</b></span>
+                        </font>
+                        <font face="B Nazanin" size="3" style={{ fontSize: '12pt' }}>
+                            <span lang="ar-SA"><b>ثبت نماید.</b></span>
+                        </font>
+                    </p>
+
+                </TableRowHeader>
+
+                <SecondColumn rowSpan={7}>
+                    {COLUMN_CONTENTS.USER_INFO}
+                </SecondColumn>
+
+                {TABLE_ROWS_DATA2.map((row) => (
+                    <SecondTable
+                        key={row.id}
+                        text={row.text}
+                        isChecked={!!checkedRows[row.id]}
+                        onToggle={() => handleCheckboxChange(row.id)}
+                    />
+                ))}
+
+                <TableRowHeader rowSpan={2} number={3} colSpan={3}>
+                    <p className="western" style={{ orphans: 2, widows: 2, textIndent: '0in', marginLeft: '0in' }}>
+                        <font face="B Nazanin" size="3" style={{ fontSize: '12pt' }}>
+                            <span lang="ar-SA"><b>
+                                محصول باید ركوردهای ممیزی را در برابر دسترسی غیرمجاز محافظت نماید .
+
+                            </b></span>
+                        </font>
+
+                    </p>
+
+                </TableRowHeader>
+
+
+                <SecondColumn rowSpan={1}>
+
+                </SecondColumn>
+
+                <TableRowHeader rowSpan={5} number={4} >
+                    <p className="western" style={{ orphans: 2, widows: 2, textIndent: '0in', marginLeft: '0in' }}>
+                        <font face="B Nazanin" size="3" style={{ fontSize: '12pt' }}>
+                            <span lang="ar-SA"><b>محصول باید برای هر ركورد ممیزی تولید شده، مشخصاتی كه درذیل آمده است را</b></span>
+                        </font>
+                        <font face="B Nazanin" size="3" style={{ fontSize: '12pt' }}>
+                            <span lang="ar-SA"><b>ثبت نماید.</b></span>
+                        </font>
+                    </p>
+
+                </TableRowHeader>
+
+                <SecondColumn rowSpan={4}>
+                    {COLUMN_CONTENTS.FOUR}
+                </SecondColumn>
+
+                {TABLE_ROWS_DATA4.map((row) => (
+                    <SecondTable
+                        key={row.id}
+                        text={row.text}
+                        isChecked={!!checkedRows[row.id]}
+                        onToggle={() => handleCheckboxChange(row.id)}
+                    />
+                ))}
+
+                <TableRowHeader rowSpan={9} number={5} colSpan={3}>
+                    <p className="western" style={{ orphans: 2, widows: 2, textIndent: '0in', marginLeft: '0in' }}>
+                        <font face="B Nazanin" size="3" style={{ fontSize: '12pt' }}>
+                            <span lang="ar-SA"><b>
+                                محصول باید امكان انتخاب و مرتب‌سازی برای ركوردهای ممیزی تولید شده
+                                را بر اساس فیلدها و پارامترهای مختلف، برای كاربر مجاز فراهم نماید .
+
+                            </b></span>
+                        </font>
+
+                    </p>
+
+                </TableRowHeader>
+
+                <SecondColumn rowSpan={9}>
+                    {COLUMN_CONTENTS.FIVE}
+                </SecondColumn>
+
+ {TABLE_ROWS_DATA5.map((row) => (
+                    <SecondTable
+                        key={row.id}
+                        text={row.text}
+                        isChecked={!!checkedRows[row.id]}
+                        onToggle={() => handleCheckboxChange(row.id)}
+                    />
+                ))}
+
+                <TableRowHeader rowSpan={5} number={6} >
+                    <p className="western" style={{ orphans: 2, widows: 2, textIndent: '0in', marginLeft: '0in' }}>
+                        <font face="B Nazanin" size="3" style={{ fontSize: '12pt' }}>
+                            <span lang="ar-SA"><b>
+                                
+                                محصول باید هرگونه حذف و تغییر غیرمجاز در ركوردهای ممیزی راتشخیص دهد و در صورت امكان جلوگیری نماید 
+                                
+                                </b></span>
+                        </font>
+                        
+                    </p>
+
+                </TableRowHeader>
+
+
+
+
             </tbody>
         </table>
 

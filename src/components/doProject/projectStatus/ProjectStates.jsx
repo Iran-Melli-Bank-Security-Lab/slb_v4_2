@@ -189,27 +189,7 @@ const ProjcetStates = ({ statusComponents }) => {
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
 
-  // const handleSaveProjectDates = async (e) => {
 
-  //   try{
-  //   if (dateType === "start") {
-
-  //     const result =  await savaProjectDate(id , userId , startDate , "start")
-  //     toast.success("Sucessfully Updated Project Start Date!!")
-
-  //   } else {
-
-  //     const result = await savaProjectDate(id , userId , finishDate , "finish")
-  //     toast.success("Sucessfully Updated Project Finish Date!!")
-
-
-  //   }
-  // }catch(error){
-  //   console.log("error in line 196 : " , error.message )
-  // }
-  //   setDateModalOpen(false);
-
-  // }
   const handleSaveProjectDates = async (e) => {
     try {
       if (dateType === "start") {

@@ -16,7 +16,6 @@ const faDate = (v) => {
 const IdentifierDoc = ({ project  }) => {
 
 
- 
   return (
 
     <table style={{ backgroundColor:"white",borderCollapse: 'collapse', marginLeft: '3pt' }} cellSpacing="0">
